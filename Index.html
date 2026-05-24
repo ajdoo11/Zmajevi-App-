@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Zmajevi App</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Barlow+Condensed:wght@700;800;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0f1e;--bg2:#111827;--bg3:#1a2235;--bg4:#222f45;
+  --gold:#f5c518;--gold2:#e6b800;
+  --white:#f1f5ff;--gray:#7a8aaa;--gray2:#4a5568;
+  --red:#ff4757;--green:#2ed573;--blue:#4facfe;--purple:#a78bfa;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+}
+body{background:#060b14;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;font-family:'Inter',sans-serif;padding:24px 12px}
+input,textarea,button{font-family:'Inter',sans-serif}
+a{text-decoration:none;color:inherit}
+.phone{width:393px;height:852px;background:var(--bg);border-radius:52px;overflow:hidden;position:relative;
+  box-shadow:0 60px 120px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.08);
+  border:1.5px solid rgba(255,255,255,.06);display:flex;flex-direction:column}
+.screen{display:none;flex-direction:column;height:100%;overflow:hidden}
+.screen.active{display:flex}
+
+/* AUTH */
+#s-auth{background:linear-gradient(160deg,#0d1528 0%,#0a0f1e 60%);overflow-y:auto;padding:0 0 40px}
+.auth-hero{padding:52px 28px 28px;text-align:center}
+.auth-logo{width:76px;height:76px;border-radius:22px;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 18px;box-shadow:0 12px 40px rgba(245,197,24,.45)}
+.auth-appname{font-family:'Barlow Condensed',sans-serif;font-size:38px;font-weight:900;color:var(--gold);letter-spacing:5px}
+.auth-tagline{color:var(--gray);font-size:13px;margin-top:6px}
+.auth-body{padding:0 22px}
+.auth-tabs{display:flex;background:var(--bg3);border-radius:16px;padding:4px;margin-bottom:22px;border:1px solid var(--border)}
+.atab{flex:1;padding:12px;border-radius:13px;border:none;background:none;cursor:pointer;font-weight:700;font-size:14px;color:var(--gray);transition:all .25s}
+.atab.on{background:var(--gold);color:#0a0f1e;box-shadow:0 4px 16px rgba(245,197,24,.35)}
+.acard{background:var(--bg2);border-radius:22px;padding:24px;border:1px solid var(--border)}
+.alabel{color:var(--gray);font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;margin:16px 0 7px}
+.alabel:first-child{margin-top:0}
+.ainput{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:13px;padding:14px 16px;color:var(--white);font-size:15px;outline:none;transition:border-color .2s}
+.ainput:focus{border-color:var(--gold)}
+.ainput::placeholder{color:var(--gray2)}
+.aerr{color:var(--red);font-size:13px;margin-top:10px;display:none;padding:10px 13px;background:rgba(255,71,87,.1);border-radius:10px;border:1px solid rgba(255,71,87,.2)}
+.abtn{width:100%;margin-top:20px;background:var(--gold);border:none;border-radius:15px;padding:17px;font-size:15px;font-weight:800;color:#0a0f1e;cursor:pointer;transition:all .2s;letter-spacing:.5px;box-shadow:0 8px 24px rgba(245,197,24,.4)}
+.alink{text-align:center;margin-top:14px;color:var(--gold);font-size:13px;cursor:pointer;font-weight:500}
+.afooter{color:var(--gray2);font-size:11px;text-align:center;margin-top:22px;line-height:1.7;padding:0 10px}
+
+/* MAIN */
+#s-main{background:var(--bg)}
+.topbar{background:rgba(10,15,30,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:10}
+.topbar-logo{display:flex;align-items:center;gap:10px}
+.topbar-icon{width:34px;height:34px;border-radius:10px;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:18px}
+.topbar-title{font-family:'Barlow Condensed',sans-serif;color:var(--gold);font-size:17px;font-weight:900;letter-spacing:2px}
+.topbar-sub{color:var(--gray);font-size:9px;margin-top:1px}
+.topbar-right{display:flex;gap:8px;align-items:center}
+.icon-btn{background:var(--bg3);border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px}
+.user-pill{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:4px 10px 4px 5px;cursor:pointer}
+.user-pill:hover{border-color:rgba(245,197,24,.4)}
+.uavatar{width:26px;height:26px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:#0a0f1e}
+.uname{color:var(--white);font-size:12px;font-weight:600;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tabs-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.tab-panel{display:none;flex:1;overflow-y:auto;padding:0 0 90px}
+.tab-panel.on{display:block}
+
+/* BOTTOM NAV */
+.bnav{display:flex;background:rgba(10,15,30,.97);backdrop-filter:blur(24px);border-top:1px solid var(--border);padding:8px 0 16px;flex-shrink:0}
+.nbtn{flex:1;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0}
+.nicon{font-size:20px;transition:transform .2s}
+.nlabel{font-size:9px;font-weight:700;letter-spacing:.8px;color:var(--gray);text-transform:uppercase;font-family:'Barlow Condensed',sans-serif}
+.nbtn.on .nlabel{color:var(--gold)}
+.nbtn.on .nicon{transform:scale(1.15)}
+.ndot{width:16px;height:2.5px;border-radius:2px;background:var(--gold);margin-top:1px}
+
+/* NEWS TAB */
+.news-sticky{position:sticky;top:0;z-index:5;background:var(--bg)}
+.news-hdr{background:linear-gradient(135deg,#0d1528,#111827);border-bottom:2px solid var(--gold);padding:12px 16px 10px}
+.news-hdr-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.live-pill{display:flex;align-items:center;gap:5px;background:rgba(255,71,87,.15);border:1px solid rgba(255,71,87,.35);border-radius:20px;padding:4px 10px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 1.3s infinite}
+.live-txt{color:var(--red);font-size:10px;font-weight:800;letter-spacing:1px}
+.rfbtn{background:var(--bg3);border:1px solid var(--border2);border-radius:9px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--gray);transition:all .2s;user-select:none}
+.rfbtn:hover{color:var(--gold)}
+.rfbtn.spin{animation:spin .6s linear}
+.src-label{color:var(--gray2);font-size:9px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;margin-bottom:7px}
+.src-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.spill{display:flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 10px;cursor:pointer;transition:all .2s;flex-shrink:0;user-select:none}
+.spill.on{border-color:var(--gold);background:rgba(245,197,24,.1)}
+.spill.on .sn{color:var(--gold)}
+.sdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.sn{color:var(--gray);font-size:10px;font-weight:600}
+.news-filters{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:10px 16px 0;background:var(--bg)}
+.nfc{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:7px 13px;font-size:11px;font-weight:600;color:var(--gray);cursor:pointer;white-space:nowrap;transition:all .2s;flex-shrink:0;user-select:none}
+.nfc.on{background:var(--gold);color:#0a0f1e;border-color:var(--gold);font-weight:700}
+.news-feed{padding:12px 14px 8px}
+.feat-card{display:block;background:var(--bg2);border-radius:20px;overflow:hidden;margin-bottom:11px;border:1px solid var(--border);transition:border-color .2s,transform .15s}
+.feat-card:hover{border-color:rgba(245,197,24,.3);transform:translateY(-1px)}
+.feat-card.hot{border-color:rgba(245,197,24,.22)}
+.feat-img{width:100%;height:120px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:54px}
+.feat-body{padding:13px 15px}
+.cmeta{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.csrc{display:flex;align-items:center;gap:5px}
+.cdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.cname{color:var(--gray);font-size:11px;font-weight:600}
+.ctime{color:var(--gray2);font-size:10px}
+.ctag-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px}
+.brk-row{display:flex;align-items:center;gap:5px;margin-bottom:8px}
+.brk-d{width:7px;height:7px;border-radius:50%;background:var(--red);animation:pulse 1.3s infinite}
+.brk-t{color:var(--red);font-size:10px;font-weight:800;letter-spacing:2px}
+.feat-title{color:var(--white);font-size:15px;font-weight:800;line-height:1.45;margin-bottom:7px}
+.feat-desc{color:var(--gray);font-size:12px;line-height:1.55;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.feat-foot{display:flex;align-items:center;gap:9px;border-top:1px solid var(--border);padding-top:10px}
+.n-like{background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:4px;color:var(--gray);font-size:12px;font-weight:600;transition:color .2s;padding:3px 0}
+.n-like:hover,.n-like.liked{color:var(--gold)}
+.n-open{margin-left:auto;background:rgba(245,197,24,.1);border:1px solid rgba(245,197,24,.25);border-radius:9px;padding:6px 12px;color:var(--gold);font-size:11px;font-weight:700;flex-shrink:0}
+.comp-card{display:flex;gap:11px;background:var(--bg2);border-radius:16px;padding:12px 13px;margin-bottom:9px;border:1px solid var(--border);transition:border-color .2s,transform .15s;align-items:flex-start}
+.comp-card:hover{border-color:var(--border2);transform:translateX(2px)}
+.comp-card.hot{border-color:rgba(245,197,24,.18)}
+.comp-emoji{width:46px;height:46px;border-radius:12px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:1px solid var(--border)}
+.comp-body{flex:1;min-width:0}
+.comp-title{color:var(--white);font-size:13px;font-weight:700;line-height:1.4;margin-bottom:7px}
+.comp-foot{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.comp-read{color:var(--gold);font-size:11px;font-weight:700;margin-left:auto;flex-shrink:0}
+.skel{background:var(--bg2);border-radius:16px;padding:14px;margin-bottom:9px;border:1px solid var(--border)}
+.sl{background:linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);background-size:200%;border-radius:6px;height:11px;margin-bottom:8px;animation:shimmer 1.5s infinite}
+.sl.t{height:15px;width:94%}.sl.w{width:84%}.sl.m{width:62%}.sl.s{width:40%}
+.news-hint{text-align:center;padding:8px 14px 12px;color:var(--gray2);font-size:10px}
+
+/* SPIELER TAB */
+.spieler-pad{padding:16px 14px 0}
+.pcard{background:var(--bg2);border-radius:16px;padding:14px 16px;margin-bottom:9px;display:flex;align-items:center;gap:13px;border:1px solid var(--border);cursor:pointer;transition:all .2s}
+.pcard:hover{border-color:rgba(245,197,24,.3);transform:translateX(2px)}
+.pemoji{width:46px;height:46px;border-radius:13px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid rgba(245,197,24,.2);overflow:hidden}
+.pemoji img{width:100%;height:100%;object-fit:cover}
+.pname{color:var(--white);font-weight:700;font-size:15px}
+.pmeta{color:var(--gray);font-size:11px;margin-top:2px}
+.pcaps{text-align:right;margin-right:4px}
+.pcnum{color:var(--gold);font-weight:900;font-size:22px;font-family:'Barlow Condensed',sans-serif;line-height:1}
+.pclabel{color:var(--gray);font-size:10px}
+.grp-label{color:var(--gold);font-size:10px;font-weight:800;letter-spacing:2px;margin:14px 0 9px;text-transform:uppercase;font-family:'Barlow Condensed',sans-serif}
+.api-badge{color:var(--gold);background:rgba(245,197,24,.1);border:1px solid rgba(245,197,24,.25);padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700}
+.load-bar{height:3px;background:linear-gradient(90deg,var(--gold),transparent);border-radius:2px;animation:loadBar 1.5s ease-in-out infinite}
+.phero{background:linear-gradient(140deg,var(--bg3),var(--bg2));border-radius:22px;padding:28px;text-align:center;margin-bottom:14px;border:1px solid rgba(245,197,24,.2)}
+.photo-big{width:80px;height:80px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 12px;border:2px solid rgba(245,197,24,.4);overflow:hidden}
+.photo-big img{width:100%;height:100%;object-fit:cover}
+.phname{font-family:'Barlow Condensed',sans-serif;color:var(--gold);font-size:30px;font-weight:900;letter-spacing:1.5px}
+.phsub{color:var(--gray);font-size:13px;margin-top:5px}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.scard{background:var(--bg2);border-radius:14px;padding:16px;text-align:center;border:1px solid var(--border)}
+.snum{color:var(--gold);font-size:34px;font-weight:900;font-family:'Barlow Condensed',sans-serif;line-height:1}
+.slabel{color:var(--gray);font-size:12px;margin-top:4px}
+.fbox{background:var(--bg2);border-radius:14px;padding:16px;border:1px solid var(--border)}
+.ftitle{color:var(--white);font-size:13px;font-weight:600;margin-bottom:11px;display:flex;align-items:center;justify-content:space-between}
+.fdots{display:flex;gap:7px}
+.fdot{flex:1;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800}
+.fdot.w{background:rgba(46,213,115,.15);border:1px solid rgba(46,213,115,.35);color:var(--green)}
+.fdot.l{background:rgba(255,71,87,.15);border:1px solid rgba(255,71,87,.35);color:var(--red)}
+.fdot.d{background:rgba(122,138,170,.15);border:1px solid rgba(122,138,170,.3);color:var(--gray)}
+
+/* SPIELE */
+.spiele-pad{padding:16px 14px 0}
+.seclabel{color:var(--gold);font-size:11px;font-weight:800;letter-spacing:2px;margin-bottom:13px;font-family:'Barlow Condensed',sans-serif}
+
+/* BIHBOOK */
+.bihbook-pad{padding:16px 14px 0}
+.stories{display:flex;gap:10px;overflow-x:auto;padding:0 0 14px;scrollbar-width:none}
+.story-wrap{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex-shrink:0}
+.story-ring{width:58px;height:58px;border-radius:50%;padding:2.5px;background:linear-gradient(135deg,var(--gold),#ff6b35);position:relative}
+.story-ring.add{background:var(--bg3);border:2px dashed var(--border2)}
+.story-av{width:100%;height:100%;border-radius:50%;background:var(--bg3);border:2.5px solid var(--bg);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:var(--gold)}
+.story-lbl{color:var(--gray);font-size:10px;font-weight:600;max-width:60px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admin-pin{background:linear-gradient(135deg,#1a2f5e,#0f1f3d);border-radius:18px;padding:16px;margin-bottom:14px;border:1px solid rgba(79,172,254,.3);position:relative;overflow:hidden}
+.admin-pin::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--gold))}
+.admin-badge{display:flex;align-items:center;gap:7px;margin-bottom:10px}
+.admin-icon{background:var(--gold);width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.admin-label{color:var(--gold);font-size:11px;font-weight:800;letter-spacing:1.5px}
+.admin-expires{color:var(--gray);font-size:10px;margin-left:auto}
+.admin-title{color:var(--white);font-size:15px;font-weight:700;margin-bottom:6px;line-height:1.4}
+.admin-body{color:var(--gray);font-size:13px;line-height:1.55}
+.vote-options{margin-top:12px;display:flex;flex-direction:column;gap:7px}
+.vote-opt{background:var(--bg3);border:1px solid var(--border2);border-radius:11px;padding:10px 14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:space-between}
+.vote-opt:hover{border-color:rgba(245,197,24,.4);background:rgba(245,197,24,.07)}
+.vote-opt.voted{border-color:var(--gold);background:rgba(245,197,24,.12)}
+.vote-label{color:var(--white);font-size:13px;font-weight:600}
+.vote-bar-wrap{height:4px;background:var(--bg4);border-radius:2px;margin-top:7px;overflow:hidden}
+.vote-bar{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--gold),#ff9500);transition:width .6s ease}
+.vote-pct{color:var(--gold);font-size:11px;font-weight:700}
+.compose{background:var(--bg2);border-radius:20px;padding:16px;margin-bottom:14px;border:1px solid var(--border)}
+.compose-top{display:flex;gap:12px;align-items:flex-start}
+.cavatar{width:42px;height:42px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#0a0f1e;flex-shrink:0;border:2px solid rgba(245,197,24,.3)}
+.carea{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:14px;padding:12px 14px;color:var(--white);font-size:14.5px;outline:none;resize:none;height:52px;transition:all .25s;line-height:1.5}
+.carea:focus{height:90px;border-color:rgba(245,197,24,.35);background:var(--bg)}
+.carea::placeholder{color:var(--gray2)}
+.compose-foot{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:11px;border-top:1px solid var(--border)}
+.ctool{background:none;border:none;cursor:pointer;color:var(--gray);font-size:20px;padding:6px;border-radius:9px;transition:all .2s}
+.cpost{background:var(--gold);color:#0a0f1e;border:none;border-radius:12px;padding:9px 22px;font-weight:800;font-size:13px;cursor:pointer;transition:all .2s}
+.cpost:disabled{opacity:.4}
+.fpost{background:var(--bg2);border-radius:20px;margin-bottom:12px;border:1px solid var(--border);overflow:hidden}
+.fpost-header{display:flex;align-items:center;gap:11px;padding:14px 16px 0}
+.favatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--bg3),var(--bg4));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:var(--gold);flex-shrink:0;border:1.5px solid rgba(245,197,24,.2)}
+.fuser{flex:1}
+.fdisplay{color:var(--white);font-weight:700;font-size:14.5px}
+.fusername{color:var(--gray);font-size:12px;margin-top:2px}
+.fmore{background:none;border:none;cursor:pointer;color:var(--gray);font-size:22px;padding:4px 8px;border-radius:8px;line-height:1}
+.ftext{padding:12px 16px;color:var(--white);font-size:14.5px;line-height:1.6;word-break:break-word}
+.factions{display:flex;align-items:center;padding:10px 14px 12px;gap:4px;border-top:1px solid var(--border)}
+.fact{background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:11px;color:var(--gray);font-size:13px;font-weight:600;transition:all .2s}
+.fact:hover{background:var(--bg3);color:var(--white)}
+.fact.liked{color:var(--gold)}
+.fact-share{margin-left:auto}
+
+/* TRANSFERS */
+.tr-pad{padding:16px 14px 0}
+.trcard{background:var(--bg2);border-radius:18px;padding:16px;margin-bottom:11px;border:1px solid var(--border)}
+.trplayer{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.tremoji{font-size:30px}
+.trname{color:var(--white);font-weight:700;font-size:15px}
+.trpos{color:var(--gray);font-size:11px;margin-top:2px}
+.trstatus{margin-left:auto;font-size:11px;padding:4px 10px;border-radius:20px;font-weight:700}
+.trconfirmed{background:rgba(46,213,115,.15);color:var(--green);border:1px solid rgba(46,213,115,.3)}
+.trrumor{background:rgba(122,138,170,.15);color:var(--gray);border:1px solid var(--border2)}
+.trarrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.trclub{background:var(--bg3);border-radius:9px;padding:7px 12px;color:var(--white);font-size:12px;font-weight:600;border:1px solid var(--border)}
+.trarricon{color:var(--gold);font-size:18px}
+.trfee{margin-top:10px;background:rgba(245,197,24,.1);border:1px solid rgba(245,197,24,.25);border-radius:9px;padding:6px 12px;display:inline-block}
+.trfeetxt{color:var(--gold);font-size:12px;font-weight:700}
+
+/* PROFILE */
+#s-profile{background:var(--bg);overflow-y:auto}
+.prof-hero{background:linear-gradient(160deg,var(--bg3),var(--bg2));padding:40px 24px 28px;text-align:center;position:relative;border-bottom:1px solid var(--border)}
+.prof-back{position:absolute;top:14px;left:16px;background:rgba(255,255,255,.08);border:none;border-radius:10px;padding:8px 12px;color:var(--white);cursor:pointer;font-size:13px;font-family:'Inter',sans-serif}
+.prof-avbig{width:80px;height:80px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:30px;color:#0a0f1e;margin:0 auto 14px;border:3px solid rgba(245,197,24,.4)}
+.prof-name{color:var(--white);font-size:22px;font-weight:800}
+.prof-un{color:var(--gold);font-size:14px;margin-top:3px}
+.prof-bio{color:var(--gray);font-size:13px;margin-top:8px;line-height:1.5;max-width:240px;margin-left:auto;margin-right:auto}
+.prof-stats{display:flex;justify-content:center;margin-top:18px}
+.pstat{text-align:center;flex:1}
+.pstat+.pstat{border-left:1px solid var(--border)}
+.pstat-num{color:var(--white);font-size:20px;font-weight:800}
+.pstat-lbl{color:var(--gray);font-size:11px;margin-top:2px}
+.edit-form{padding:20px 20px 80px}
+.ef-label{color:var(--gray);font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;margin:18px 0 8px}
+.ef-label:first-child{margin-top:0}
+.ef-input{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:13px;padding:13px 15px;color:var(--white);font-size:14.5px;outline:none;transition:border-color .2s}
+.ef-input:focus{border-color:var(--gold)}
+.ef-hint{color:var(--gray2);font-size:11px;margin-top:5px;padding-left:2px}
+.ef-save{width:100%;margin-top:22px;background:var(--gold);border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:800;color:#0a0f1e;cursor:pointer}
+.ef-logout{width:100%;margin-top:10px;background:none;border:1px solid rgba(255,71,87,.3);border-radius:14px;padding:15px;font-size:14px;font-weight:700;color:var(--red);cursor:pointer}
+
+/* COMMENTS MODAL */
+.modal{display:none;position:absolute;inset:0;background:rgba(0,0,0,.75);z-index:50;align-items:flex-end;backdrop-filter:blur(4px)}
+.modal.open{display:flex}
+.csheet{background:var(--bg2);border-radius:26px 26px 0 0;width:100%;max-height:76%;display:flex;flex-direction:column;border-top:1px solid var(--border2)}
+.chandle{width:36px;height:4px;border-radius:2px;background:var(--gray2);margin:12px auto 4px}
+.chdr{display:flex;justify-content:space-between;align-items:center;padding:10px 18px 14px;border-bottom:1px solid var(--border)}
+.chtitle{color:var(--white);font-weight:800;font-size:17px}
+.chclose{background:var(--bg3);border:none;color:var(--gray);font-size:18px;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.clist{flex:1;overflow-y:auto;padding:14px 16px}
+.citem{display:flex;gap:10px;margin-bottom:14px}
+.cbubble{flex:1;background:var(--bg3);border-radius:0 15px 15px 15px;padding:10px 13px;border:1px solid var(--border)}
+.cuser{color:var(--gold);font-weight:700;font-size:12px;margin-bottom:3px}
+.ctext{color:var(--white);font-size:13.5px;line-height:1.45}
+.cinput-row{display:flex;gap:9px;align-items:center;padding:12px 14px;border-top:1px solid var(--border)}
+.cinput{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:22px;padding:10px 16px;color:var(--white);font-size:13.5px;outline:none}
+.csend{background:var(--gold);width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;font-size:17px;font-weight:900;color:#0a0f1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* TABELLEN */
+.league-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:14px}
+.ltab{display:flex;align-items:center;gap:5px;background:var(--bg3);color:var(--gray);border:1px solid var(--border);border-radius:20px;padding:6px 12px;cursor:pointer;font-size:11px;font-weight:700;white-space:nowrap;flex-shrink:0;font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px;transition:all .2s}
+.ltab.on{background:var(--gold);color:#0a0f1e;border-color:var(--gold)}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes loadBar{0%{width:0%;opacity:1}80%{width:100%;opacity:1}100%{width:100%;opacity:0}}
+.fu{animation:fadeUp .28s ease forwards}
+</style>
+</head>
+<body>
+<div class="phone">
+
+<!-- AUTH -->
+<div id="s-auth" class="screen active">
+  <div class="auth-hero">
+    <div class="auth-logo">🐉</div>
+    <div class="auth-appname">ZMAJEVI</div>
+    <div class="auth-tagline">Die App für Zmajevi-Fans 🇧🇦</div>
+  </div>
+  <div class="auth-body">
+    <div class="auth-tabs">
+      <button class="atab on" onclick="switchAuth('login')">Anmelden</button>
+      <button class="atab" onclick="switchAuth('reg')">Registrieren</button>
+    </div>
+    <div class="acard" id="aform"></div>
+    <div class="afooter">Made for Zmajevi-Fans weltweit 🐉🇧🇦</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="s-main" class="screen">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="topbar-icon">🐉</div>
+      <div>
+        <div class="topbar-title" id="ttitle">ZMAJEVI NEWS</div>
+        <div class="topbar-sub">BOSNA I HERCEGOVINA 🇧🇦</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div id="upill"></div>
+      <div class="icon-btn">🔍</div>
+      <div class="icon-btn">🔔</div>
+    </div>
+  </div>
+
+  <div class="tabs-wrap">
+    <div id="tp-news" class="tab-panel on">
+      <div class="news-sticky">
+        <div class="news-hdr">
+          <div class="news-hdr-row">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="live-pill"><div class="live-dot"></div><span class="live-txt">LIVE</span></div>
+              <span style="color:var(--gray);font-size:10px" id="ai-upd">Ažurirano prije 3 min.</span>
+            </div>
+            <div style="display:flex;gap:7px;align-items:center">
+              <span style="background:rgba(167,139,250,.18);color:#a78bfa;font-size:10px;font-weight:800;padding:3px 8px;border-radius:10px;border:1px solid rgba(167,139,250,.3)" id="ai-count">58 filtrirano</span>
+              <div class="rfbtn" id="rfbtn" onclick="doRefresh()">↻</div>
+            </div>
+          </div>
+          <div class="src-label">Filtriraj po izvoru</div>
+          <div class="src-row" id="src-row"></div>
+        </div>
+        <div class="news-filters" id="news-filters"></div>
+      </div>
+      <div class="news-feed" id="news-feed"></div>
+      <div class="news-hint">↗ Klikni na vijest da otvoriš originalnu stranicu</div>
+    </div>
+
+    <div id="tp-spieler" class="tab-panel">
+      <div class="spieler-pad" id="spieler-inner">
+        <div style="text-align:center;padding:40px 20px">
+          <div style="font-size:36px;margin-bottom:12px">🔄</div>
+          <div style="color:var(--gray);font-size:13px">Učitavanje kadra...</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tp-spiele" class="tab-panel">
+      <div class="spiele-pad" id="spiele-inner"></div>
+    </div>
+
+    <div id="tp-bihbook" class="tab-panel">
+      <div class="bihbook-pad" id="bihbook-inner"></div>
+    </div>
+
+    <div id="tp-transfers" class="tab-panel">
+      <div class="tr-pad" id="transfers-inner"></div>
+    </div>
+  </div>
+
+  <nav class="bnav">
+    <button class="nbtn on" onclick="goTab('news',this)"><span class="nicon">📰</span><span class="nlabel">News</span><div class="ndot"></div></button>
+    <button class="nbtn" onclick="goTab('spieler',this)"><span class="nicon">👤</span><span class="nlabel">Spieler</span></button>
+    <button class="nbtn" onclick="goTab('spiele',this)"><span class="nicon">📅</span><span class="nlabel">Spiele</span></button>
+    <button class="nbtn" onclick="goTab('bihbook',this)"><span class="nicon">🐉</span><span class="nlabel">BIHBOOK</span></button>
+    <button class="nbtn" onclick="goTab('transfers',this)"><span class="nicon">⚽</span><span class="nlabel">Transfers</span></button>
+  </nav>
+</div>
+
+<!-- PROFILE -->
+<div id="s-profile" class="screen">
+  <div id="prof-view"></div>
+</div>
+
+<!-- COMMENTS MODAL -->
+<div class="modal" id="cmodal">
+  <div class="csheet">
+    <div class="chandle"></div>
+    <div class="chdr">
+      <span class="chtitle">Kommentare</span>
+      <button class="chclose" onclick="closeComments()">✕</button>
+    </div>
+    <div class="clist" id="clist"></div>
+    <div class="cinput-row">
+      <input class="cinput" id="cinput" placeholder="Kommentieren…">
+      <button class="csend" onclick="sendComment()">↑</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /phone -->
+
+<script>
+// ══ KONFIGURATION ════════════════════════════════════════════
+var API_KEY = '69d38314c187435baefc91d8ca9c4b02';
+var BIH_TEAM_ID = 569;
+
+// ══ STATE ════════════════════════════════════════════════════
+var USERS = {};
+var ME = null;
+var votedPoll = null;
+var currentCommentId = null;
+var likedNews = {};
+var playersLoaded = false;
+var spieleLoaded = false;
+var activeLeagueTab = 'wm';
+var curNFilter = 'Sve';
+var curNSrc = 'Sve';
+
+// ══ TAG STYLES ═══════════════════════════════════════════════
+var NTAGS = {
+  Nationalteam: {bg:'rgba(26,58,107,.85)', c:'#7eb8f7'},
+  Breaking:     {bg:'rgba(255,71,87,.18)', c:'#ff6b78'},
+  Spieler:      {bg:'rgba(42,26,58,.85)',  c:'#c07ae8'},
+  Transfers:    {bg:'rgba(46,213,115,.14)',c:'#2ed573'},
+  Spielplan:    {bg:'rgba(79,172,254,.14)',c:'#4facfe'},
+  Ausrüstung:   {bg:'rgba(255,159,10,.14)',c:'#ff9f0a'},
+  Interview:    {bg:'rgba(58,26,26,.85)',  c:'#e87a7a'}
+};
+var SCOL = {
+  'Klix.ba':'#2ed573','Fanatik.ba':'#ff6b35','Sportske.ba':'#a78bfa',
+  'N1 Info':'#4facfe','BBC Sport':'#e53e3e','Sky Sport':'#9b6dff'
+};
+var NEMOJI = {
+  Nationalteam:'🇧🇦', Transfers:'💰', Spielplan:'📅',
+  Spieler:'👤', Ausrüstung:'👕', Interview:'🎙️'
+};
+
+// ══ NEWS DATA ════════════════════════════════════════════════
+var ALL_NEWS = [
+  {id:1,src:'Klix.ba',time:'4 min.',tag:'Nationalteam',hot:true,likes:892,
+   title:'Džeko predvodi Zmajeve – selektor objavio listu za kvalifikacije',
+   desc:'Edin Džeko ponovo kapiten reprezentacije BiH. Selektor objavio konačnu listu od 23 igrača za predstojeće kvalifikacijske utakmice.',
+   url:'https://www.klix.ba/sport/nogomet'},
+  {id:2,src:'BBC Sport',time:'22 min.',tag:'Spieler',hot:false,likes:412,
+   title:"Bosnia's Džeko delivers hat-trick masterclass in derby win",
+   desc:'Edin Džeko scored three goals as Fenerbahçe defeated rivals Beşiktaş 4-1 in the Istanbul derby on Sunday afternoon.',
+   url:'https://www.bbc.co.uk/sport/football'},
+  {id:3,src:'Sportske.ba',time:'45 min.',tag:'Nationalteam',hot:false,likes:334,
+   title:'Zmajevi nikad mlađi – prosječna starost samo 23 godine!',
+   desc:'Reprezentacija BiH u novom sastavu ima prosječnu starost od svega 23 godine. Mlada generacija donosi optimizam.',
+   url:'https://sportske.ba/kategorija/fudbal/reprezentacija-bih-fudbal/'},
+  {id:4,src:'Sky Sport',time:'1 sat',tag:'Transfers',hot:true,likes:723,
+   title:'CONFIRMED: Ahmedhodžić seals Atlético Madrid move for €18m',
+   desc:'Sky Sports News understands Anel Ahmedhodžić has completed his move to Atlético Madrid, signing a four-year deal.',
+   url:'https://www.skysports.com/football/transfers'},
+  {id:5,src:'Fanatik.ba',time:'2 sata',tag:'Spieler',hot:false,likes:231,
+   title:'Sehić – treći put golman mjeseca u Süper Ligi!',
+   desc:'Kenan Sehić nastavio niz sjajnih nastupa i ponovo izabran za najboljeg golmana turske Süper Lige.',
+   url:'https://fanatik.ba/sport'},
+  {id:6,src:'N1 Info',time:'3 sata',tag:'Spielplan',hot:false,likes:156,
+   title:'Rasprodano za 2 sata – navijači pohrlili na ulaznice za Zenicu',
+   desc:'Sve ulaznice za kvalifikacijsku utakmicu Bosne i Austrije u Zenici prodane su u rekordnom roku.',
+   url:'https://n1info.ba/sport'},
+  {id:7,src:'Klix.ba',time:'4 sata',tag:'Interview',hot:false,likes:378,
+   title:"Pjanić: 'Ova generacija može do Svjetskog Prvenstava'",
+   desc:'Miralem Pjanić govori o potencijalu mlade reprezentacije BiH pred WM 2026.',
+   url:'https://www.klix.ba/sport/nogomet'},
+  {id:8,src:'BBC Sport',time:'5 sati',tag:'Nationalteam',hot:false,likes:156,
+   title:'Bosnia climb to 35th in FIFA World Rankings — highest since 2014',
+   desc:'Bosnia and Herzegovina have risen three places to 35th in the latest FIFA World Rankings.',
+   url:'https://www.bbc.co.uk/sport/football'},
+  {id:9,src:'Sky Sport',time:'6 sati',tag:'Spieler',hot:false,likes:198,
+   title:'Kolašinac extends Atalanta contract — hints at World Cup farewell',
+   desc:'Sead Kolašinac has extended his deal at Atalanta, with the 32-year-old eyeing a World Cup swansong.',
+   url:'https://www.skysports.com/football'},
+  {id:10,src:'N1 Info',time:'7 sati',tag:'Ausrüstung',hot:false,likes:489,
+   title:'Novo Zmajevi dres 2026 – zlatno-plavi dizajn oduševio navijače',
+   desc:'Novi dres reprezentacije BiH za WM 2026. Zlatna i plava boja dominiraju modernim dizajnom.',
+   url:'https://n1info.ba/sport'}
+];
+
+// ══ PLAYERS ══════════════════════════════════════════════════
+var FALLBACK_PLAYERS = [
+  {id:1,grp:'Golmani',  name:'Nikola Vasilj',       pos:'GK',club:'FC St. Pauli',    caps:18, goals:0, flag:'🧤',form:[1,1,1,0,1]},
+  {id:2,grp:'Golmani',  name:'Osman Hadžikić',      pos:'GK',club:'NK Slaven',        caps:4,  goals:0, flag:'🧤',form:[1,1,0,1,1]},
+  {id:3,grp:'Golmani',  name:'Martin Zlomislić',    pos:'GK',club:'HNK Rijeka',       caps:2,  goals:0, flag:'🧤',form:[0,1,1,0,1]},
+  {id:4,grp:'Odbrana',  name:'Dennis Hadžikadunić', pos:'CB',club:'UC Sampdoria',     caps:31, goals:2, flag:'🏔️',form:[1,0,1,1,1]},
+  {id:5,grp:'Odbrana',  name:'Nihad Mujakić',       pos:'RB',club:'Gaziantep FK',     caps:14, goals:0, flag:'🛡️',form:[1,1,0,1,0]},
+  {id:6,grp:'Odbrana',  name:'Nidal Čelić',         pos:'LB',club:'RC Lens',          caps:22, goals:1, flag:'🛡️',form:[1,1,1,0,1]},
+  {id:7,grp:'Odbrana',  name:'Tarik Muharemović',   pos:'CB',club:'US Sassuolo',      caps:19, goals:1, flag:'🏔️',form:[0,1,1,1,1]},
+  {id:8,grp:'Odbrana',  name:'Sead Kolašinac',      pos:'LB',club:'Atalanta BC',      caps:61, goals:2, flag:'🛡️',form:[1,0,1,1,1]},
+  {id:9,grp:'Odbrana',  name:'Amar Dedić',          pos:'RB',club:'SL Benfica',       caps:28, goals:3, flag:'⚡',form:[1,1,1,0,1]},
+  {id:10,grp:'Odbrana', name:'Nikola Katić',        pos:'CB',club:'Schalke 04',       caps:11, goals:0, flag:'🏔️',form:[1,1,0,0,1]},
+  {id:11,grp:'Vezni red',name:'Benjamin Tahirović', pos:'CM',club:'Brøndby IF',       caps:21, goals:3, flag:'⚡',form:[1,1,0,1,1]},
+  {id:12,grp:'Vezni red',name:'Armin Gigović',      pos:'OM',club:'BSC Young Boys',   caps:16, goals:2, flag:'⚡',form:[1,0,1,1,0]},
+  {id:13,grp:'Vezni red',name:'Ivan Šunjić',        pos:'CM',club:'Pafos FC',         caps:38, goals:1, flag:'⚡',form:[0,1,0,1,1]},
+  {id:14,grp:'Vezni red',name:'Miralem Pjanić',     pos:'OM',club:'Sharjah FC',       caps:115,goals:17,flag:'⭐',form:[0,1,1,1,0]},
+  {id:15,grp:'Vezni red',name:'Amar Memić',         pos:'CM',club:'FK Viktoria Plzeň',caps:9,  goals:0, flag:'⚡',form:[1,1,1,1,0]},
+  {id:16,grp:'Napadači', name:'Edin Džeko',         pos:'ST',club:'Schalke 04',       caps:148,goals:73,flag:'🐉',form:[1,1,0,1,1]},
+  {id:17,grp:'Napadači', name:'Ermedin Demirović',  pos:'ST',club:'VfB Stuttgart',    caps:33, goals:11,flag:'🎯',form:[1,1,1,0,1]},
+  {id:18,grp:'Napadači', name:'Amer Gojak',         pos:'LW',club:'Trabzonspor',      caps:42, goals:7, flag:'🎯',form:[0,1,1,1,1]},
+  {id:19,grp:'Napadači', name:'Esmir Bajraktarević',pos:'LW',club:'PSV Eindhoven',    caps:14, goals:5, flag:'🎯',form:[1,0,1,1,1]},
+  {id:20,grp:'Napadači', name:'Ermin Bičakčić',     pos:'CF',club:'1. FC Heidenheim', caps:27, goals:6, flag:'🎯',form:[1,1,1,0,0]}
+];
+var PLAYERS = [];
+
+// ══ TRANSFERS ════════════════════════════════════════════════
+var TRANSFERS = [
+  {name:'Edin Džeko',        pos:'ST',flag:'🐉',from:'Fenerbahçe',   to:'Schalke 04',      fee:'Ablösefrei',status:'confirmed'},
+  {name:'Amar Dedić',        pos:'RB',flag:'⚡',from:'RB Salzburg',  to:'SL Benfica',      fee:'~€12M',     status:'confirmed'},
+  {name:'Esmir Bajraktarević',pos:'LW',flag:'🎯',from:'NE Revolution',to:'PSV Eindhoven',  fee:'~€3M',      status:'confirmed'},
+  {name:'Ermedin Demirović', pos:'ST',flag:'🎯',from:'FC Augsburg',  to:'VfB Stuttgart',   fee:'~€21M',     status:'confirmed'}
+];
+
+// ══ BIHBOOK FEED ═════════════════════════════════════════════
+var FEED = [
+  {id:1,user:'ZmajeviUltra_Kemal',display:'Kemal Z.',initials:'KZ',time:'vor 8 Min.',
+   text:'Džeko zurück = automatisch Top 2 der Gruppe. Keine Diskussion! 🐉🔥',
+   likes:47,liked:false,comments:[{user:'DragonFan99',text:'100% agree! 🇧🇦'},{user:'Sarajevo1984',text:'Nur mit ihm klappt das!'}]},
+  {id:2,user:'Sarajevo_Fan_1984',display:'Amira S.',initials:'AS',time:'vor 25 Min.',
+   text:'Das neue Trikot ist absolute Weltklasse. Endlich ein Design, das zu uns passt. Gold & Blau für immer! 💛💙🇧🇦',
+   likes:93,liked:false,comments:[]},
+  {id:3,user:'BiH_diaspore_CH',display:'Mirza B.',initials:'MB',time:'vor 2 Std.',
+   text:'Wer fährt zum Heimspiel nach Zenica im Oktober? Würde gerne eine Fangruppe aus der Schweiz organisieren 🇧🇦✈️',
+   likes:22,liked:false,comments:[{user:'Zuri_Zmaj',text:'Ich bin dabei! Aus Zürich 🇨🇭'},{user:'Basel_BiH',text:'Von Basel auch 2 Personen!'}]}
+];
+
+// ══ ADMIN POSTS ══════════════════════════════════════════════
+var ADMIN_POSTS = [
+  {id:'a1',title:'🗳️ Abstimmung: Wer schiesst das wichtigste WM-Tor?',
+   body:'Wähle deinen Favoriten für den WM-Helden 2026!',expires:'Endet am 15. Juli',
+   options:[
+     {label:'Edin Džeko 🐉',votes:512},
+     {label:'Ermedin Demirović 🎯',votes:287},
+     {label:'Esmir Bajraktarević 🎯',votes:163},
+     {label:'Jemand anderes',votes:44}
+   ]},
+  {id:'a2',title:'📢 Zmajevi bei der WM 2026 – Gruppe B!',
+   body:'Bosnien trifft auf die Schweiz, Kanada und Katar. Gruppe B, Los Angeles. Wir glauben an euch! 🐉🇧🇦',
+   expires:'WM: 11. Juni – 19. Juli 2026'}
+];
+
+// ══ STANDINGS ════════════════════════════════════════════════
+var STANDINGS_DATA = {
+  wm: {
+    title:'WM 2026 · Gruppe B', subtitle:'Los Angeles · 12.–22. Juni 2026',
+    color:'#f5c518', badge:'🏆 WM 2026',
+    note:'Tabelle startet mit Anpfiff am 12. Juni',
+    teams:[
+      {flag:'🇨🇭',name:'Švicarska',pos:1,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},
+      {flag:'🇧🇦',name:'Bosna i Herce.',pos:2,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:true},
+      {flag:'🇨🇦',name:'Kanada',pos:3,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},
+      {flag:'🇶🇦',name:'Katar',pos:4,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false}
+    ],
+    advance:2, advanceNote:'Top 2 → Runde der 32'
+  },
+  quali: {
+    title:'WM-Qualifikation · UEFA Gruppe H', subtitle:'Abschlusstabelle · Bosna qualifiziert! 🎉',
+    color:'#2ed573', badge:'✅ WM-Quali',
+    note:'Bosna als Gruppenzeiter in die Playoffs — und weiter zur WM!',
+    teams:[
+      {flag:'🇦🇹',name:'Austrija',pos:1,pld:8,w:6,d:1,l:1,gf:22,ga:4, pts:19,bih:false},
+      {flag:'🇧🇦',name:'Bosna',   pos:2,pld:8,w:5,d:2,l:1,gf:17,ga:7, pts:17,bih:true},
+      {flag:'🇷🇴',name:'Rumänija',pos:3,pld:8,w:4,d:1,l:3,gf:19,ga:10,pts:13,bih:false},
+      {flag:'🇨🇾',name:'Kipar',   pos:4,pld:8,w:2,d:2,l:4,gf:11,ga:11,pts:8, bih:false},
+      {flag:'🇸🇲',name:'San Marino',pos:5,pld:8,w:0,d:0,l:8,gf:2, ga:39,pts:0, bih:false}
+    ],
+    advance:2, advanceNote:'1. Platz direkt qualifiziert · 2. Platz → Playoffs'
+  },
+  nl: {
+    title:'UEFA Nations League · Liga A', subtitle:'Ab September 2026',
+    color:'#4facfe', badge:'🏴 Nations League',
+    note:'Tabelle wird nach dem ersten Spieltag (Sep 2026) befüllt',
+    teams:[
+      {flag:'🇧🇦',name:'Bosna',  pos:1,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:true},
+      {flag:'🇵🇱',name:'Poljska',pos:2,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},
+      {flag:'🇨🇭',name:'Švicarska',pos:3,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},
+      {flag:'🇲🇰',name:'S. Makedonija',pos:4,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false}
+    ],
+    advance:1, advanceNote:'1. Platz → Nations League Finals'
+  }
+};
+
+// ══ AUTH ═════════════════════════════════════════════════════
+function switchAuth(mode) {
+  document.querySelectorAll('.atab').forEach(function(t,i) {
+    t.classList.toggle('on', (mode==='login'&&i===0)||(mode==='reg'&&i===1));
+  });
+  renderAuthForm(mode);
+}
+
+function renderAuthForm(mode) {
+  var f = document.getElementById('aform');
+  var h = '';
+  if (mode === 'reg') {
+    h += '<div class="alabel">Vollständiger Name</div><input class="ainput" type="text" id="f-name" placeholder="z.B. Kemal Mustafić">';
+    h += '<div class="alabel">Benutzername</div><input class="ainput" type="text" id="f-uname" placeholder="@dein_name (für Login)">';
+  }
+  h += '<div class="alabel">E-Mail</div><input class="ainput" type="email" id="f-email" placeholder="email@example.com">';
+  h += '<div class="alabel">Passwort</div><input class="ainput" type="password" id="f-pass" placeholder="••••••••">';
+  if (mode === 'reg') {
+    h += '<div class="alabel">Passwort bestätigen</div><input class="ainput" type="password" id="f-pass2" placeholder="••••••••">';
+  }
+  h += '<div class="aerr" id="aerr"></div>';
+  h += '<button class="abtn" onclick="doAuth(\'' + mode + '\')">' + (mode==='login'?'ANMELDEN':'KONTO ERSTELLEN') + '</button>';
+  if (mode === 'login') h += '<div class="alink">Passwort vergessen?</div>';
+  f.innerHTML = h;
+}
+
+function showErr(msg) {
+  var e = document.getElementById('aerr');
+  e.textContent = '⚠️ ' + msg;
+  e.style.display = 'block';
+}
+
+function doAuth(mode) {
+  var emailEl = document.getElementById('f-email');
+  var passEl = document.getElementById('f-pass');
+  var email = emailEl ? emailEl.value.trim() : '';
+  var pass = passEl ? passEl.value : '';
+  if (!email || !pass) { showErr('Bitte alle Felder ausfüllen.'); return; }
+
+  if (mode === 'reg') {
+    var nameEl = document.getElementById('f-name');
+    var unameEl = document.getElementById('f-uname');
+    var pass2El = document.getElementById('f-pass2');
+    var name = nameEl ? nameEl.value.trim() : '';
+    var uname = unameEl ? unameEl.value.trim().replace('@','') : '';
+    var pass2 = pass2El ? pass2El.value : '';
+    if (!name || !uname) { showErr('Name und Benutzername sind Pflichtfelder.'); return; }
+    if (pass !== pass2) { showErr('Passwörter stimmen nicht überein.'); return; }
+    if (pass.length < 6) { showErr('Passwort mind. 6 Zeichen.'); return; }
+    if (USERS[email]) { showErr('E-Mail bereits verwendet.'); return; }
+    USERS[email] = {name:name, username:uname, email:email, password:pass, bio:'Zmajevi-Fan 🐉🇧🇦', posts:0, joinedAt:'2026'};
+    ME = USERS[email];
+  } else {
+    var found = USERS[email] || null;
+    if (!found) {
+      var vals = Object.values(USERS);
+      for (var i=0; i<vals.length; i++) {
+        if (vals[i].username === email) { found = vals[i]; break; }
+      }
+    }
+    if (!found || found.password !== pass) {
+      showErr('Benutzername / E-Mail oder Passwort falsch. (Demo: erst registrieren!)');
+      return;
+    }
+    ME = found;
+  }
+  enterApp();
+}
+
+function enterApp() {
+  document.getElementById('s-auth').classList.remove('active');
+  document.getElementById('s-main').classList.add('active');
+  renderUserPill();
+  renderAll();
+}
+
+function renderUserPill() {
+  var ini = ME.name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+  document.getElementById('upill').innerHTML =
+    '<div class="user-pill" onclick="openProfile()"><div class="uavatar">' + ini + '</div><span class="uname">@' + ME.username + '</span></div>';
+}
+
+// ══ NAVIGATION ═══════════════════════════════════════════════
+var T_TITLES = {news:'ZMAJEVI NEWS', spieler:'KADER', spiele:'SPIELPLAN', bihbook:'BIHBOOK', transfers:'TRANSFERS'};
+
+function goTab(tab, btn) {
+  document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.nbtn').forEach(function(b){
+    b.classList.remove('on');
+    var d = b.querySelector('.ndot');
+    if (d) d.remove();
+  });
+  document.getElementById('tp-'+tab).classList.add('on');
+  btn.classList.add('on');
+  var dot = document.createElement('div');
+  dot.className = 'ndot';
+  btn.appendChild(dot);
+  document.getElementById('ttitle').textContent = T_TITLES[tab];
+  if (tab === 'spieler' && !playersLoaded) fetchPlayersFromAPI();
+  if (tab === 'spiele' && !spieleLoaded) { fetchSpiele(); spieleLoaded = true; }
+}
+
+function renderAll() {
+  renderNewsTab();
+  renderBihbook();
+  renderTransfers();
+  renderSpieleOffline();
+}
+
+// ══ NEWS ═════════════════════════════════════════════════════
+var SOURCES = [
+  {key:'Sve',   label:'Svi',        color:'#f5c518'},
+  {key:'Klix.ba',   label:'Klix.ba',    color:'#2ed573'},
+  {key:'Fanatik.ba',label:'Fanatik.ba', color:'#ff6b35'},
+  {key:'Sportske.ba',label:'Sportske.ba',color:'#a78bfa'},
+  {key:'N1 Info',   label:'N1 Info',    color:'#4facfe'},
+  {key:'BBC Sport', label:'BBC Sport',  color:'#e53e3e'},
+  {key:'Sky Sport', label:'Sky Sport',  color:'#9b6dff'}
+];
+var FILTERS = ['Sve','Breaking','Nationalteam','Transfers','Spielplan','Spieler'];
+
+function initNewsControls() {
+  var sr = document.getElementById('src-row');
+  var nf = document.getElementById('news-filters');
+  sr.innerHTML = SOURCES.map(function(s) {
+    return '<div class="spill' + (s.key===curNSrc?' on':'') + '" data-src="' + s.key + '" onclick="pickSrc(this)">' +
+           '<div class="sdot" style="background:' + s.color + '"></div>' +
+           '<span class="sn">' + s.label + '</span></div>';
+  }).join('');
+  nf.innerHTML = FILTERS.map(function(f) {
+    var label = f==='Breaking' ? '🔥 Breaking' : f;
+    return '<div class="nfc' + (f===curNFilter?' on':'') + '" onclick="pickNFilter(this,\'' + f + '\')">' + label + '</div>';
+  }).join('');
+}
+
+function getNewsFiltered() {
+  var d = ALL_NEWS;
+  if (curNSrc !== 'Sve') d = d.filter(function(n){return n.src===curNSrc;});
+  if (curNFilter === 'Sve') return d;
+  if (curNFilter === 'Breaking') return d.filter(function(n){return n.hot;});
+  return d.filter(function(n){return n.tag===curNFilter;});
+}
+
+function renderNewsTab() {
+  initNewsControls();
+  var data = getNewsFiltered();
+  var feed = document.getElementById('news-feed');
+  if (!data.length) {
+    feed.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--gray)"><div style="font-size:40px;margin-bottom:12px">🐉</div><div>Nema vijesti za ovaj filter.</div></div>';
+    return;
+  }
+  var h = '';
+  data.forEach(function(n, i) {
+    var tc = NTAGS[n.tag] || {bg:'#1a2a3a', c:'#aaa'};
+    var sc = SCOL[n.src] || '#7a8aaa';
+    var em = NEMOJI[n.tag] || '📰';
+    var lk = likedNews[n.id];
+    var delay = 'animation-delay:' + (i*35) + 'ms;opacity:0';
+    var tagBadge = '<span class="ctag-badge" style="background:' + tc.bg + ';color:' + tc.c + '">' + n.tag + '</span>';
+    var brkRow = n.hot ? '<div class="brk-row"><div class="brk-d"></div><span class="brk-t">BREAKING</span></div>' : '';
+    var likeBtn = '<button class="n-like' + (lk?' liked':'') + '" onclick="event.preventDefault();event.stopPropagation();doNLike(' + n.id + ',this)">' + (lk?'⭐':'☆') + ' ' + (n.likes+(lk?1:0)) + '</button>';
+    if (i === 0) {
+      h += '<a class="feat-card' + (n.hot?' hot':'') + ' fu" href="' + n.url + '" target="_blank" style="' + delay + '">' +
+           '<div class="feat-img">' + em + '</div>' +
+           '<div class="feat-body">' + brkRow +
+           '<div class="cmeta"><div class="csrc"><div class="cdot" style="background:' + sc + '"></div><span class="cname">' + n.src + '</span></div><span class="ctime">' + n.time + '</span></div>' +
+           '<div class="feat-title">' + n.title + '</div>' +
+           '<div class="feat-desc">' + n.desc + '</div>' +
+           '<div class="feat-foot">' + likeBtn + tagBadge + '<span class="n-open">Čitaj na ' + n.src + ' ↗</span></div>' +
+           '</div></a>';
+    } else {
+      h += '<a class="comp-card' + (n.hot?' hot':'') + ' fu" href="' + n.url + '" target="_blank" style="' + delay + '">' +
+           '<div class="comp-emoji">' + em + '</div>' +
+           '<div class="comp-body">' + (n.hot?'<div class="brk-row" style="margin-bottom:5px"><div class="brk-d"></div><span class="brk-t">BREAKING</span></div>':'') +
+           '<div class="cmeta" style="margin-bottom:6px"><div class="csrc"><div class="cdot" style="background:' + sc + '"></div><span class="cname">' + n.src + '</span></div><span class="ctime">&nbsp;· ' + n.time + '</span></div>' +
+           '<div class="comp-title">' + n.title + '</div>' +
+           '<div class="comp-foot">' + tagBadge + likeBtn + '<span class="comp-read">Čitaj ↗</span></div>' +
+           '</div></a>';
+    }
+  });
+  feed.innerHTML = h;
+}
+
+function doNLike(id, btn) {
+  likedNews[id] = !likedNews[id];
+  var n = ALL_NEWS.find(function(x){return x.id===id;});
+  btn.className = 'n-like' + (likedNews[id]?' liked':'');
+  btn.innerHTML = (likedNews[id]?'⭐':'☆') + ' ' + (n.likes+(likedNews[id]?1:0));
+}
+
+function pickNFilter(chip, f) {
+  document.querySelectorAll('.nfc').forEach(function(c){c.classList.remove('on');});
+  chip.classList.add('on');
+  curNFilter = f;
+  renderNewsTab();
+}
+
+function pickSrc(pill) {
+  document.querySelectorAll('.spill').forEach(function(p){p.classList.remove('on');});
+  pill.classList.add('on');
+  curNSrc = pill.dataset.src;
+  renderNewsTab();
+}
+
+function doRefresh() {
+  var btn = document.getElementById('rfbtn');
+  btn.classList.add('spin');
+  var feed = document.getElementById('news-feed');
+  feed.innerHTML = Array(4).fill(0).map(function(){
+    return '<div class="skel"><div class="sl s"></div><div class="sl t"></div><div class="sl w"></div><div class="sl m"></div></div>';
+  }).join('');
+  setTimeout(function(){
+    btn.classList.remove('spin');
+    ALL_NEWS.unshift({
+      id:Date.now(), src:'Sportske.ba', time:'upravo', tag:'Nationalteam', hot:false, likes:0,
+      title:'NOVO: Zmajevi na treningu pred WM – svi igrači zdravi!',
+      desc:'Trener Barbarez zadovoljan formom ekipe. Svi igrači prisutni na treningu uoči prvog nastupa na WM 2026.',
+      url:'https://sportske.ba/kategorija/fudbal/reprezentacija-bih-fudbal/'
+    });
+    document.getElementById('ai-count').textContent = (Math.floor(Math.random()*12)+55) + ' filtrirano';
+    document.getElementById('ai-upd').textContent = 'Ažurirano upravo';
+    renderNewsTab();
+  }, 900);
+}
+
+// ══ SPIELER ══════════════════════════════════════════════════
+function fetchPlayersFromAPI() {
+  var inner = document.getElementById('spieler-inner');
+  inner.innerHTML = '<div style="padding:20px 0">' +
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">' +
+    '<div style="color:var(--gold);font-size:13px;font-weight:700">🤖 API-Football wird abgerufen...</div></div>' +
+    '<div class="load-bar" style="margin-bottom:20px"></div>' +
+    Array(6).fill(0).map(function(){return '<div class="skel"><div class="sl s"></div><div class="sl t"></div><div class="sl m"></div></div>';}).join('') +
+    '</div>';
+
+  var proxyUrl = 'https://corsproxy.io/?';
+  var apiUrl = 'https://v3.football.api-sports.io/players/squads?team=' + BIH_TEAM_ID;
+
+  fetch(proxyUrl + encodeURIComponent(apiUrl), {
+    headers: {'x-apisports-key': API_KEY}
+  }).then(function(res) {
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  }).then(function(data) {
+    var rawPlayers = data && data.response && data.response[0] && data.response[0].players;
+    if (rawPlayers && rawPlayers.length) {
+      var posMap = {'Goalkeeper':'Golmani','Defender':'Odbrana','Midfielder':'Vezni red','Attacker':'Napadači'};
+      var posShort = {'Goalkeeper':'GK','Defender':'CB','Midfielder':'CM','Attacker':'ST'};
+      var emojiMap = {'Goalkeeper':'🧤','Defender':'🏔️','Midfielder':'⚡','Attacker':'🎯'};
+      PLAYERS = rawPlayers.map(function(p, i) {
+        var grp = posMap[p.position] || 'Vezni red';
+        var flag = emojiMap[p.position] || '👤';
+        if (p.name && (p.name.includes('Džeko')||p.name.includes('Dzeko'))) flag = '🐉';
+        if (p.name && (p.name.includes('Pjanić')||p.name.includes('Pjanic'))) flag = '⭐';
+        var fb = FALLBACK_PLAYERS.find(function(f) {
+          return f.name.toLowerCase().replace(/[^a-z]/g,'').indexOf(p.name.toLowerCase().replace(/[^a-z]/g,'').slice(0,6)) !== -1;
+        });
+        return {
+          id: p.id || (i+1), grp:grp, name:p.name,
+          pos: posShort[p.position] || 'CM',
+          club: fb ? fb.club : '—',
+          caps: fb ? fb.caps : 0, goals: fb ? fb.goals : 0,
+          flag:flag, form: fb ? fb.form : [null,null,null,null,null],
+          photo: p.photo || ''
+        };
+      });
+      renderPlayersInner();
+    } else {
+      throw new Error('Keine Spieler');
+    }
+  }).catch(function(err) {
+    console.warn('API Fallback:', err.message);
+    PLAYERS = FALLBACK_PLAYERS;
+    renderPlayersInner();
+  });
+  playersLoaded = true;
+}
+
+function renderPlayersInner() {
+  var groups = ['Golmani','Odbrana','Vezni red','Napadači'];
+  var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">' +
+    '<span style="color:var(--gray);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase">WM 2026 Kader · ' + PLAYERS.length + ' Igrača</span>' +
+    '<span class="api-badge">🤖 API-Football</span></div>';
+
+  groups.forEach(function(grp) {
+    var gp = PLAYERS.filter(function(p){return p.grp===grp;});
+    if (!gp.length) return;
+    html += '<div class="grp-label">' + grp + '</div>';
+    gp.forEach(function(p) {
+      var photoHtml = p.photo ?
+        '<img src="' + p.photo + '" alt="' + p.name + '" onerror="this.parentNode.innerHTML=\'' + p.flag + '\'">' :
+        p.flag;
+      html += '<div class="pcard fu" onclick="showP(' + p.id + ')">' +
+        '<div class="pemoji">' + photoHtml + '</div>' +
+        '<div style="flex:1"><div class="pname">' + p.name + '</div><div class="pmeta">' + p.pos + ' · ' + p.club + '</div></div>' +
+        '<div class="pcaps"><div class="pcnum">' + p.caps + '</div><div class="pclabel">Caps</div></div>' +
+        '<span style="color:var(--gray);font-size:16px">›</span></div>';
+    });
+  });
+  document.getElementById('spieler-inner').innerHTML = html;
+}
+
+function showP(id) {
+  var p = PLAYERS.find(function(x){return x.id===id;});
+  if (!p) return;
+  var photoHtml = p.photo ?
+    '<img src="' + p.photo + '" alt="' + p.name + '" onerror="this.outerHTML=\'<span style=font-size:40px>' + p.flag + '</span>\'">' :
+    '<span style="font-size:40px">' + p.flag + '</span>';
+  var formHtml = p.form.map(function(f) {
+    var cls = f===1?'w':f===0?'l':'d';
+    var sym = f===1?'✓':f===0?'✗':'—';
+    var opacity = f===null?' style="opacity:.3"':'';
+    return '<div class="fdot ' + cls + '"' + opacity + '>' + sym + '</div>';
+  }).join('');
+
+  document.getElementById('spieler-inner').innerHTML =
+    '<button onclick="renderPlayersInner()" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);border-radius:11px;padding:9px 14px;cursor:pointer;margin-bottom:16px;font-family:Inter,sans-serif;font-size:13px">← Nazad na kadar</button>' +
+    '<div class="phero"><div class="photo-big">' + photoHtml + '</div>' +
+    '<div class="phname">' + p.name + '</div>' +
+    '<div class="phsub">' + p.pos + ' · ' + p.club + '</div>' +
+    '<div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">' +
+    '<span class="api-badge">' + p.grp + '</span>' +
+    '<span class="api-badge">🤖 API-Football</span></div></div>' +
+    '<div class="sgrid">' +
+    '<div class="scard"><div class="snum">' + p.caps + '</div><div class="slabel">Caps</div></div>' +
+    '<div class="scard"><div class="snum">' + p.goals + '</div><div class="slabel">Golovi</div></div>' +
+    '</div>' +
+    '<div class="fbox"><div class="ftitle">Zadnjih 5 utakmica <span style="color:var(--gray2);font-size:10px">🔄 Auto</span></div>' +
+    '<div class="fdots">' + formHtml + '</div></div>';
+}
+
+// ══ SPIELE ════════════════════════════════════════════════════
+function fetchSpiele() {
+  var inner = document.getElementById('spiele-inner');
+  inner.innerHTML = '<div style="padding:20px 0">' +
+    '<div class="live-pill" style="margin-bottom:12px"><div class="live-dot"></div><span class="live-txt">API-FOOTBALL</span></div>' +
+    '<div class="load-bar" style="margin-bottom:16px"></div>' +
+    Array(3).fill(0).map(function(){return '<div class="skel"><div class="sl s"></div><div class="sl t"></div><div class="sl m"></div></div>';}).join('') +
+    '</div>';
+
+  var proxy = 'https://corsproxy.io/?';
+  var headers = {'x-apisports-key': API_KEY};
+
+  Promise.all([
+    fetch(proxy + encodeURIComponent('https://v3.football.api-sports.io/fixtures?team='+BIH_TEAM_ID+'&live=all'), {headers:headers}),
+    fetch(proxy + encodeURIComponent('https://v3.football.api-sports.io/fixtures?team='+BIH_TEAM_ID+'&next=8'), {headers:headers}),
+    fetch(proxy + encodeURIComponent('https://v3.football.api-sports.io/fixtures?team='+BIH_TEAM_ID+'&last=6'), {headers:headers})
+  ]).then(function(responses) {
+    return Promise.all(responses.map(function(r){return r.json();}));
+  }).then(function(results) {
+    var live = (results[0]&&results[0].response) || [];
+    var next = (results[1]&&results[1].response) || [];
+    var last = (results[2]&&results[2].response) || [];
+    if (live.length || next.length || last.length) {
+      renderSpieleFull(live, next, last);
+    } else {
+      renderSpieleOffline();
+    }
+  }).catch(function() {
+    renderSpieleOffline();
+  });
+}
+
+function renderSpieleFull(live, next, last) {
+  var html = '';
+  if (live.length) {
+    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">' +
+      '<div class="live-pill"><div class="live-dot"></div><span class="live-txt">LIVE JETZT</span></div>' +
+      '<span style="color:var(--gray2);font-size:10px">Aktualisiert alle 30 Sek.</span></div>';
+    live.forEach(function(f){ html += buildFixtureCard(f,'live'); });
+  }
+  if (next.length) {
+    html += '<div class="seclabel" style="' + (live.length?'margin-top:16px':'') + '">NÄCHSTE SPIELE</div>';
+    next.forEach(function(f){ html += buildFixtureCard(f,'next'); });
+  }
+  if (last.length) {
+    html += '<div class="seclabel" style="margin-top:16px">LETZTE ERGEBNISSE</div>';
+    last.slice().reverse().forEach(function(f){ html += buildFixtureCard(f,'last'); });
+  }
+  html += renderStandingsHTML();
+  document.getElementById('spiele-inner').innerHTML = html;
+}
+
+function buildFixtureCard(f, mode) {
+  var fix = f.fixture, teams = f.teams, goals = f.goals, league = f.league;
+  var isBihHome = teams.home.id === BIH_TEAM_ID;
+  var oppTeam = isBihHome ? teams.away : teams.home;
+  var bihGoals = isBihHome ? goals.home : goals.away;
+  var oppGoals = isBihHome ? goals.away : goals.home;
+  var bihTeam = isBihHome ? teams.home : teams.away;
+  var dt = new Date(fix.date);
+  var dateStr = dt.toLocaleDateString('de-DE',{day:'2-digit',month:'short',year:'numeric'});
+  var timeStr = dt.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+  var status = fix.status.short;
+  var elapsed = fix.status.elapsed;
+  var isFinished = ['FT','AET','PEN'].includes(status);
+  var resultClass = 'draw';
+  if (isFinished) {
+    if (bihTeam.winner === true) resultClass = 'win';
+    else if (bihTeam.winner === false) resultClass = 'loss';
+  }
+  if (mode === 'live') {
+    return '<div style="background:linear-gradient(135deg,#0f1f3d,#1a2f5e);border-radius:20px;padding:18px;margin-bottom:12px;border:2px solid rgba(255,71,87,.5)">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">' +
+      '<div class="live-pill"><div class="live-dot"></div><span class="live-txt">' + elapsed + '\'</span></div>' +
+      '<span style="color:var(--gray2);font-size:10px">' + (league.name||'') + '</span></div>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between">' +
+      '<div style="text-align:center;flex:1"><div style="font-size:28px">🇧🇦</div><div style="color:var(--white);font-weight:800;font-size:13px;margin-top:4px;font-family:Barlow Condensed,sans-serif">BOSNA</div></div>' +
+      '<div style="text-align:center;padding:0 12px"><div style="background:var(--bg);border-radius:14px;padding:12px 20px;border:2px solid rgba(255,71,87,.4)"><div style="color:var(--white);font-size:28px;font-weight:900;font-family:Barlow Condensed,sans-serif;letter-spacing:4px">' + (bihGoals||0) + ' : ' + (oppGoals||0) + '</div></div><div style="color:var(--red);font-size:10px;font-weight:800;margin-top:4px">🔴 LIVE</div></div>' +
+      '<div style="text-align:center;flex:1"><div style="font-size:28px">🏴</div><div style="color:var(--white);font-weight:800;font-size:13px;margin-top:4px;font-family:Barlow Condensed,sans-serif">' + oppTeam.name.toUpperCase().slice(0,10) + '</div></div>' +
+      '</div></div>';
+  }
+  if (mode === 'next') {
+    return '<div style="background:linear-gradient(135deg,var(--bg2),var(--bg3));border-radius:18px;padding:18px;margin-bottom:11px;border:1px solid rgba(245,197,24,.2)">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">' +
+      '<span style="color:var(--gray);font-size:11px;font-family:monospace">' + dateStr + ' · ' + timeStr + '</span>' +
+      '<span style="background:#1a2f5e;color:#7eb8f7;font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px">' + (league.name||'').slice(0,25) + '</span></div>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between">' +
+      '<div style="text-align:center;flex:1"><div style="font-size:32px">🇧🇦</div><div style="color:var(--white);font-weight:800;font-size:13px;margin-top:5px;font-family:Barlow Condensed,sans-serif">BOSNA</div></div>' +
+      '<div style="text-align:center;padding:0 14px"><div style="background:var(--bg);border-radius:10px;padding:10px 18px;border:1px solid var(--border2)"><div style="color:var(--gold);font-weight:900;font-size:24px;font-family:Barlow Condensed,sans-serif;letter-spacing:4px">VS</div></div><div style="color:var(--gray);font-size:10px;margin-top:4px">' + (isBihHome?'🏟 Heimspiel':'✈️ Auswärts') + '</div></div>' +
+      '<div style="text-align:center;flex:1"><div style="font-size:32px">🏴</div><div style="color:var(--white);font-weight:800;font-size:13px;margin-top:5px;font-family:Barlow Condensed,sans-serif">' + oppTeam.name.toUpperCase().slice(0,12) + '</div></div>' +
+      '</div></div>';
+  }
+  var bc = resultClass==='win'?'rgba(46,213,115,.3)':resultClass==='loss'?'rgba(255,71,87,.3)':'rgba(255,255,255,.07)';
+  var sc = resultClass==='win'?'var(--green)':resultClass==='loss'?'var(--red)':'var(--white)';
+  var rl = resultClass==='win'?'SIEG ✓':resultClass==='loss'?'PORAZ':status==='AET'?'n.V.':status==='PEN'?'ELF':'UNENT.';
+  return '<div style="background:var(--bg2);border-radius:14px;padding:14px 16px;margin-bottom:9px;display:flex;align-items:center;justify-content:space-between;border:1px solid ' + bc + '">' +
+    '<div><div style="color:var(--white);font-weight:700;font-size:14px">BOS vs. ' + oppTeam.name + '</div>' +
+    '<div style="color:var(--gray);font-size:11px;margin-top:2px">' + dateStr + ' · ' + (league.name||'').slice(0,22) + '</div></div>' +
+    '<div style="padding:8px 14px;border-radius:11px;text-align:center;background:' + (resultClass==='win'?'rgba(46,213,115,.12)':resultClass==='loss'?'rgba(255,71,87,.1)':'rgba(122,138,170,.1)') + ';border:1px solid ' + bc + '">' +
+    '<div style="font-weight:900;font-size:22px;font-family:Barlow Condensed,sans-serif;color:' + sc + '">' + (bihGoals||0) + ':' + (oppGoals||0) + '</div>' +
+    '<div style="font-size:9px;color:var(--gray);margin-top:2px">' + rl + '</div></div></div>';
+}
+
+function renderSpieleOffline() {
+  document.getElementById('spiele-inner').innerHTML = renderSpieleOfflineHTML();
+}
+
+function renderSpieleOfflineHTML() {
+  var fixtures = [
+    {date:'29. Mai 2026',opp:'Nordmazedonija',comp:'Freundschaftsspiel',flag:'🇲🇰',time:'20:30'},
+    {date:'12. Jun 2026',opp:'Švicarska',comp:'WM 2026 · Gruppe B',flag:'🇨🇭',time:'22:00'},
+    {date:'17. Jun 2026',opp:'Katar',comp:'WM 2026 · Gruppe B',flag:'🇶🇦',time:'02:00'},
+    {date:'22. Jun 2026',opp:'Kanada',comp:'WM 2026 · Gruppe B',flag:'🇨🇦',time:'22:00'}
+  ];
+  var results = [
+    {opp:'Rumänija',date:'15. Nov 2025',comp:'WM-Quali Grp. H',score:'3:1',win:true},
+    {opp:'Italija (Playoff)',date:'31. Mär 2026',comp:'WM-Quali Playoff Final',score:'1:1 pen.',win:true},
+    {opp:'Wales (Playoff)',date:'26. Mär 2026',comp:'WM-Quali Playoff Semi',score:'1:1 pen.',win:true},
+    {opp:'Austrija',date:'18. Nov 2025',comp:'WM-Quali Grp. H',score:'1:1',win:null}
+  ];
+
+  var h = renderStandingsHTML();
+  h += '<div style="height:1px;background:var(--border);margin:18px 0"></div>';
+  h += '<div class="seclabel">WM 2026 — GRUPPE B · LOS ANGELES</div>';
+  fixtures.forEach(function(f) {
+    h += '<div style="background:linear-gradient(135deg,var(--bg2),var(--bg3));border-radius:18px;padding:18px;margin-bottom:11px;border:1px solid rgba(245,197,24,.18)">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">' +
+      '<span style="color:var(--gray);font-size:11px;font-family:monospace">' + f.date + ' · ' + f.time + '</span>' +
+      '<span style="background:#1a2f5e;color:#7eb8f7;font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px">' + f.comp + '</span></div>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between">' +
+      '<div style="text-align:center;flex:1"><div style="font-size:32px">🇧🇦</div><div style="color:var(--white);font-weight:800;font-size:13px;margin-top:5px;font-family:Barlow Condensed,sans-serif">BOSNA</div></div>' +
+      '<div style="text-align:center;padding:0 14px"><div style="background:var(--bg);border-radius:10px;padding:10px 18px;border:1px solid var(--border2)"><div style="color:var(--gold);font-weight:900;font-size:24px;font-family:Barlow Condensed,sans-serif;letter-spacing:4px;line-height:1">VS</div></div><div style="color:var(--gray);font-size:10px;margin-top:4px">✈️ Auswärts</div></div>' +
+      '<div style="text-align:center;flex:1"><div style="font-size:32px">' + f.flag + '</div><div style="color:var(--white);font-weight:800;font-size:13px;margin-top:5px;font-family:Barlow Condensed,sans-serif">' + f.opp.toUpperCase() + '</div></div>' +
+      '</div></div>';
+  });
+
+  h += '<div class="seclabel" style="margin-top:8px">QUALIFIKATION ERGEBNISSE</div>';
+  results.forEach(function(r) {
+    var bc = r.win===true?'rgba(46,213,115,.3)':'rgba(122,138,170,.1)';
+    var sc = r.win===true?'var(--green)':'var(--white)';
+    var rl = r.win===true?'SIEG ✓':'UNENT.';
+    h += '<div style="background:var(--bg2);border-radius:14px;padding:14px 16px;margin-bottom:9px;display:flex;align-items:center;justify-content:space-between;border:1px solid ' + bc + '">' +
+      '<div><div style="color:var(--white);font-weight:700;font-size:14px">BOS vs. ' + r.opp + '</div><div style="color:var(--gray);font-size:11px;margin-top:2px">' + r.date + ' · ' + r.comp + '</div></div>' +
+      '<div style="padding:8px 14px;border-radius:11px;text-align:center;background:' + (r.win?'rgba(46,213,115,.12)':'rgba(122,138,170,.1)') + ';border:1px solid ' + bc + '">' +
+      '<div style="font-weight:900;font-size:22px;font-family:Barlow Condensed,sans-serif;color:' + sc + '">' + r.score + '</div>' +
+      '<div style="font-size:9px;color:var(--gray);margin-top:2px">' + rl + '</div></div></div>';
+  });
+  return h;
+}
+
+function renderStandingsHTML() {
+  var data = STANDINGS_DATA[activeLeagueTab];
+  var tabs = [
+    {key:'wm',   label:'WM 2026',       icon:'🏆'},
+    {key:'quali',label:'WM-Quali',       icon:'✅'},
+    {key:'nl',   label:'Nations League', icon:'🏴'}
+  ];
+
+  var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">' +
+    '<span style="color:var(--gold);font-size:11px;font-weight:800;letter-spacing:1.5px;font-family:Barlow Condensed,sans-serif">TABELLEN</span>' +
+    '<span style="color:var(--gray2);font-size:9px">🤖 Auto-API</span></div>';
+
+  html += '<div class="league-tabs">';
+  tabs.forEach(function(t) {
+    html += '<div class="ltab' + (activeLeagueTab===t.key?' on':'') + '" onclick="switchLeagueTab(\'' + t.key + '\')">' + t.icon + ' ' + t.label + '</div>';
+  });
+  html += '</div>';
+
+  var r = parseInt(data.color.slice(1,3),16);
+  var g = parseInt(data.color.slice(3,5),16);
+  var b = parseInt(data.color.slice(5,7),16);
+  var rgb = r+','+g+','+b;
+
+  html += '<div style="background:var(--bg2);border-radius:18px;overflow:hidden;border:1px solid rgba(' + rgb + ',.25)">';
+  html += '<div style="padding:14px 16px 12px;background:linear-gradient(135deg,rgba(' + rgb + ',.12),transparent);border-bottom:1px solid var(--border)">' +
+    '<div style="display:flex;align-items:center;justify-content:space-between">' +
+    '<div><div style="color:var(--white);font-size:14px;font-weight:800">' + data.title + '</div>' +
+    '<div style="color:var(--gray);font-size:11px;margin-top:2px">' + data.subtitle + '</div></div>' +
+    '<span style="background:rgba(' + rgb + ',.15);color:' + data.color + ';font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px;border:1px solid rgba(' + rgb + ',.3);white-space:nowrap">' + data.badge + '</span>' +
+    '</div></div>';
+
+  html += '<div style="display:flex;align-items:center;padding:8px 16px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.03)">' +
+    '<div style="width:22px;color:var(--gray2);font-size:10px;font-weight:700">#</div>' +
+    '<div style="flex:1;color:var(--gray2);font-size:10px;font-weight:700;padding-left:8px">Team</div>' +
+    '<div style="width:28px;text-align:center;color:var(--gray2);font-size:10px;font-weight:700">Sp</div>' +
+    '<div style="width:24px;text-align:center;color:var(--gray2);font-size:10px;font-weight:700">S</div>' +
+    '<div style="width:24px;text-align:center;color:var(--gray2);font-size:10px;font-weight:700">U</div>' +
+    '<div style="width:24px;text-align:center;color:var(--gray2);font-size:10px;font-weight:700">N</div>' +
+    '<div style="width:32px;text-align:center;color:var(--gray2);font-size:10px;font-weight:700">T</div>' +
+    '<div style="width:30px;text-align:center;color:' + data.color + ';font-size:10px;font-weight:800">Pts</div>' +
+    '</div>';
+
+  data.teams.forEach(function(t, i) {
+    var isAdv = i < data.advance;
+    var rowBg = t.bih ? 'rgba(' + rgb + ',.06)' : 'transparent';
+    var borderLeft = t.bih ? 'border-left:3px solid ' + data.color : 'border-left:3px solid transparent';
+    var posColor = isAdv ? '#2ed573' : 'var(--gray2)';
+    html += '<div style="display:flex;align-items:center;padding:11px 16px;border-bottom:1px solid var(--border);background:' + rowBg + ';' + borderLeft + '">' +
+      '<div style="width:22px;color:' + posColor + ';font-size:13px;font-weight:800;font-family:Barlow Condensed,sans-serif">' + t.pos + '</div>' +
+      '<div style="flex:1;display:flex;align-items:center;gap:8px;padding-left:8px">' +
+      '<span style="font-size:20px">' + t.flag + '</span>' +
+      '<div style="color:' + (t.bih?data.color:'var(--white)') + ';font-size:13px;font-weight:' + (t.bih?800:600) + '">' + t.name + '</div>' +
+      '</div>' +
+      '<div style="width:28px;text-align:center;color:var(--gray);font-size:12px">' + t.pld + '</div>' +
+      '<div style="width:24px;text-align:center;color:var(--green);font-size:12px">' + t.w + '</div>' +
+      '<div style="width:24px;text-align:center;color:var(--gray);font-size:12px">' + t.d + '</div>' +
+      '<div style="width:24px;text-align:center;color:var(--red);font-size:12px">' + t.l + '</div>' +
+      '<div style="width:32px;text-align:center;color:var(--gray);font-size:11px">' + t.gf + ':' + t.ga + '</div>' +
+      '<div style="width:30px;text-align:center;color:' + (t.bih?data.color:'var(--white)') + ';font-size:14px;font-weight:800;font-family:Barlow Condensed,sans-serif">' + t.pts + '</div>' +
+      '</div>';
+  });
+
+  html += '<div style="padding:10px 16px;display:flex;align-items:center;gap:8px">' +
+    '<div style="width:8px;height:8px;border-radius:50%;background:#2ed573;flex-shrink:0"></div>' +
+    '<span style="color:var(--gray);font-size:10px">' + data.advanceNote + '</span></div>';
+  if (data.note) {
+    html += '<div style="padding:0 16px 12px;color:var(--gray2);font-size:10px;font-style:italic">' + data.note + '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function switchLeagueTab(key) {
+  activeLeagueTab = key;
+  renderSpieleOffline();
+}
+
+// ══ BIHBOOK ═══════════════════════════════════════════════════
+function renderBihbook() {
+  var ini = ME ? ME.name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2) : '?';
+  var tv = ADMIN_POSTS[0].options.reduce(function(a,o){return a+o.votes;}, 0);
+
+  var storiesHTML = '<div class="stories">' +
+    '<div class="story-wrap"><div class="story-ring add"><div class="story-av" style="font-size:22px">+</div></div><span class="story-lbl">Story</span></div>' +
+    [{i:'KZ',n:'Kemal'},{i:'AS',n:'Amira'},{i:'MB',n:'Mirza'},{i:'DZ',n:'Džeko'},{i:'BF',n:'BiH Fan'}].map(function(s) {
+      return '<div class="story-wrap"><div class="story-ring"><div class="story-av">' + s.i + '</div></div><span class="story-lbl">' + s.n + '</span></div>';
+    }).join('') + '</div>';
+
+  var voteOpts = ADMIN_POSTS[0].options.map(function(o, i) {
+    var pct = Math.round((o.votes/tv)*100);
+    var iv = votedPoll === i;
+    return '<div class="vote-opt' + (iv?' voted':'') + '" onclick="doVote(' + i + ')">' +
+      '<span class="vote-label">' + o.label + '</span>' +
+      '<span class="vote-pct">' + (votedPoll!==null?pct+'%':'') + '</span>' +
+      '</div>' +
+      (votedPoll!==null ? '<div class="vote-bar-wrap"><div class="vote-bar" style="width:' + pct + '%"></div></div>' : '');
+  }).join('');
+
+  var pollHTML = '<div class="admin-pin fu">' +
+    '<div class="admin-badge"><div class="admin-icon">🛡️</div><span class="admin-label">ADMIN · ABSTIMMUNG</span><span class="admin-expires">' + ADMIN_POSTS[0].expires + '</span></div>' +
+    '<div class="admin-title">' + ADMIN_POSTS[0].title + '</div>' +
+    '<div class="admin-body">' + ADMIN_POSTS[0].body + '</div>' +
+    '<div class="vote-options">' + voteOpts + '</div></div>';
+
+  var infoHTML = '<div class="admin-pin fu" style="margin-bottom:14px">' +
+    '<div class="admin-badge"><div class="admin-icon">📢</div><span class="admin-label">ADMIN · WM 2026</span><span class="admin-expires">' + ADMIN_POSTS[1].expires + '</span></div>' +
+    '<div class="admin-title">' + ADMIN_POSTS[1].title + '</div>' +
+    '<div class="admin-body">' + ADMIN_POSTS[1].body + '</div></div>';
+
+  var composeHTML = '<div class="compose">' +
+    '<div class="compose-top"><div class="cavatar" id="bib-av">' + ini + '</div>' +
+    '<textarea class="carea" id="carea" placeholder="Was denkst du, Zmaji? 🐉" oninput="togglePostBtn()"></textarea></div>' +
+    '<div class="compose-foot"><div style="display:flex;gap:4px"><button class="ctool">🖼</button><button class="ctool">😊</button></div>' +
+    '<button class="cpost" id="cpost-btn" onclick="doPost()" disabled>Posten</button></div></div>';
+
+  document.getElementById('bihbook-inner').innerHTML =
+    storiesHTML + pollHTML + infoHTML + composeHTML + '<div id="feedlist">' + renderFeedHTML() + '</div>';
+}
+
+function togglePostBtn() {
+  var v = document.getElementById('carea');
+  var b = document.getElementById('cpost-btn');
+  if (b) b.disabled = !(v && v.value.trim());
+}
+
+function renderFeedHTML() {
+  return FEED.map(function(p) {
+    return '<div class="fpost fu">' +
+      '<div class="fpost-header"><div class="favatar">' + p.initials + '</div>' +
+      '<div class="fuser"><div class="fdisplay">' + p.display + '</div><div class="fusername">@' + p.user + ' · ' + p.time + '</div></div>' +
+      '<button class="fmore">⋯</button></div>' +
+      '<div class="ftext">' + p.text + '</div>' +
+      '<div class="factions">' +
+      '<button class="fact' + (p.liked?' liked':'') + '" onclick="likePost(' + p.id + ',this)">' + (p.liked?'❤️':'🤍') + ' <span>' + p.likes + '</span></button>' +
+      '<button class="fact" onclick="openComments(' + p.id + ')">💬 <span>' + p.comments.length + '</span></button>' +
+      '<button class="fact fact-share">↗ Teilen</button>' +
+      '</div></div>';
+  }).join('');
+}
+
+function doVote(i) {
+  if (votedPoll !== null) return;
+  votedPoll = i;
+  ADMIN_POSTS[0].options[i].votes += 1;
+  renderBihbook();
+}
+
+function likePost(id, btn) {
+  var p = FEED.find(function(x){return x.id===id;});
+  p.liked = !p.liked;
+  p.likes += p.liked ? 1 : -1;
+  btn.className = 'fact' + (p.liked?' liked':'');
+  btn.innerHTML = (p.liked?'❤️':'🤍') + ' <span>' + p.likes + '</span>';
+}
+
+function doPost() {
+  var area = document.getElementById('carea');
+  var txt = area ? area.value.trim() : '';
+  if (!txt) return;
+  var ini = ME.name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+  FEED.unshift({id:Date.now(), user:ME.username, display:ME.name, initials:ini,
+    time:'gerade eben', text:txt, likes:0, liked:false, comments:[]});
+  area.value = '';
+  document.getElementById('feedlist').innerHTML = renderFeedHTML();
+  ME.posts = (ME.posts||0) + 1;
+}
+
+// ══ COMMENTS ═════════════════════════════════════════════════
+function openComments(id) {
+  currentCommentId = id;
+  var p = FEED.find(function(x){return x.id===id;});
+  var html = p.comments.length ?
+    p.comments.map(function(c) {
+      return '<div class="citem"><div class="favatar" style="width:34px;height:34px;font-size:12px">' + c.user[0].toUpperCase() + '</div>' +
+        '<div class="cbubble"><div class="cuser">@' + c.user + '</div><div class="ctext">' + c.text + '</div></div></div>';
+    }).join('') :
+    '<p style="color:var(--gray);text-align:center;margin-top:28px;font-size:14px">Noch keine Kommentare 🐉</p>';
+  document.getElementById('clist').innerHTML = html;
+  document.getElementById('cmodal').classList.add('open');
+  var inp = document.getElementById('cinput');
+  if (inp) inp.onkeydown = function(e){ if(e.key==='Enter') sendComment(); };
+}
+
+function closeComments() {
+  document.getElementById('cmodal').classList.remove('open');
+}
+
+function sendComment() {
+  var inp = document.getElementById('cinput');
+  var txt = inp ? inp.value.trim() : '';
+  if (!txt || !currentCommentId) return;
+  var p = FEED.find(function(x){return x.id===currentCommentId;});
+  p.comments.push({user: ME.username, text: txt});
+  if (inp) inp.value = '';
+  openComments(currentCommentId);
+  document.getElementById('feedlist').innerHTML = renderFeedHTML();
+}
+
+// ══ TRANSFERS ════════════════════════════════════════════════
+function renderTransfers() {
+  var html = '<div class="seclabel">TRANSFER-NEWS · UNSERE SPIELER</div>';
+  TRANSFERS.forEach(function(t) {
+    html += '<div class="trcard fu">' +
+      '<div class="trplayer"><span class="tremoji">' + t.flag + '</span>' +
+      '<div><div class="trname">' + t.name + '</div><div class="trpos">' + t.pos + '</div></div>' +
+      '<span class="trstatus ' + (t.status==='confirmed'?'trconfirmed':'trrumor') + '">' + (t.status==='confirmed'?'✅ Bestätigt':'🔄 Gerücht') + '</span></div>' +
+      '<div class="trarrow"><span class="trclub">🏟 ' + t.from + '</span><span class="trarricon">→</span><span class="trclub">' + t.to + '</span></div>' +
+      '<div class="trfee"><span class="trfeetxt">💶 ' + t.fee + '</span></div></div>';
+  });
+  document.getElementById('transfers-inner').innerHTML = html;
+}
+
+// ══ PROFILE ══════════════════════════════════════════════════
+function openProfile() {
+  document.getElementById('s-main').classList.remove('active');
+  document.getElementById('s-profile').classList.add('active');
+  renderProfileView();
+}
+
+function renderProfileView() {
+  var ini = ME.name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+  document.getElementById('prof-view').innerHTML =
+    '<div class="prof-hero">' +
+    '<button class="prof-back" onclick="closeProfile()">← Zurück</button>' +
+    '<div class="prof-avbig">' + ini + '</div>' +
+    '<div class="prof-name">' + ME.name + '</div>' +
+    '<div class="prof-un">@' + ME.username + '</div>' +
+    '<div class="prof-bio">' + (ME.bio||'') + '</div>' +
+    '<div class="prof-stats">' +
+    '<div class="pstat"><div class="pstat-num">' + (ME.posts||0) + '</div><div class="pstat-lbl">Posts</div></div>' +
+    '<div class="pstat"><div class="pstat-num">0</div><div class="pstat-lbl">Follower</div></div>' +
+    '<div class="pstat"><div class="pstat-num">' + (ME.joinedAt||'2026') + '</div><div class="pstat-lbl">Dabei seit</div></div>' +
+    '</div></div>' +
+    '<div class="edit-form">' +
+    '<div class="ef-label">Anzeigename</div><input class="ef-input" id="ef-name" value="' + ME.name + '">' +
+    '<div class="ef-label">Benutzername</div><input class="ef-input" id="ef-uname" value="' + ME.username + '">' +
+    '<div class="ef-hint">@' + ME.username + ' · wird für Login verwendet</div>' +
+    '<div class="ef-label">Bio</div><input class="ef-input" id="ef-bio" value="' + (ME.bio||'') + '" placeholder="Erzähl etwas über dich 🐉">' +
+    '<div class="ef-label">E-Mail</div><input class="ef-input" value="' + ME.email + '" disabled style="opacity:.5">' +
+    '<button class="ef-save" onclick="saveProfile()">ÄNDERUNGEN SPEICHERN</button>' +
+    '<button class="ef-logout" onclick="doLogout()">Abmelden</button>' +
+    '</div>';
+}
+
+function saveProfile() {
+  var name = document.getElementById('ef-name').value.trim();
+  var uname = document.getElementById('ef-uname').value.trim().replace('@','');
+  var bio = document.getElementById('ef-bio').value.trim();
+  if (!name || !uname) { alert('Pflichtfelder!'); return; }
+  ME.name = name; ME.username = uname; ME.bio = bio;
+  USERS[ME.email] = ME;
+  alert('✅ Profil gespeichert!');
+  renderProfileView();
+}
+
+function closeProfile() {
+  document.getElementById('s-profile').classList.remove('active');
+  document.getElementById('s-main').classList.add('active');
+  renderUserPill();
+}
+
+function doLogout() {
+  if (!confirm('Abmelden?')) return;
+  ME = null; votedPoll = null;
+  document.getElementById('s-profile').classList.remove('active');
+  document.getElementById('s-main').classList.remove('active');
+  document.getElementById('s-auth').classList.add('active');
+  switchAuth('login');
+  renderAuthForm('login');
+}
+
+// ══ INIT ═════════════════════════════════════════════════════
+renderAuthForm('login');
+</script>
+</body>
+</html>
