@@ -2,7 +2,13 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Zmajevi">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#f5c518">
+<meta name="description" content="Die offizielle App fuer Zmajevi-Fans">
 <title>Zmajevi App</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Barlow+Condensed:wght@700;800;900&display=swap');
@@ -14,17 +20,19 @@
   --red:#ff4757;--green:#2ed573;--blue:#4facfe;--purple:#a78bfa;
   --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
 }
-body{background:#060b14;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;font-family:'Inter',sans-serif;padding:24px 12px}
+body{background:#060b14;font-family:'Inter',sans-serif;margin:0;padding:0;min-height:100vh;min-height:100dvh;overflow:hidden;position:fixed;width:100%;-webkit-font-smoothing:antialiased}
 input,textarea,button{font-family:'Inter',sans-serif}
 a{text-decoration:none;color:inherit}
-.phone{width:393px;height:852px;background:var(--bg);border-radius:52px;overflow:hidden;position:relative;
-  box-shadow:0 60px 120px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.08);
-  border:1.5px solid rgba(255,255,255,.06);display:flex;flex-direction:column}
+.phone{width:100%;height:100vh;height:100dvh;background:var(--bg);border-radius:0;overflow:hidden;position:relative;display:flex;flex-direction:column;max-width:480px;margin:0 auto}
+@media(min-width:520px){
+  body{background:#060b14;display:flex;justify-content:center;align-items:flex-start;padding:24px 0;position:static;overflow:auto}
+  .phone{width:393px;height:852px;border-radius:52px;border:1.5px solid rgba(255,255,255,.06);box-shadow:0 60px 120px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.08);}
+}
 .screen{display:none;flex-direction:column;height:100%;overflow:hidden}
 .screen.active{display:flex}
 
 /* AUTH */
-#s-auth{background:linear-gradient(160deg,#0d1528 0%,#0a0f1e 60%);overflow-y:auto;padding:0 0 40px}
+#s-auth{background:linear-gradient(160deg,#0d1528 0%,#0a0f1e 60%);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 0 40px}
 .auth-hero{padding:52px 28px 28px;text-align:center}
 .auth-logo{width:76px;height:76px;border-radius:22px;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 18px;box-shadow:0 12px 40px rgba(245,197,24,.45)}
 .auth-appname{font-family:'Barlow Condensed',sans-serif;font-size:38px;font-weight:900;color:var(--gold);letter-spacing:5px}
@@ -36,7 +44,7 @@ a{text-decoration:none;color:inherit}
 .acard{background:var(--bg2);border-radius:22px;padding:24px;border:1px solid var(--border)}
 .alabel{color:var(--gray);font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;margin:16px 0 7px}
 .alabel:first-child{margin-top:0}
-.ainput{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:13px;padding:14px 16px;color:var(--white);font-size:15px;outline:none;transition:border-color .2s}
+.ainput{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:13px;padding:14px 16px;color:var(--white);font-size:16px;outline:none;transition:border-color .2s;-webkit-appearance:none}
 .ainput:focus{border-color:var(--gold)}
 .ainput::placeholder{color:var(--gray2)}
 .aerr{color:var(--red);font-size:13px;margin-top:10px;display:none;padding:10px 13px;background:rgba(255,71,87,.1);border-radius:10px;border:1px solid rgba(255,71,87,.2)}
@@ -46,7 +54,7 @@ a{text-decoration:none;color:inherit}
 
 /* MAIN */
 #s-main{background:var(--bg)}
-.topbar{background:rgba(10,15,30,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:10}
+.topbar{background:rgba(10,15,30,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:10}
 .topbar-logo{display:flex;align-items:center;gap:10px}
 .topbar-icon{width:34px;height:34px;border-radius:10px;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:18px}
 .topbar-title{font-family:'Barlow Condensed',sans-serif;color:var(--gold);font-size:17px;font-weight:900;letter-spacing:2px}
@@ -58,11 +66,11 @@ a{text-decoration:none;color:inherit}
 .uavatar{width:26px;height:26px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:#0a0f1e}
 .uname{color:var(--white);font-size:12px;font-weight:600;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tabs-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column}
-.tab-panel{display:none;flex:1;overflow-y:auto;padding:0 0 90px}
+.tab-panel{display:none;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:0 0 90px}
 .tab-panel.on{display:block}
 
 /* BOTTOM NAV */
-.bnav{display:flex;background:rgba(10,15,30,.97);backdrop-filter:blur(24px);border-top:1px solid var(--border);padding:8px 0 16px;flex-shrink:0}
+.bnav{display:flex;background:rgba(10,15,30,.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);padding:8px 0 calc(env(safe-area-inset-bottom,0px) + 8px);flex-shrink:0}
 .nbtn{flex:1;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0}
 .nicon{font-size:20px;transition:transform .2s}
 .nlabel{font-size:9px;font-weight:700;letter-spacing:.8px;color:var(--gray);text-transform:uppercase;font-family:'Barlow Condensed',sans-serif}
@@ -330,6 +338,11 @@ a{text-decoration:none;color:inherit}
           <div class="src-row" id="src-row"></div>
         </div>
         <div class="news-filters" id="news-filters"></div>
+      </div>
+      <div id="install-bar" style="display:none;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(245,197,24,.14),rgba(245,197,24,.07));border:1px solid rgba(245,197,24,.28);border-radius:13px;padding:10px 13px;margin:8px 14px 2px;cursor:pointer">
+        <span style="font-size:20px">&#128242;</span>
+        <span style="flex:1;color:#f1f5ff;font-size:12px;font-weight:600">Als App installieren!</span>
+        <button onclick="installPWA()" style="background:#f5c518;color:#0a0f1e;border:none;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:800;cursor:pointer">Installieren</button>
       </div>
       <div class="news-feed" id="news-feed"></div>
       <div class="news-hint">↗ Klikni na vijest da otvoriš originalnu stranicu</div>
@@ -1321,6 +1334,46 @@ function doLogout() {
   document.getElementById('s-auth').classList.add('active');
   switchAuth('login');
   renderAuthForm('login');
+}
+
+
+// PWA SERVICE WORKER
+if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('sw.js').catch(function() {});
+  });
+}
+var deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  var bar = document.getElementById('install-bar');
+  if (bar) bar.style.display = 'flex';
+});
+function installPWA() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(function() {
+    deferredPrompt = null;
+    var bar = document.getElementById('install-bar');
+    if (bar) bar.style.display = 'none';
+  });
+}
+function showToast(msg) {
+  var t = document.getElementById('zmj-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'zmj-toast';
+    t.style.cssText = 'position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 80px);left:50%;transform:translateX(-50%) translateY(20px);background:#1a2235;border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:10px 18px;color:#f1f5ff;font-size:13px;font-weight:600;white-space:nowrap;opacity:0;transition:all .3s;z-index:200;pointer-events:none;font-family:Inter,sans-serif';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'translateX(-50%) translateY(0)';
+  setTimeout(function() {
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(-50%) translateY(20px)';
+  }, 2500);
 }
 
 // ══ INIT ═════════════════════════════════════════════════════
