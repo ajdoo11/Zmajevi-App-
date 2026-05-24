@@ -8,7 +8,6 @@
 <meta name="apple-mobile-web-app-title" content="Zmajevi">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#f5c518">
-<meta name="description" content="Die offizielle App fuer Zmajevi-Fans">
 <title>Zmajevi App</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Barlow+Condensed:wght@700;800;900&display=swap');
@@ -20,14 +19,11 @@
   --red:#ff4757;--green:#2ed573;--blue:#4facfe;--purple:#a78bfa;
   --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
 }
-body{background:#060b14;font-family:'Inter',sans-serif;margin:0;padding:0;min-height:100vh;min-height:100dvh;overflow:hidden;position:fixed;width:100%;-webkit-font-smoothing:antialiased}
+body{background:#060b14;font-family:'Inter',sans-serif;margin:0;padding:0;overflow:hidden;position:fixed;width:100%;height:100%;-webkit-font-smoothing:antialiased}
 input,textarea,button{font-family:'Inter',sans-serif}
 a{text-decoration:none;color:inherit}
 .phone{width:100%;height:100vh;height:100dvh;background:var(--bg);border-radius:0;overflow:hidden;position:relative;display:flex;flex-direction:column;max-width:480px;margin:0 auto}
-@media(min-width:520px){
-  body{background:#060b14;display:flex;justify-content:center;align-items:flex-start;padding:24px 0;position:static;overflow:auto}
-  .phone{width:393px;height:852px;border-radius:52px;border:1.5px solid rgba(255,255,255,.06);box-shadow:0 60px 120px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.08);}
-}
+@media(min-width:520px){body{display:flex;justify-content:center;align-items:flex-start;padding:24px 0;position:static;overflow:auto}.phone{width:393px;height:852px;border-radius:52px;border:1.5px solid rgba(255,255,255,.06);box-shadow:0 60px 120px rgba(0,0,0,.9)}}
 .screen{display:none;flex-direction:column;height:100%;overflow:hidden}
 .screen.active{display:flex}
 
@@ -1178,8 +1174,9 @@ function renderBihbook() {
     '<div class="compose-top"><div class="cavatar" id="bib-av">' + ini + '</div>' +
     '<textarea class="carea" id="carea" placeholder="Was denkst du, Zmaji? 🐉" oninput="togglePostBtn()"></textarea></div>' +
     '<div class="compose-foot"><div style="display:flex;gap:4px"><button class="ctool">🖼</button><button class="ctool">😊</button></div>' +
-    '<button class="cpost" id="cpost-btn" onclick="doPost()" disabled>Posten</button></div></div>';
+    '<button class="cpost" id="cpost-btn" onclick="fbDoPost()" disabled>Posten</button></div></div>';
 
+  if (typeof loadFirebaseFeed === 'function') { setTimeout(loadFirebaseFeed, 300); }
   document.getElementById('bihbook-inner').innerHTML =
     storiesHTML + pollHTML + infoHTML + composeHTML + '<div id="feedlist">' + renderFeedHTML() + '</div>';
 }
@@ -1305,7 +1302,7 @@ function renderProfileView() {
     '<div class="ef-label">Bio</div><input class="ef-input" id="ef-bio" value="' + (ME.bio||'') + '" placeholder="Erzähl etwas über dich 🐉">' +
     '<div class="ef-label">E-Mail</div><input class="ef-input" value="' + ME.email + '" disabled style="opacity:.5">' +
     '<button class="ef-save" onclick="saveProfile()">ÄNDERUNGEN SPEICHERN</button>' +
-    '<button class="ef-logout" onclick="doLogout()">Abmelden</button>' +
+    '<button class="ef-logout" onclick="fbLogout()">Abmelden</button>' +
     '</div>';
 }
 
@@ -1336,30 +1333,225 @@ function doLogout() {
   renderAuthForm('login');
 }
 
+// ══ INIT ═════════════════════════════════════════════════════
+renderAuthForm('login');
+</script>
 
-// PWA SERVICE WORKER
-if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+// Firebase init
+var firebaseConfig = {
+  apiKey: "AIzaSyD19rUNDwsmw7ToGxJKSGlWzP1aSJof3kw",
+  authDomain: "bosnien-app.firebaseapp.com",
+  projectId: "bosnien-app",
+  storageBucket: "bosnien-app.firebasestorage.app",
+  messagingSenderId: "699054909708",
+  appId: "1:699054909708:web:ead5ab501af5145bce4129"
+};
+firebase.initializeApp(firebaseConfig);
+var fbAuth = firebase.auth();
+var fbDb = firebase.firestore();
+
+// Override doAuth to use Firebase
+function doAuth(mode) {
+  var emailEl = document.getElementById('f-email');
+  var passEl = document.getElementById('f-pass');
+  var email = emailEl ? emailEl.value.trim() : '';
+  var pass = passEl ? passEl.value : '';
+  if (!email || !pass) { showAuthErr('Bitte alle Felder ausfullen.'); return; }
+
+  var btn = document.querySelector('.abtn');
+  if (btn) { btn.textContent = '...'; btn.disabled = true; }
+
+  if (mode === 'reg') {
+    var nameEl = document.getElementById('f-name');
+    var unameEl = document.getElementById('f-uname');
+    var pass2El = document.getElementById('f-pass2');
+    var name = nameEl ? nameEl.value.trim() : '';
+    var uname = unameEl ? unameEl.value.trim().replace('@','') : '';
+    var pass2 = pass2El ? pass2El.value : '';
+    if (!name || !uname) { showAuthErr('Name und Benutzername sind Pflichtfelder.'); resetAuthBtn(btn,mode); return; }
+    if (pass !== pass2) { showAuthErr('Passworter stimmen nicht uberein.'); resetAuthBtn(btn,mode); return; }
+    if (pass.length < 6) { showAuthErr('Passwort mind. 6 Zeichen.'); resetAuthBtn(btn,mode); return; }
+    fbAuth.createUserWithEmailAndPassword(email, pass).then(function(cred) {
+      var userData = {uid:cred.user.uid, name:name, username:uname, email:email, bio:'Zmajevi-Fan', posts:0, joinedAt:'2026'};
+      return fbDb.collection('users').doc(cred.user.uid).set(userData).then(function() {
+        ME = userData;
+        enterAppFirebase();
+      });
+    }).catch(function(err) {
+      resetAuthBtn(btn, mode);
+      if (err.code === 'auth/email-already-in-use') showAuthErr('E-Mail bereits verwendet.');
+      else if (err.code === 'auth/invalid-email') showAuthErr('Ungultige E-Mail-Adresse.');
+      else if (err.code === 'auth/weak-password') showAuthErr('Passwort zu schwach.');
+      else showAuthErr(err.message);
+    });
+  } else {
+    fbAuth.signInWithEmailAndPassword(email, pass).then(function(cred) {
+      return fbDb.collection('users').doc(cred.user.uid).get().then(function(doc) {
+        ME = doc.exists ? doc.data() : {uid:cred.user.uid, name:'Fan', username:email.split('@')[0], email:email, bio:'', posts:0, joinedAt:'2026'};
+        ME.uid = cred.user.uid;
+        enterAppFirebase();
+      });
+    }).catch(function(err) {
+      resetAuthBtn(btn, mode);
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        showAuthErr('E-Mail oder Passwort falsch.');
+      } else {
+        showAuthErr(err.message);
+      }
+    });
+  }
+}
+
+function showAuthErr(msg) {
+  var e = document.getElementById('aerr');
+  if (e) { e.textContent = msg; e.style.display = 'block'; }
+}
+
+function resetAuthBtn(btn, mode) {
+  if (btn) { btn.textContent = mode==='login'?'ANMELDEN':'KONTO ERSTELLEN'; btn.disabled = false; }
+}
+
+function enterAppFirebase() {
+  document.getElementById('s-auth').classList.remove('active');
+  document.getElementById('s-main').classList.add('active');
+  renderUserPill();
+  renderAll();
+  showFbToast('Willkommen! Zmajevi-Fan');
+}
+
+// Listen for BIHBOOK posts from Firestore
+function loadFirebaseFeed() {
+  fbDb.collection('posts').orderBy('createdAt','desc').limit(20).onSnapshot(function(snap) {
+    var posts = [];
+    snap.forEach(function(doc) { posts.push(Object.assign({docId: doc.id}, doc.data())); });
+    if (posts.length > 0) renderFirebaseFeed(posts);
+  }, function() {});
+}
+
+function renderFirebaseFeed(posts) {
+  var list = document.getElementById('feedlist');
+  if (!list) return;
+  list.innerHTML = posts.map(function(p) {
+    var ini = (p.displayName||'?').split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+    var ts = '';
+    if (p.createdAt && p.createdAt.toDate) {
+      var d = p.createdAt.toDate();
+      ts = d.toLocaleDateString('de-DE',{day:'2-digit',month:'short'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    }
+    var likes = p.likedBy ? Object.keys(p.likedBy).length : 0;
+    var isOwn = ME && p.uid === ME.uid;
+    var txt = (p.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return '<div class="fpost fu">' +
+      '<div class="fpost-header"><div class="favatar">' + ini + '</div>' +
+      '<div class="fuser"><div class="fdisplay">' + (p.displayName||'Fan') + '</div>' +
+      '<div class="fusername">@' + (p.username||'fan') + ' &middot; ' + ts + '</div></div>' +
+      (isOwn ? '<button class="fmore" onclick="fbDeletePost(''+p.docId+'')">&#128465;</button>' : '<button class="fmore">&#8943;</button>') +
+      '</div>' +
+      '<div class="ftext">' + txt + '</div>' +
+      '<div class="factions">' +
+      '<button class="fact' + (p.likedBy&&p.likedBy[ME&&ME.uid]?' liked':'') + '" onclick="fbLike(''+p.docId+'',this)">' +
+      (p.likedBy&&p.likedBy[ME&&ME.uid]?'&#10084;&#65039;':'&#129293;') + ' <span>' + likes + '</span></button>' +
+      '<button class="fact">&#128172; <span>' + (p.commentCount||0) + '</span></button>' +
+      '<button class="fact fact-share">&#8599; Teilen</button>' +
+      '</div></div>';
+  }).join('');
+}
+
+function fbDoPost() {
+  var area = document.getElementById('carea');
+  var txt = area ? area.value.trim() : '';
+  if (!txt || !ME) return;
+  var btn = document.getElementById('cpost-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '...'; }
+  fbDb.collection('posts').add({
+    uid: ME.uid, displayName: ME.name, username: ME.username,
+    text: txt, createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    likedBy: {}, commentCount: 0
+  }).then(function() {
+    if (area) area.value = '';
+    if (btn) { btn.disabled = false; btn.textContent = 'Posten'; }
+    showFbToast('Post veroeffentlicht!');
+  }).catch(function(e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Posten'; }
+    showFbToast('Fehler: ' + e.message);
+  });
+}
+
+function fbLike(docId, btn) {
+  if (!ME) return;
+  var ref = fbDb.collection('posts').doc(docId);
+  ref.get().then(function(doc) {
+    if (!doc.exists) return;
+    var liked = doc.data().likedBy || {};
+    var update = {};
+    if (liked[ME.uid]) { update['likedBy.' + ME.uid] = firebase.firestore.FieldValue.delete(); }
+    else { update['likedBy.' + ME.uid] = true; }
+    ref.update(update);
+  });
+}
+
+function fbDeletePost(docId) {
+  if (!confirm('Post loschen?')) return;
+  fbDb.collection('posts').doc(docId).delete().then(function() { showFbToast('Post geloscht.'); });
+}
+
+function fbLogout() {
+  if (!confirm('Wirklich abmelden?')) return;
+  fbAuth.signOut().then(function() {
+    ME = null;
+    document.getElementById('s-profile').classList.remove('active');
+    document.getElementById('s-main').classList.remove('active');
+    document.getElementById('s-auth').classList.add('active');
+    switchAuth('login');
+    renderAuthForm('login');
+  });
+}
+
+// Override doPost and doLogout with Firebase versions
+window.addEventListener('DOMContentLoaded', function() {
+  // Check if already logged in
+  fbAuth.onAuthStateChanged(function(user) {
+    if (user && !ME) {
+      fbDb.collection('users').doc(user.uid).get().then(function(doc) {
+        ME = doc.exists ? doc.data() : {uid:user.uid, name:'Fan', username:user.email.split('@')[0], email:user.email, bio:'', posts:0, joinedAt:'2026'};
+        ME.uid = user.uid;
+        if (document.getElementById('s-auth').classList.contains('active')) {
+          enterAppFirebase();
+        }
+      });
+    }
+  });
+});
+
+// PWA Service Worker
+if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
     navigator.serviceWorker.register('sw.js').catch(function() {});
   });
 }
-var deferredPrompt = null;
+var deferredInstall = null;
 window.addEventListener('beforeinstallprompt', function(e) {
   e.preventDefault();
-  deferredPrompt = e;
+  deferredInstall = e;
   var bar = document.getElementById('install-bar');
   if (bar) bar.style.display = 'flex';
 });
 function installPWA() {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  deferredPrompt.userChoice.then(function() {
-    deferredPrompt = null;
+  if (!deferredInstall) return;
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(function() {
+    deferredInstall = null;
     var bar = document.getElementById('install-bar');
     if (bar) bar.style.display = 'none';
   });
 }
-function showToast(msg) {
+
+function showFbToast(msg) {
   var t = document.getElementById('zmj-toast');
   if (!t) {
     t = document.createElement('div');
@@ -1370,14 +1562,9 @@ function showToast(msg) {
   t.textContent = msg;
   t.style.opacity = '1';
   t.style.transform = 'translateX(-50%) translateY(0)';
-  setTimeout(function() {
-    t.style.opacity = '0';
-    t.style.transform = 'translateX(-50%) translateY(20px)';
-  }, 2500);
+  setTimeout(function() { t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(20px)'; }, 2500);
 }
-
-// ══ INIT ═════════════════════════════════════════════════════
-renderAuthForm('login');
 </script>
+
 </body>
 </html>
