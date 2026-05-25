@@ -282,6 +282,10 @@ a{text-decoration:none;color:inherit}
 #toast{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 80px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:10px 18px;color:var(--white);font-size:13px;font-weight:600;white-space:nowrap;opacity:0;transition:all .3s;z-index:100;pointer-events:none}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+.img-preview-wrap{position:relative;margin-top:10px;border-radius:13px;overflow:hidden;border:1px solid var(--border2)}
+.img-preview{width:100%;max-height:220px;object-fit:cover;display:block}
+.post-img{width:100%;border-radius:0 0 14px 14px;max-height:280px;object-fit:cover;display:block;margin-top:8px;cursor:pointer}
+#file-input{display:none}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
@@ -381,8 +385,47 @@ a{text-decoration:none;color:inherit}
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 
 <script>
+var selectedImageFile = null;
+
+function previewImage(input) {
+  var file = input.files[0];
+  if (!file) return;
+  if (file.size > 5242880) { showToast('Bild zu gross! Max. 5MB.'); return; }
+  selectedImageFile = file;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var wrap = document.getElementById('img-preview-wrap');
+    var prev = document.getElementById('img-preview');
+    if (wrap && prev) { prev.src = e.target.result; wrap.style.display = 'block'; }
+    togglePost();
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeImage() {
+  selectedImageFile = null;
+  var wrap = document.getElementById('img-preview-wrap');
+  var inp = document.getElementById('file-input');
+  if (wrap) wrap.style.display = 'none';
+  if (inp) inp.value = '';
+  togglePost();
+}
+
+function openImgFull(src) {
+  var o = document.createElement('div');
+  o.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:200;display:flex;align-items:center;justify-content:center;cursor:pointer';
+  o.onclick = function() { document.body.removeChild(o); };
+  var img = document.createElement('img');
+  img.src = src;
+  img.style.cssText = 'max-width:95%;max-height:90vh;border-radius:12px;object-fit:contain';
+  o.appendChild(img);
+  document.body.appendChild(o);
+}
+
+
 
 // ════════════════════════════════════════════════════════════
 // FIREBASE
@@ -516,7 +559,7 @@ function goTab(tab, btn) {
   document.getElementById('ttitle').textContent = T_TITLES[tab];
   if (tab === 'spieler' && !playersLoaded) { playersLoaded = true; renderSpieler(); }
   if (tab === 'spiele' && !spieleLoaded) { spieleLoaded = true; renderSpiele(); }
-  if (tab === 'bihbook') renderBihbook();
+  if (tab === 'bihbook') { renderBihbook(); setTimeout(loadStories, 400); }
 }
 
 function renderAll() {
@@ -876,10 +919,9 @@ function renderBihbook() {
 
   document.getElementById('bihbook-inner').innerHTML =
     '<div class="stories">' +
-    '<div class="story-wrap"><div class="story-ring add"><div class="story-av" style="font-size:20px">+</div></div><span class="story-lbl">Story</span></div>' +
-    [{i:'KZ',n:'Kemal'},{i:'AS',n:'Amira'},{i:'MB',n:'Mirza'},{i:'EG',n:'Edin'},{i:'BF',n:'BiH'}].map(function(s) {
-      return '<div class="story-wrap"><div class="story-ring"><div class="story-av">' + s.i + '</div></div><span class="story-lbl">' + s.n + '</span></div>';
-    }).join('') + '</div>' +
+    '<div class="story-wrap" onclick="openStoryUpload()"><div class="story-ring add"><div class="story-av" style="font-size:20px">+</div></div><span class="story-lbl">Deine Story</span></div>' +
+    '<div id="stories-dynamic"></div>' +
+    '</div>' +
     '<div class="fb-live-badge"><div class="fb-live-dot"></div><span class="fb-live-txt">BIHBOOK · Firebase Live · Echte Posts</span></div>' +
     '<div class="admin-pin">' +
     '<div class="admin-badge"><div class="admin-icon">🛡️</div><span class="admin-label">ADMIN · ABSTIMMUNG</span><span class="admin-expires">' + ADMIN_POLLS[0].expires + '</span></div>' +
@@ -898,6 +940,7 @@ function renderBihbook() {
     '<div id="feedlist"><div style="text-align:center;padding:20px;color:var(--gray);font-size:13px">🔄 Ladt Posts...</div></div>';
 
   loadLiveFeed();
+  setTimeout(loadStories, 600);
 }
 
 function loadLiveFeed() {
@@ -939,7 +982,7 @@ function renderFeed(posts) {
       '<div class="factions">' +
       '<button class="fact' + (liked ? ' liked' : '') + '" data-id="' + p.docId + '" onclick="likePostEl(this)">' + (liked ? '❤️' : '🤍') + ' <span>' + lc + '</span></button>' +
       '<button class="fact">💬 <span>' + (p.commentCount || 0) + '</span></button>' +
-      '<button class="fact fact-share" onclick="sharePostEl(this)">&#8599; Teilen</button>' +
+      '<button class="fact fact-share" data-id="' + p.docId + '" onclick="openShareSheetId(this)">&#x2197; Teilen</button>' +
       '</div></div>';
   }).join('');
 }
@@ -947,30 +990,39 @@ function renderFeed(posts) {
 function togglePost() {
   var v = document.getElementById('carea');
   var b = document.getElementById('cpost-btn');
-  if (b) b.disabled = !(v && v.value.trim());
+  if (b) b.disabled = !(v && v.value.trim()) && !selectedImageFile;
 }
 
 function submitPost() {
   var area = document.getElementById('carea');
   var txt = area ? area.value.trim() : '';
-  if (!txt || !ME) return;
+  if (!txt && !selectedImageFile) return;
+  if (!ME) return;
   var btn = document.getElementById('cpost-btn');
   if (btn) { btn.disabled = true; btn.textContent = '...'; }
-  fbDb.collection('posts').add({
-    uid: ME.uid, displayName: ME.name, username: ME.username,
-    text: txt, createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    likedBy: {}, commentCount: 0
-  }).then(function() {
-    if (area) area.value = '';
-    if (btn) { btn.disabled = false; btn.textContent = 'Posten'; }
-    showToast('Post veroeffentlicht! 🐉');
-    fbDb.collection('users').doc(ME.uid).update({ posts: firebase.firestore.FieldValue.increment(1) }).catch(function(){});
-  }).catch(function(e) {
-    if (btn) { btn.disabled = false; btn.textContent = 'Posten'; }
-    showToast('Fehler: ' + e.message);
-  });
+  function savePost(imgUrl) {
+    var pd = {uid:ME.uid, displayName:ME.name, username:ME.username, text:txt||'',
+      createdAt:firebase.firestore.FieldValue.serverTimestamp(), likedBy:{}, commentCount:0};
+    if (imgUrl) pd.imageUrl = imgUrl;
+    fbDb.collection('posts').add(pd).then(function() {
+      if (area) area.value = '';
+      if (btn) { btn.disabled=false; btn.textContent='Posten'; }
+      removeImage();
+      fbDb.collection('users').doc(ME.uid).update({posts:firebase.firestore.FieldValue.increment(1)}).catch(function(){});
+    }).catch(function(e) {
+      if (btn) { btn.disabled=false; btn.textContent='Posten'; }
+      showToast('Fehler: ' + e.message);
+    });
+  }
+  if (selectedImageFile && typeof firebase !== 'undefined' && firebase.storage) {
+    var sref = firebase.storage().ref('posts/' + ME.uid + '/' + Date.now() + '.jpg');
+    sref.put(selectedImageFile).then(function(snap) {
+      return snap.ref.getDownloadURL();
+    }).then(savePost).catch(function() { savePost(null); });
+  } else {
+    savePost(null);
+  }
 }
-
 function likePost(docId, btn) {
   if (!ME) return;
   var ref = fbDb.collection('posts').doc(docId);
@@ -1010,9 +1062,15 @@ function openComments(id) {
   fbDb.collection('posts').doc(id).collection('comments').orderBy('createdAt', 'asc').get().then(function(snap) {
     var h = '';
     snap.forEach(function(doc) {
-      var c = doc.data();
+      var c = doc.data(); var cid = doc.id;
+      var clc = c.likedBy ? Object.keys(c.likedBy).length : 0;
+      var cliked = ME && c.likedBy && c.likedBy[ME.uid];
       h += '<div class="citem"><div class="favatar" style="width:32px;height:32px;font-size:11px">' + (c.displayName || 'F')[0].toUpperCase() + '</div>' +
-        '<div class="cbubble"><div class="cuser">@' + (c.username || 'fan') + '</div><div class="ctext">' + (c.text || '') + '</div></div></div>';
+        '<div style="flex:1"><div class="cbubble"><div class="cuser">@' + (c.username || 'fan') + '</div><div class="ctext">' + (c.text || '') + '</div></div>' +
+        '<div class="comment-actions">' +
+        '<button class="ca-btn' + (cliked ? ' liked' : '') + '" data-pid="' + currentCommentId + '" data-cid="' + cid + '" onclick="likeCommentEl(this)">&#x2665;</button>' +
+        '<span class="comment-like-count">' + (clc > 0 ? clc : '') + '</span>' +
+        '</div></div></div>';
     });
     document.getElementById('clist').innerHTML = h || '<p style="color:var(--gray);text-align:center;margin-top:20px;font-size:13px">Noch keine Kommentare 🐉</p>';
   });
@@ -1104,6 +1162,327 @@ function doLogout() {
     renderAuthForm('login');
   });
 }
+
+
+
+// ════════════════════════════════════════════════════════════
+// STORIES — Firebase Firestore (6h expiry)
+// ════════════════════════════════════════════════════════════
+var currentStoryIndex = 0;
+var currentStories = [];
+var storyTimer = null;
+var storyProgressTimer = null;
+var storyBgColors = ['#0a0f1e','#1a2f5e','#2d1b69','#1a3a2b','#3a1a1a','#1a1a3a'];
+var selectedStoryBg = '#0a0f1e';
+var selectedStoryImageFile = null;
+
+function initStoryBgPicker() {
+  var picker = document.getElementById('story-bg-picker');
+  if (!picker) return;
+  picker.innerHTML = storyBgColors.map(function(c, i) {
+    return '<div class="sbg' + (c === selectedStoryBg ? ' on' : '') + '" style="background:' + c + '" data-color="' + c + '" onclick="pickStoryBgEl(this)"></div>';
+  }).join('') + '<div class="sbg" data-color="gradient1" onclick="pickStoryBgEl(this)" style="background:linear-gradient(135deg,var(--gold),#ff6b35)"></div>' +
+    '<div class="sbg" data-color="gradient2" onclick="pickStoryBgEl(this)" style="background:linear-gradient(135deg,#4facfe,#2ed573)"></div>';
+}
+
+function pickStoryBgEl(el) {
+  pickStoryBg(el.getAttribute('data-color'), el);
+}
+function pickStoryBg(color, el) {
+  selectedStoryBg = color;
+  document.querySelectorAll('.sbg').forEach(function(b) { b.classList.remove('on'); });
+  el.classList.add('on');
+  var area = document.getElementById('story-preview-area');
+  if (area) {
+    if (color === 'gradient1') area.style.background = 'linear-gradient(135deg,var(--gold),#ff6b35)';
+    else if (color === 'gradient2') area.style.background = 'linear-gradient(135deg,#4facfe,#2ed573)';
+    else area.style.background = color;
+  }
+}
+
+function openStoryUpload() {
+  var modal = document.getElementById('story-upload-modal');
+  if (modal) modal.classList.add('open');
+  initStoryBgPicker();
+}
+
+function closeStoryUpload() {
+  var modal = document.getElementById('story-upload-modal');
+  if (modal) modal.classList.remove('open');
+  selectedStoryImageFile = null;
+  var prev = document.getElementById('story-upload-preview');
+  var inp = document.getElementById('story-file-input');
+  if (prev) { prev.style.display = 'none'; prev.src = ''; }
+  if (inp) inp.value = '';
+}
+
+function previewStoryImg(input) {
+  var file = input.files[0];
+  if (!file) return;
+  if (file.size > 8388608) { showToast('Bild zu gross! Max. 8MB.'); return; }
+  selectedStoryImageFile = file;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var prev = document.getElementById('story-upload-preview');
+    var placeholder = document.querySelector('#story-preview-area > div:first-child');
+    if (prev) { prev.src = e.target.result; prev.style.display = 'block'; }
+    if (placeholder) placeholder.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function uploadStory() {
+  if (!ME) return;
+  var textInp = document.getElementById('story-text-inp');
+  var storyText = textInp ? textInp.value.trim() : '';
+  if (!selectedStoryImageFile && !storyText) { showToast('Bitte Foto oder Text hinzufuegen.'); return; }
+  var btn = document.getElementById('story-post-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '...'; }
+
+  var expiresAt = new Date(Date.now() + 6 * 60 * 60 * 1000);
+
+  function saveStory(imgUrl) {
+    var sd = {
+      uid: ME.uid, displayName: ME.name, username: ME.username,
+      text: storyText, imageUrl: imgUrl || null, bgColor: selectedStoryBg,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      expiresAt: expiresAt, views: 0
+    };
+    fbDb.collection('stories').add(sd).then(function() {
+      if (btn) { btn.disabled = false; btn.textContent = 'Story posten'; }
+      closeStoryUpload();
+      showToast('Story ist 6 Stunden live!');
+      loadStories();
+    }).catch(function(e) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Story posten'; }
+      showToast('Fehler: ' + e.message);
+    });
+  }
+
+  if (selectedStoryImageFile && typeof firebase !== 'undefined' && firebase.storage) {
+    var sref = firebase.storage().ref('stories/' + ME.uid + '/' + Date.now() + '.jpg');
+    sref.put(selectedStoryImageFile).then(function(snap) {
+      return snap.ref.getDownloadURL();
+    }).then(saveStory).catch(function() { saveStory(null); });
+  } else {
+    saveStory(null);
+  }
+}
+
+function loadStories() {
+  if (!fbDb) return;
+  var now = new Date();
+  fbDb.collection('stories')
+    .orderBy('createdAt', 'desc')
+    .limit(20)
+    .get().then(function(snap) {
+      var stories = [];
+      snap.forEach(function(doc) {
+        var d = doc.data();
+        var exp = d.expiresAt && d.expiresAt.toDate ? d.expiresAt.toDate() : null;
+        if (!exp || exp > now) {
+          stories.push(Object.assign({ docId: doc.id }, d));
+        }
+      });
+      renderStoryRings(stories);
+    }).catch(function() {});
+}
+
+function renderStoryRings(stories) {
+  var container = document.getElementById('stories-dynamic');
+  if (!container) return;
+  if (!stories.length) {
+    container.innerHTML = '';
+    return;
+  }
+  // Group by user
+  var byUser = {};
+  stories.forEach(function(s) {
+    if (!byUser[s.uid]) byUser[s.uid] = [];
+    byUser[s.uid].push(s);
+  });
+  var html = '';
+  Object.keys(byUser).forEach(function(uid) {
+    var userStories = byUser[uid];
+    var first = userStories[0];
+    var ini = (first.displayName || 'F').split(' ').map(function(w) { return w[0]; }).join('').toUpperCase().slice(0, 2);
+    var isMe = ME && uid === ME.uid;
+    html += '<div class="story-wrap" data-uid="' + uid + '" onclick="viewStoryEl(this)" style="margin-right:9px">' +
+      '<div class="story-ring' + (isMe ? '' : '') + '">' +
+      '<div class="story-av">' + ini + '</div></div>' +
+      '<span class="story-lbl">' + (isMe ? 'Du' : (first.displayName || 'Fan').split(' ')[0]) + '</span></div>';
+  });
+  container.innerHTML = html;
+  window._storiesByUser = byUser;
+}
+
+function viewStoryEl(el) {
+  viewStory(el.getAttribute('data-uid'));
+}
+function viewStory(uid) {
+  var byUser = window._storiesByUser || {};
+  var stories = byUser[uid] || [];
+  if (!stories.length) return;
+  currentStories = stories;
+  currentStoryIndex = 0;
+  var modal = document.getElementById('story-modal');
+  if (modal) modal.classList.add('open');
+  showStoryAt(0);
+}
+
+function showStoryAt(idx) {
+  if (idx >= currentStories.length) { closeStory(); return; }
+  var s = currentStories[idx];
+  currentStoryIndex = idx;
+  // Progress bars
+  var prog = document.getElementById('story-progress');
+  if (prog) {
+    prog.innerHTML = currentStories.map(function(_, i) {
+      return '<div class="story-seg"><div class="story-seg-fill" id="seg-' + i + '" style="width:' + (i < idx ? '100%' : '0%') + '"></div></div>';
+    }).join('');
+  }
+  // Content
+  var img = document.getElementById('story-img');
+  var txt = document.getElementById('story-txt');
+  var content = document.getElementById('story-content');
+  if (content) {
+    var bg = s.bgColor || '#0a0f1e';
+    if (bg === 'gradient1') content.style.background = 'linear-gradient(135deg,#f5c518,#ff6b35)';
+    else if (bg === 'gradient2') content.style.background = 'linear-gradient(135deg,#4facfe,#2ed573)';
+    else content.style.background = bg;
+  }
+  if (img) {
+    if (s.imageUrl) { img.src = s.imageUrl; img.style.display = 'block'; }
+    else { img.style.display = 'none'; img.src = ''; }
+  }
+  if (txt) txt.textContent = s.text || '';
+  // Header
+  var ini = (s.displayName || 'F').split(' ').map(function(w) { return w[0]; }).join('').toUpperCase().slice(0, 2);
+  var av = document.getElementById('story-av');
+  var un = document.getElementById('story-uname');
+  var tm = document.getElementById('story-time');
+  if (av) av.textContent = ini;
+  if (un) un.textContent = s.displayName || 'Fan';
+  if (tm) {
+    var created = s.createdAt && s.createdAt.toDate ? s.createdAt.toDate() : new Date();
+    var diffH = Math.floor((Date.now() - created.getTime()) / 3600000);
+    tm.textContent = diffH < 1 ? 'Gerade eben' : diffH + 'h';
+  }
+  // Auto-advance after 5s
+  if (storyTimer) clearTimeout(storyTimer);
+  if (storyProgressTimer) clearInterval(storyProgressTimer);
+  var seg = document.getElementById('seg-' + idx);
+  if (seg) {
+    var pct = 0;
+    storyProgressTimer = setInterval(function() {
+      pct += 2;
+      seg.style.width = pct + '%';
+      if (pct >= 100) clearInterval(storyProgressTimer);
+    }, 100);
+  }
+  storyTimer = setTimeout(function() { showStoryAt(idx + 1); }, 5000);
+  // View count
+  if (fbDb && s.docId && ME && s.uid !== ME.uid) {
+    fbDb.collection('stories').doc(s.docId).update({ views: firebase.firestore.FieldValue.increment(1) }).catch(function(){});
+  }
+}
+
+function closeStory() {
+  if (storyTimer) clearTimeout(storyTimer);
+  if (storyProgressTimer) clearInterval(storyProgressTimer);
+  var modal = document.getElementById('story-modal');
+  if (modal) modal.classList.remove('open');
+}
+
+function sendStoryReply() {
+  var inp = document.getElementById('story-reply-inp');
+  var txt = inp ? inp.value.trim() : '';
+  if (!txt) return;
+  inp.value = '';
+  showToast('Antwort gesendet!');
+}
+
+// Tap left/right to navigate
+document.addEventListener('click', function(e) {
+  var modal = document.getElementById('story-modal');
+  if (!modal || !modal.classList.contains('open')) return;
+  if (e.target.closest('.story-reply-row') || e.target.closest('.story-header') || e.target.closest('.story-progress')) return;
+  var rect = modal.getBoundingClientRect();
+  if (e.clientX < rect.width / 2) {
+    if (currentStoryIndex > 0) showStoryAt(currentStoryIndex - 1);
+  } else {
+    showStoryAt(currentStoryIndex + 1);
+  }
+});
+
+// ════════════════════════════════════════════════════════════
+// SHARE SHEET
+// ════════════════════════════════════════════════════════════
+var currentShareData = {};
+
+function openShareSheetId(btn) {
+  var postId = btn ? btn.getAttribute('data-id') : '';
+  openShareSheet({getAttribute: function(k) { return k === 'data-id' ? postId : ''; }});
+}
+function openShareSheet(btn) {
+  var postId = btn ? btn.getAttribute('data-id') : '';
+  var postTxt = btn ? btn.getAttribute('data-txt') : '';
+  currentShareData = { id: postId, text: postTxt };
+  var prev = document.getElementById('share-preview-text');
+  if (prev) prev.textContent = postTxt ? '"' + postTxt + '"' : '';
+  var modal = document.getElementById('share-modal');
+  if (modal) modal.classList.add('open');
+}
+
+function closeShareSheet() {
+  var modal = document.getElementById('share-modal');
+  if (modal) modal.classList.remove('open');
+}
+
+function shareVia(method) {
+  var url = window.location.href;
+  var text = (currentShareData.text || 'Check this out!') + ' - Zmajevi App';
+  closeShareSheet();
+  if (method === 'copy') {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(function() { showToast('Link kopiert!'); });
+    } else { showToast('Link: ' + url); }
+  } else if (method === 'whatsapp') {
+    window.open('https://wa.me/?text=' + encodeURIComponent(text + ' ' + url), '_blank');
+  } else if (method === 'instagram') {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(function() { showToast('Link kopiert - in Instagram einfuegen!'); });
+    }
+  } else if (method === 'native') {
+    if (navigator.share) {
+      navigator.share({ title: 'Zmajevi App', text: text, url: url });
+    } else {
+      if (navigator.clipboard) navigator.clipboard.writeText(url).then(function() { showToast('Link kopiert!'); });
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// COMMENT LIKES
+// ════════════════════════════════════════════════════════════
+function likeCommentEl(btn) {
+  likeComment(btn.getAttribute('data-pid'), btn.getAttribute('data-cid'), btn);
+}
+function likeComment(postId, commentId, btn) {
+  if (!ME || !fbDb) return;
+  var ref = fbDb.collection('posts').doc(postId).collection('comments').doc(commentId);
+  ref.get().then(function(doc) {
+    if (!doc.exists) return;
+    var liked = (doc.data().likedBy || {})[ME.uid];
+    var update = {};
+    if (liked) update['likedBy.' + ME.uid] = firebase.firestore.FieldValue.delete();
+    else update['likedBy.' + ME.uid] = true;
+    ref.update(update).then(function() {
+      btn.classList.toggle('liked');
+    });
+  });
+}
+
 
 // ════════════════════════════════════════════════════════════
 // FIREBASE INIT — at bottom so all functions are defined first
