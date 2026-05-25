@@ -1770,6 +1770,7 @@ function showStoryAt(idx) {
   if (idx >= currentStories.length) { closeStory(); return; }
   var s = currentStories[idx];
   currentStoryIndex = idx;
+
   // Progress bars
   var prog = document.getElementById('story-progress');
   if (prog) {
@@ -1777,23 +1778,25 @@ function showStoryAt(idx) {
       return '<div class="story-seg"><div class="story-seg-fill" id="seg-' + i + '" style="width:' + (i < idx ? '100%' : '0%') + '"></div></div>';
     }).join('');
   }
+
   // Content
   var img = document.getElementById('story-img');
   var txt = document.getElementById('story-txt');
-  var content = document.getElementById('story-content');
-  if (content) {
+  var storyContent = document.getElementById('story-content');
+  if (storyContent) {
     var bg = s.bgColor || '#0a0f1e';
-    if (bg === 'gradient1') content.style.background = 'linear-gradient(135deg,#f5c518,#ff6b35)';
-    else if (bg === 'gradient2') content.style.background = 'linear-gradient(135deg,#4facfe,#2ed573)';
-    else content.style.background = bg;
+    if (bg === 'gradient1') storyContent.style.background = 'linear-gradient(135deg,#f5c518,#ff6b35)';
+    else if (bg === 'gradient2') storyContent.style.background = 'linear-gradient(135deg,#4facfe,#2ed573)';
+    else storyContent.style.background = bg;
   }
   if (img) {
     if (s.imageUrl) { img.src = s.imageUrl; img.style.display = 'block'; }
     else { img.style.display = 'none'; img.src = ''; }
   }
   if (txt) txt.textContent = s.text || '';
+
   // Header
-  var ini = (s.displayName || 'F').split(' ').map(function(w) { return w[0]; }).join('').toUpperCase().slice(0, 2);
+  var ini = (s.displayName || 'F').split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
   var av = document.getElementById('story-av');
   var un = document.getElementById('story-uname');
   var tm = document.getElementById('story-time');
@@ -1802,8 +1805,39 @@ function showStoryAt(idx) {
   if (tm) {
     var created = s.createdAt && s.createdAt.toDate ? s.createdAt.toDate() : new Date();
     var diffH = Math.floor((Date.now() - created.getTime()) / 3600000);
-    tm.textContent = diffH < 1 ? 'Gerade eben' : diffH + 'h';
+    var diffM = Math.floor((Date.now() - created.getTime()) / 60000);
+    tm.textContent = diffM < 1 ? 'Gerade' : diffH < 1 ? diffM + 'min' : diffH + 'h';
   }
+
+  // Delete button — only for own stories
+  var existingDel = document.getElementById('story-delete-btn');
+  if (existingDel) existingDel.remove();
+  if (ME && s.uid === ME.uid) {
+    var delBtn = document.createElement('button');
+    delBtn.id = 'story-delete-btn';
+    delBtn.innerHTML = '&#x1F5D1;';
+    delBtn.title = 'Story loeschen';
+    delBtn.style.cssText = 'position:absolute;top:calc(env(safe-area-inset-top,0px)+60px);right:14px;z-index:15;background:rgba(255,71,87,.85);border:none;border-radius:50%;width:36px;height:36px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center';
+    delBtn.onclick = function(e) {
+      e.stopPropagation();
+      deleteStory(s.docId);
+    };
+    var modal = document.getElementById('story-modal');
+    if (modal) modal.appendChild(delBtn);
+  }
+
+  // Views count
+  var existingViews = document.getElementById('story-views');
+  if (existingViews) existingViews.remove();
+  if (ME && s.uid === ME.uid && s.views > 0) {
+    var viewsEl = document.createElement('div');
+    viewsEl.id = 'story-views';
+    viewsEl.style.cssText = 'position:absolute;bottom:80px;left:14px;z-index:15;color:rgba(255,255,255,.8);font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px';
+    viewsEl.innerHTML = '&#x1F440; ' + s.views + ' Aufrufe';
+    var modal2 = document.getElementById('story-modal');
+    if (modal2) modal2.appendChild(viewsEl);
+  }
+
   // Auto-advance after 5s
   if (storyTimer) clearTimeout(storyTimer);
   if (storyProgressTimer) clearInterval(storyProgressTimer);
@@ -1817,19 +1851,24 @@ function showStoryAt(idx) {
     }, 100);
   }
   storyTimer = setTimeout(function() { showStoryAt(idx + 1); }, 5000);
-  // View count
+
+  // Increment view count (not for own story)
   if (fbDb && s.docId && ME && s.uid !== ME.uid) {
-    fbDb.collection('stories').doc(s.docId).update({ views: firebase.firestore.FieldValue.increment(1) }).catch(function(){});
+    fbDb.collection('stories').doc(s.docId).update({
+      views: firebase.firestore.FieldValue.increment(1)
+    }).catch(function(){});
   }
 }
-
 function closeStory() {
   if (storyTimer) clearTimeout(storyTimer);
   if (storyProgressTimer) clearInterval(storyProgressTimer);
   var modal = document.getElementById('story-modal');
   if (modal) modal.classList.remove('open');
+  var delBtn = document.getElementById('story-delete-btn');
+  if (delBtn) delBtn.remove();
+  var viewsEl = document.getElementById('story-views');
+  if (viewsEl) viewsEl.remove();
 }
-
 function sendStoryReply() {
   var inp = document.getElementById('story-reply-inp');
   var txt = inp ? inp.value.trim() : '';
@@ -2045,6 +2084,18 @@ function runAutoCleanup() {
       snap.forEach(function(doc) { batch.delete(doc.ref); });
       if (!snap.empty) batch.commit().catch(function(){});
     }).catch(function(){});
+}
+
+function deleteStory(docId) {
+  if (!docId || !fbDb) return;
+  if (!confirm('Story loeschen?')) return;
+  fbDb.collection('stories').doc(docId).delete().then(function() {
+    closeStory();
+    showToast('Story geloescht!');
+    loadStories();
+  }).catch(function(e) {
+    showToast('Fehler: ' + e.message);
+  });
 }
 </script>
 </body>
