@@ -718,6 +718,7 @@ function doAuth(btnOrMode) {
         renderUserPill();
         renderAll();
         showToast('Willkommen zuruck!');
+        setTimeout(runAutoCleanup, 3000);
       });
     }).catch(function(err) {
       resetBtn(btn, mode);
@@ -1151,36 +1152,61 @@ function loadLiveFeed() {
 function renderFeed(posts) {
   var list = document.getElementById('feedlist');
   if (!list) return;
-  if (!posts.length) {
-    list.innerHTML = '<div style="text-align:center;padding:28px;color:var(--gray);font-size:13px">Noch keine Posts. Sei der Erste! 🐉</div>';
+  var now = Date.now();
+  var TWELVE_HOURS = 12 * 60 * 60 * 1000;
+  var SIX_MONTHS = 6 * 30 * 24 * 60 * 60 * 1000;
+
+  // Filter: remove photo posts older than 12h, text posts older than 6 months
+  var visible = posts.filter(function(p) {
+    var created = p.createdAt && p.createdAt.toDate ? p.createdAt.toDate().getTime() : now;
+    var age = now - created;
+    if (p.imageUrl && age > TWELVE_HOURS) return false;
+    if (age > SIX_MONTHS) return false;
+    return true;
+  });
+
+  if (!visible.length) {
+    list.innerHTML = '<div style="text-align:center;padding:28px;color:var(--gray);font-size:13px">Noch keine Posts. Sei der Erste!</div>';
     return;
   }
-  window._currentFeedPosts = posts;
-  list.innerHTML = posts.map(function(p) {
-    var ini = (p.displayName || 'F').split(' ').map(function(w) { return w[0]; }).join('').toUpperCase().slice(0, 2);
+
+  window._currentFeedPosts = visible;
+  list.innerHTML = visible.map(function(p) {
+    var ini = (p.displayName || 'F').split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
     var ts = '';
     if (p.createdAt && p.createdAt.toDate) {
       var d = p.createdAt.toDate();
-      ts = d.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' }) + ' ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+      ts = d.toLocaleDateString('de-DE',{day:'2-digit',month:'short'}) + ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
     }
     var lc = p.likedBy ? Object.keys(p.likedBy).length : 0;
     var liked = p.likedBy && ME && p.likedBy[ME.uid];
     var mine = ME && p.uid === ME.uid;
-    var txt = (p.text || '').replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>');
+    var txt = (p.text || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    // Highlight @mentions
+    txt = txt.replace(/@(\w+)/g,'<span style="color:var(--gold);font-weight:700">@$1</span>');
+    // Repost label
+    var repostLabel = p.isRepost ? '<div style="color:var(--gray);font-size:11px;margin-bottom:4px">&#8627; Geteilt</div>' : '';
+    // Time badge for photo posts
+    var created2 = p.createdAt && p.createdAt.toDate ? p.createdAt.toDate().getTime() : now;
+    var ageH = Math.floor((now - created2) / 3600000);
+    var timeBadge = p.imageUrl ? '<span style="color:var(--gray2);font-size:10px;margin-left:6px">' + (ageH < 1 ? 'Gerade' : ageH + 'h') + ' &#xB7; loescht in ' + Math.max(0, 12 - ageH) + 'h</span>' : '';
+
     return '<div class="fpost fu">' +
       '<div class="fpost-header"><div class="favatar">' + ini + '</div>' +
-      '<div class="fuser"><div class="fdisplay">' + (p.displayName || 'Fan') + '</div>' +
-      '<div class="fusername">@' + (p.username || 'fan') + ' · ' + ts + '</div></div>' +
-      (mine ? '<button class="fmore" data-id="' + p.docId + '" onclick="deletePostEl(this)">🗑️</button>' : '<button class="fmore">⋯</button>') +
-      '</div><div class="ftext">' + txt + '</div>' +
+      '<div class="fuser"><div class="fdisplay">' + (p.displayName||'Fan') + '</div>' +
+      '<div class="fusername">@' + (p.username||'fan') + ' &#xB7; ' + ts + timeBadge + '</div></div>' +
+      (mine ? '<button class="fmore" data-id="' + p.docId + '" onclick="deletePostEl(this)">&#x1F5D1;</button>' : '<button class="fmore">&#x22EF;</button>') +
+      '</div>' +
+      (repostLabel ? '<div style="padding:6px 14px 0">' + repostLabel + '</div>' : '') +
+      (txt ? '<div class="ftext">' + txt + '</div>' : '') +
+      (p.imageUrl ? '<img src="' + p.imageUrl + '" style="width:100%;max-height:340px;object-fit:cover;display:block;cursor:pointer;' + (txt ? '' : 'margin-top:8px') + '" onclick="openImgFull(this.src)" loading="lazy">' : '') +
       '<div class="factions">' +
-      '<button class="fact' + (liked ? ' liked' : '') + '" data-id="' + p.docId + '" onclick="likePostEl(this)">' + (liked ? '❤️' : '🤍') + ' <span>' + lc + '</span></button>' +
-      '<button class="fact">💬 <span>' + (p.commentCount || 0) + '</span></button>' +
+      '<button class="fact' + (liked?' liked':'') + '" data-id="' + p.docId + '" onclick="likePostEl(this)">' + (liked?'&#10084;':'&#x1F90D;') + ' <span>' + lc + '</span></button>' +
+      '<button class="fact" data-id="' + p.docId + '" onclick="openCommentsByEl(this)">&#x1F4AC; <span>' + (p.commentCount||0) + '</span></button>' +
       '<button class="fact fact-share" data-id="' + p.docId + '" onclick="openShareSheetId(this)">&#x2197; Teilen</button>' +
       '</div></div>';
   }).join('');
 }
-
 function togglePost() {
   var v = document.getElementById('carea');
   var b = document.getElementById('cpost-btn');
@@ -1645,52 +1671,89 @@ function uploadStory() {
 function loadStories() {
   if (!fbDb) return;
   var now = new Date();
+  // Get stories from last 6 hours
+  var sixHoursAgo = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+
   fbDb.collection('stories')
     .orderBy('createdAt', 'desc')
-    .limit(20)
+    .limit(50)
     .get().then(function(snap) {
       var stories = [];
       snap.forEach(function(doc) {
         var d = doc.data();
-        var exp = d.expiresAt && d.expiresAt.toDate ? d.expiresAt.toDate() : null;
-        if (!exp || exp > now) {
+        // Check expiry: either expiresAt field or 6h from createdAt
+        var created = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate() : new Date(0);
+        var expires = d.expiresAt && d.expiresAt.toDate ? d.expiresAt.toDate() : new Date(created.getTime() + 6*3600000);
+        if (expires > now) {
           stories.push(Object.assign({ docId: doc.id }, d));
         }
       });
       renderStoryRings(stories);
-    }).catch(function() {});
+    }).catch(function(err) {
+      console.log('Stories load error:', err);
+    });
 }
-
 function renderStoryRings(stories) {
   var container = document.getElementById('stories-dynamic');
   if (!container) return;
+
   if (!stories.length) {
     container.innerHTML = '';
     return;
   }
-  // Group by user
+
+  // Group by user, newest first
   var byUser = {};
+  var userOrder = [];
   stories.forEach(function(s) {
-    if (!byUser[s.uid]) byUser[s.uid] = [];
+    if (!byUser[s.uid]) {
+      byUser[s.uid] = [];
+      userOrder.push(s.uid);
+    }
     byUser[s.uid].push(s);
   });
+
+  window._storiesByUser = byUser;
+
   var html = '';
-  Object.keys(byUser).forEach(function(uid) {
+  // Show current user's stories first
+  var orderedUids = userOrder.slice().sort(function(a,b) {
+    if (ME && a === ME.uid) return -1;
+    if (ME && b === ME.uid) return 1;
+    return 0;
+  });
+
+  orderedUids.forEach(function(uid) {
     var userStories = byUser[uid];
     var first = userStories[0];
-    var ini = (first.displayName || 'F').split(' ').map(function(w) { return w[0]; }).join('').toUpperCase().slice(0, 2);
+    var ini = (first.displayName || 'F').split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
     var isMe = ME && uid === ME.uid;
-    html += '<div class="story-wrap" data-uid="' + uid + '" onclick="viewStoryEl(this)" style="margin-right:9px">' +
-      '<div class="story-ring' + (isMe ? '' : '') + '">' +
-      '<div class="story-av">' + ini + '</div></div>' +
-      '<span class="story-lbl">' + (isMe ? 'Du' : (first.displayName || 'Fan').split(' ')[0]) + '</span></div>';
-  });
-  container.innerHTML = html;
-  window._storiesByUser = byUser;
-}
+    var name = isMe ? 'Du' : (first.displayName || 'Fan').split(' ')[0];
+    // Gold ring = ungesehen, grau = gesehen
+    var viewed = window._viewedStories && window._viewedStories[uid];
+    var ringStyle = viewed
+      ? 'background:var(--bg3);border:2px solid var(--gray2)'
+      : 'background:linear-gradient(135deg,var(--gold),#ff6b35)';
 
+    html += '<div class="story-wrap" data-uid="' + uid + '" onclick="viewStoryEl(this)" style="flex-shrink:0;margin-right:2px">' +
+      '<div style="width:54px;height:54px;border-radius:50%;padding:2.5px;' + ringStyle + '">' +
+      '<div style="width:100%;height:100%;border-radius:50%;background:var(--bg3);border:2.5px solid var(--bg);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:var(--gold);overflow:hidden">' +
+      (first.imageUrl ? '<img src="' + first.imageUrl + '" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display=none">' : ini) +
+      '</div></div>' +
+      '<span class="story-lbl">' + name + '</span></div>';
+  });
+
+  container.innerHTML = html;
+}
 function viewStoryEl(el) {
-  viewStory(el.getAttribute('data-uid'));
+  var uid = el.getAttribute('data-uid');
+  // Mark as viewed
+  if (!window._viewedStories) window._viewedStories = {};
+  window._viewedStories[uid] = true;
+  // Update ring to grey
+  var ring = el.querySelector('div');
+  if (ring) ring.style.background = 'var(--bg3)';
+  viewStory(uid);
 }
 function viewStory(uid) {
   var byUser = window._storiesByUser || {};
@@ -1793,6 +1856,10 @@ document.addEventListener('click', function(e) {
 // ════════════════════════════════════════════════════════════
 var currentShareData = {};
 
+function openCommentsByEl(btn) {
+  var id = btn.getAttribute('data-id');
+  if (id) openFireComments(id);
+}
 function openShareSheetId(btn) {
   var postId = btn ? btn.getAttribute('data-id') : '';
   // Find post data in current feed
@@ -1933,6 +2000,52 @@ function switchLeagueEl(el) { switchLeague(el.getAttribute('data-key')); }
 function deletePostEl(el) { deletePost(el.getAttribute('data-id')); }
 function likePostEl(el) { likePost(el.getAttribute('data-id'), el); }
 function sharePostEl(el) { sharePost(el.getAttribute('data-txt') || ''); }
+
+function runAutoCleanup() {
+  if (!fbDb || !ME) return;
+  var now = new Date();
+  var twelveHoursAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000);
+  var sixMonthsAgo = new Date(now.getTime() - 6 * 30 * 24 * 60 * 60 * 1000);
+
+  // Only run cleanup once per session
+  if (window._cleanupDone) return;
+  window._cleanupDone = true;
+
+  // Delete photo posts older than 12h (batch)
+  fbDb.collection('posts')
+    .where('createdAt', '<', twelveHoursAgo)
+    .get().then(function(snap) {
+      var batch = fbDb.batch();
+      var count = 0;
+      snap.forEach(function(doc) {
+        if (doc.data().imageUrl) {
+          batch.delete(doc.ref);
+          count++;
+        }
+      });
+      if (count > 0) {
+        batch.commit().catch(function(){});
+      }
+    }).catch(function(){});
+
+  // Delete all posts older than 6 months
+  fbDb.collection('posts')
+    .where('createdAt', '<', sixMonthsAgo)
+    .get().then(function(snap) {
+      var batch = fbDb.batch();
+      snap.forEach(function(doc) { batch.delete(doc.ref); });
+      if (!snap.empty) batch.commit().catch(function(){});
+    }).catch(function(){});
+
+  // Delete expired stories
+  fbDb.collection('stories')
+    .where('createdAt', '<', new Date(now.getTime() - 6 * 60 * 60 * 1000))
+    .get().then(function(snap) {
+      var batch = fbDb.batch();
+      snap.forEach(function(doc) { batch.delete(doc.ref); });
+      if (!snap.empty) batch.commit().catch(function(){});
+    }).catch(function(){});
+}
 </script>
 </body>
 </html>
