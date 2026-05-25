@@ -745,7 +745,7 @@ function goTab(tab, btn) {
   document.getElementById('ttitle').textContent = T_TITLES[tab];
   if (tab === 'spieler' && !playersLoaded) { playersLoaded = true; renderSpieler(); }
   if (tab === 'spiele' && !spieleLoaded) { spieleLoaded = true; renderSpiele(); }
-  if (tab === 'bihbook') { renderBihbook(); setTimeout(loadStories, 400); }
+  if (tab === 'bihbook') { renderBihbook(); loadStories(); }
 }
 
 function renderAll() {
@@ -1134,7 +1134,7 @@ function renderBihbook() {
 '<div id="feedlist"><div style="text-align:center;padding:20px;color:var(--gray);font-size:13px">🔄 Ladt Posts...</div></div>';
 
   loadLiveFeed();
-  setTimeout(loadStories, 600);
+  loadStories();
 }
 
 function loadLiveFeed() {
@@ -1747,13 +1747,46 @@ function renderStoryRings(stories) {
 }
 function viewStoryEl(el) {
   var uid = el.getAttribute('data-uid');
+  if (!uid) return;
   // Mark as viewed
   if (!window._viewedStories) window._viewedStories = {};
   window._viewedStories[uid] = true;
   // Update ring to grey
   var ring = el.querySelector('div');
   if (ring) ring.style.background = 'var(--bg3)';
-  viewStory(uid);
+
+  // If stories already cached, open directly
+  var byUser = window._storiesByUser || {};
+  if (byUser[uid] && byUser[uid].length) {
+    viewStory(uid);
+    return;
+  }
+
+  // Otherwise load from Firestore first
+  if (!fbDb) return;
+  showToast('Lade Story...');
+  var now = new Date();
+  fbDb.collection('stories')
+    .where('uid', '==', uid)
+    .orderBy('createdAt', 'desc')
+    .limit(10)
+    .get().then(function(snap) {
+      var stories = [];
+      snap.forEach(function(doc) {
+        var d = doc.data();
+        var created = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate() : new Date(0);
+        var expires = d.expiresAt && d.expiresAt.toDate ? d.expiresAt.toDate() : new Date(created.getTime() + 6*3600000);
+        if (expires > now) {
+          stories.push(Object.assign({ docId: doc.id }, d));
+        }
+      });
+      if (!stories.length) { showToast('Keine aktiven Stories.'); return; }
+      if (!window._storiesByUser) window._storiesByUser = {};
+      window._storiesByUser[uid] = stories;
+      viewStory(uid);
+    }).catch(function(e) {
+      showToast('Fehler: ' + e.message);
+    });
 }
 function viewStory(uid) {
   var byUser = window._storiesByUser || {};
