@@ -443,7 +443,8 @@ function renderAuthForm(mode) {
   h += '<div class="alabel">Passwort</div><input class="ainput" type="password" id="f-pass" placeholder="mindestens 6 Zeichen" autocomplete="' + (mode === 'login' ? 'current-password' : 'new-password') + '">';
   if (mode === 'reg') h += '<div class="alabel">Passwort bestaetigen</div><input class="ainput" type="password" id="f-pass2" placeholder="Passwort wiederholen" autocomplete="new-password">';
   h += '<div class="aerr" id="aerr"></div>';
-  h += '<button class="abtn" id="auth-btn" onclick="doAuth('' + mode + '')">' + (mode === 'login' ? 'ANMELDEN' : 'KONTO ERSTELLEN') + '</button>';
+
+  h += '<button class="abtn" id="auth-btn" data-mode="' + mode + '" onclick="doAuth(this)">' + (mode === 'login' ? 'ANMELDEN' : 'KONTO ERSTELLEN') + '</button>';
   document.getElementById('aform').innerHTML = h;
 }
 
@@ -452,7 +453,8 @@ function showErr(msg) {
   if (e) { e.textContent = msg; e.style.display = 'block'; }
 }
 
-function doAuth(mode) {
+function doAuth(btnOrMode) {
+  var mode = (typeof btnOrMode === 'string') ? btnOrMode : (btnOrMode.getAttribute('data-mode') || 'login');
   var email = (document.getElementById('f-email') || {}).value || '';
   var pass = (document.getElementById('f-pass') || {}).value || '';
   email = email.trim();
@@ -601,7 +603,7 @@ function renderNewsTab() {
       '<div class="sdot" style="background:' + s.color + '"></div><span class="sn">' + s.label + '</span></div>';
   }).join('');
   nf.innerHTML = FILTERS.map(function(f) {
-    return '<div class="nfc' + (f === curNFilter ? ' on' : '') + '" onclick="pickNFilter(this,'' + f + '')">' + (f === 'Breaking' ? '🔥 Breaking' : f) + '</div>';
+    return '<div class="' + (f === curNFilter ? 'nfc on' : 'nfc') + '" data-filter="' + f + '" onclick="pickNFilterEl(this)">' + (f === 'Breaking' ? '🔥 Breaking' : f) + '</div>';
   }).join('');
   renderNewsFeed();
 }
@@ -647,6 +649,10 @@ function doNLike(id, btn) {
   var n = ALL_NEWS.find(function(x) { return x.id === id; });
   btn.className = 'n-like' + (likedNews[id] ? ' liked' : '');
   btn.innerHTML = (likedNews[id] ? '⭐' : '☆') + ' ' + (n.likes + (likedNews[id] ? 1 : 0));
+}
+function pickNFilterEl(chip) {
+  var f = chip.getAttribute('data-filter') || 'Sve';
+  pickNFilter(chip, f);
 }
 function pickNFilter(chip, f) {
   document.querySelectorAll('.nfc').forEach(function(c) { c.classList.remove('on'); });
@@ -805,7 +811,7 @@ function renderStandingsHTML() {
     '<span style="color:var(--gold);font-size:11px;font-weight:800;letter-spacing:1.5px;font-family:Barlow Condensed,sans-serif">TABELLE</span></div>';
   h += '<div class="league-tabs">';
   [{key:'wm',i:'🏆',l:'WM 2026'},{key:'quali',i:'✅',l:'WM-Quali'},{key:'nl',i:'🏴',l:'Nations League'}].forEach(function(t) {
-    h += '<div class="ltab' + (activeLeagueTab === t.key ? ' on' : '') + '" onclick="switchLeague('' + t.key + '')">' + t.i + ' ' + t.l + '</div>';
+    h += '<div class="ltab' + (activeLeagueTab === t.key ? ' on' : '') + '" data-key="' + t.key + '" onclick="switchLeagueEl(this)">' + t.i + ' ' + t.l + '</div>';
   });
   h += '</div>';
   h += '<div style="background:var(--bg2);border-radius:16px;overflow:hidden;border:1px solid rgba(' + rgb + ',.25);margin-bottom:14px">';
@@ -928,12 +934,12 @@ function renderFeed(posts) {
       '<div class="fpost-header"><div class="favatar">' + ini + '</div>' +
       '<div class="fuser"><div class="fdisplay">' + (p.displayName || 'Fan') + '</div>' +
       '<div class="fusername">@' + (p.username || 'fan') + ' · ' + ts + '</div></div>' +
-      (mine ? '<button class="fmore" onclick="deletePost('' + p.docId + '')">🗑️</button>' : '<button class="fmore">⋯</button>') +
+      (mine ? '<button class="fmore" data-id="' + p.docId + '" onclick="deletePostEl(this)">🗑️</button>' : '<button class="fmore">⋯</button>') +
       '</div><div class="ftext">' + txt + '</div>' +
       '<div class="factions">' +
-      '<button class="fact' + (liked ? ' liked' : '') + '" onclick="likePost('' + p.docId + '',this)">' + (liked ? '❤️' : '🤍') + ' <span>' + lc + '</span></button>' +
+      '<button class="fact' + (liked ? ' liked' : '') + '" data-id="' + p.docId + '" onclick="likePostEl(this)">' + (liked ? '❤️' : '🤍') + ' <span>' + lc + '</span></button>' +
       '<button class="fact">💬 <span>' + (p.commentCount || 0) + '</span></button>' +
-      '<button class="fact fact-share" onclick="sharePost('' + txt.slice(0,50) + '')">↗ Teilen</button>' +
+      '<button class="fact fact-share" onclick="sharePostEl(this)">&#8599; Teilen</button>' +
       '</div></div>';
   }).join('');
 }
@@ -1152,6 +1158,11 @@ window.addEventListener('DOMContentLoaded', function() {
   });
 });
 
+
+function switchLeagueEl(el) { switchLeague(el.getAttribute('data-key')); }
+function deletePostEl(el) { deletePost(el.getAttribute('data-id')); }
+function likePostEl(el) { likePost(el.getAttribute('data-id'), el); }
+function sharePostEl(el) { sharePost(el.getAttribute('data-txt') || ''); }
 </script>
 </body>
 </html>
