@@ -394,8 +394,14 @@ a{text-decoration:none;color:inherit}
     <div class="chandle"></div>
     <div class="chdr"><span class="chtitle">Kommentare</span><button class="chclose" onclick="closeComments()">&#x2715;</button></div>
     <div class="clist" id="clist"></div>
+    <div style="display:none;align-items:center;gap:8px;padding:6px 12px 0;border-top:1px solid var(--border)" id="comment-img-preview-wrap">
+      <img id="comment-img-preview" src="" style="height:50px;border-radius:8px;object-fit:cover">
+      <button onclick="window._commentImageFile=null;document.getElementById('comment-img-preview-wrap').style.display='none'" style="background:var(--bg3);border:none;border-radius:50%;width:24px;height:24px;color:var(--gray);cursor:pointer;font-size:12px">x</button>
+    </div>
     <div class="cinput-row">
-      <input class="cinput" id="cinput" placeholder="Kommentieren...">
+      <input type="file" id="comment-file-input" accept="image/*" style="display:none" onchange="previewCommentImage(this)">
+      <button onclick="triggerCommentImage()" style="background:none;border:none;color:var(--gray);font-size:20px;cursor:pointer;padding:4px;flex-shrink:0">&#128444;</button>
+      <input class="cinput" id="cinput" placeholder="Kommentieren... @Name erwaehnen">
       <button class="csend" onclick="sendComment()">&#x2191;</button>
     </div>
   </div>
@@ -456,6 +462,7 @@ a{text-decoration:none;color:inherit}
     <div style="width:34px;height:4px;border-radius:2px;background:var(--gray2);margin:0 auto 16px"></div>
     <div style="color:var(--white);font-size:16px;font-weight:800;margin-bottom:14px">Teilen</div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
+      <div onclick="shareVia('repost')" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer"><div style="width:52px;height:52px;border-radius:16px;background:rgba(245,197,24,.15);border:1px solid rgba(245,197,24,.3);display:flex;align-items:center;justify-content:center;font-size:24px">&#x21BA;</div><span style="color:var(--gold);font-size:11px;font-weight:700">Repost</span></div>
       <div onclick="shareVia('copy')" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer"><div style="width:52px;height:52px;border-radius:16px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:24px">&#x1F517;</div><span style="color:var(--gray);font-size:11px;font-weight:600">Kopieren</span></div>
       <div onclick="shareVia('whatsapp')" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer"><div style="width:52px;height:52px;border-radius:16px;background:#25D366;display:flex;align-items:center;justify-content:center;font-size:24px">&#x1F4AC;</div><span style="color:var(--gray);font-size:11px;font-weight:600">WhatsApp</span></div>
       <div onclick="shareVia('instagram')" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer"><div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#f09433,#dc2743,#bc1888);display:flex;align-items:center;justify-content:center;font-size:24px">&#x1F4F8;</div><span style="color:var(--gray);font-size:11px;font-weight:600">Instagram</span></div>
@@ -476,6 +483,41 @@ a{text-decoration:none;color:inherit}
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 
 <script>
+function openFireComments(postId) {
+  currentCommentId = postId;
+  document.getElementById('clist').innerHTML = '<div style="text-align:center;padding:14px;color:var(--gray)">...</div>';
+  document.getElementById('cmodal').classList.add('open');
+  // Reset comment image
+  window._commentImageFile = null;
+
+  fbDb.collection('posts').doc(postId).collection('comments')
+    .orderBy('createdAt', 'asc').get().then(function(snap) {
+      var h = '';
+      snap.forEach(function(doc) {
+        var c = doc.data(); var cid = doc.id;
+        var clc = c.likedBy ? Object.keys(c.likedBy).length : 0;
+        var cliked = ME && c.likedBy && c.likedBy[ME.uid];
+        var ini = (c.displayName || 'F')[0].toUpperCase();
+        // Format text with @mention highlighting
+        var displayTxt = (c.text || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+          .replace(/@(\w+)/g, '<span style="color:var(--gold);font-weight:700">@$1</span>');
+        h += '<div class="citem">' +
+          '<div class="favatar" style="width:32px;height:32px;font-size:11px;flex-shrink:0">' + ini + '</div>' +
+          '<div style="flex:1">' +
+          '<div class="cbubble">' +
+          '<div class="cuser">@' + (c.username || 'fan') + '</div>' +
+          '<div class="ctext">' + displayTxt + '</div>' +
+          (c.imageUrl ? '<img src="' + c.imageUrl + '" style="width:100%;border-radius:8px;margin-top:6px;max-height:160px;object-fit:cover;cursor:pointer" onclick="openImgFull(this.src)">' : '') +
+          '</div>' +
+          '<div class="comment-actions">' +
+          '<button class="ca-btn' + (cliked ? ' liked' : '') + '" data-pid="' + postId + '" data-cid="' + cid + '" onclick="likeCommentEl(this)">' + (cliked ? '&#9829;' : '&#9825;') + '</button>' +
+          (clc > 0 ? '<span class="comment-like-count">' + clc + '</span>' : '') +
+          '</div></div></div>';
+      });
+      document.getElementById('clist').innerHTML = h ||
+        '<p style="color:var(--gray);text-align:center;margin-top:20px;font-size:13px">Noch keine Kommentare</p>';
+    });
+}
 function triggerFileInput() { var f = document.getElementById("file-input"); if(f) f.click(); }
 
 var selectedImageFile = null;
@@ -1060,6 +1102,7 @@ function renderFeed(posts) {
     list.innerHTML = '<div style="text-align:center;padding:28px;color:var(--gray);font-size:13px">Noch keine Posts. Sei der Erste! 🐉</div>';
     return;
   }
+  window._currentFeedPosts = posts;
   list.innerHTML = posts.map(function(p) {
     var ini = (p.displayName || 'F').split(' ').map(function(w) { return w[0]; }).join('').toUpperCase().slice(0, 2);
     var ts = '';
@@ -1096,11 +1139,11 @@ function submitPost() {
   var txt = area ? area.value.trim() : '';
   if (!txt && !selectedImageFile) return;
   if (!ME) { showToast('Bitte einloggen!'); return; }
-  if (!fbDb) { showToast('Verbindungsfehler - Seite neu laden'); return; }
+  if (!fbDb) { showToast('Verbindungsfehler!'); return; }
   var btn = document.getElementById('cpost-btn');
   if (btn) { btn.disabled = true; btn.textContent = '...'; }
 
-  function savePost(imgUrl) {
+  function doSave(imgUrl) {
     var pd = {
       uid: ME.uid, displayName: ME.name, username: ME.username,
       text: txt || '', createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -1113,40 +1156,33 @@ function submitPost() {
       removeImage();
       togglePost();
       showToast('Post veroeffentlicht!');
-      fbDb.collection('users').doc(ME.uid).update({
-        posts: firebase.firestore.FieldValue.increment(1)
-      }).catch(function(){});
+      fbDb.collection('users').doc(ME.uid)
+        .update({ posts: firebase.firestore.FieldValue.increment(1) })
+        .catch(function(){});
     }).catch(function(e) {
       if (btn) { btn.disabled = false; btn.textContent = 'Posten'; }
-      showToast('Fehler beim Posten: ' + e.message);
+      showToast('Fehler: ' + e.message);
     });
   }
 
   if (selectedImageFile) {
-    // Try Firebase Storage first
-    if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var dataUrl = e.target.result;
       try {
         var storage = firebase.storage();
-        var fname = Date.now() + '_' + (selectedImageFile.name || 'img.jpg').replace(/[^a-zA-Z0-9.]/g, '_');
-        var sref = storage.ref('posts/' + ME.uid + '/' + fname);
-        sref.put(selectedImageFile).then(function(snap) {
-          return snap.ref.getDownloadURL();
-        }).then(function(url) {
-          savePost(url);
-        }).catch(function(storageErr) {
-          // Storage not enabled — save post without image, show hint
-          if (btn) { btn.disabled = false; btn.textContent = 'Posten'; }
-          showToast('Storage aktivieren! Poste Text ohne Bild.');
-          savePost(null);
-        });
-      } catch(e) {
-        savePost(null);
+        var sref = storage.ref('posts/' + ME.uid + '/' + Date.now() + '.jpg');
+        sref.put(selectedImageFile)
+          .then(function(snap) { return snap.ref.getDownloadURL(); })
+          .then(doSave)
+          .catch(function() { doSave(dataUrl); });
+      } catch(err) {
+        doSave(dataUrl);
       }
-    } else {
-      savePost(null);
-    }
+    };
+    reader.readAsDataURL(selectedImageFile);
   } else {
-    savePost(null);
+    doSave(null);
   }
 }
 function likePost(docId, btn) {
@@ -1205,24 +1241,70 @@ function closeComments() { document.getElementById('cmodal').classList.remove('o
 function sendComment() {
   var inp = document.getElementById('cinput');
   var txt = inp ? inp.value.trim() : '';
-  if (!txt || !currentCommentId || !ME) return;
+  var imgFile = window._commentImageFile || null;
+  if (!txt && !imgFile) return;
+  if (!currentCommentId || !ME) return;
   if (inp) inp.value = '';
-  var ref = fbDb.collection('posts').doc(currentCommentId);
-  ref.collection('comments').add({ uid: ME.uid, displayName: ME.name, username: ME.username, text: txt, createdAt: firebase.firestore.FieldValue.serverTimestamp() })
-    .then(function() { ref.update({ commentCount: firebase.firestore.FieldValue.increment(1) }); openComments(currentCommentId); });
+
+  function saveComment(imgUrl) {
+    var cdata = {
+      uid: ME.uid, displayName: ME.name, username: ME.username,
+      text: txt || '', createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      likedBy: {}
+    };
+    if (imgUrl) cdata.imageUrl = imgUrl;
+    // Extract @mentions
+    var mentions = (txt.match(/@(\w+)/g) || []).map(function(m){ return m.slice(1); });
+    if (mentions.length) cdata.mentions = mentions;
+
+    var ref = fbDb.collection('posts').doc(currentCommentId);
+    ref.collection('comments').add(cdata).then(function() {
+      ref.update({ commentCount: firebase.firestore.FieldValue.increment(1) });
+      window._commentImageFile = null;
+      var prevWrap = document.getElementById('comment-img-preview-wrap');
+      if (prevWrap) prevWrap.style.display = 'none';
+      openFireComments(currentCommentId);
+    });
+  }
+
+  if (imgFile) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var dataUrl = e.target.result;
+      try {
+        var storage = firebase.storage();
+        var sref = storage.ref('comments/' + ME.uid + '/' + Date.now() + '.jpg');
+        sref.put(imgFile)
+          .then(function(snap) { return snap.ref.getDownloadURL(); })
+          .then(saveComment)
+          .catch(function() { saveComment(dataUrl); });
+      } catch(err) {
+        saveComment(dataUrl);
+      }
+    };
+    reader.readAsDataURL(imgFile);
+  } else {
+    saveComment(null);
+  }
 }
 
-// ════════════════════════════════════════════════════════════
-// TRANSFERS
-// ════════════════════════════════════════════════════════════
-var TRANSFERS = [
-  { name:'Edin Dzeko', pos:'ST', flag:'🐉', from:'Fenerbahce', to:'Schalke 04', fee:'Ablösefrei', status:'confirmed' },
-  { name:'Amar Dedic', pos:'RB', flag:'⚡', from:'RB Salzburg', to:'SL Benfica', fee:'~€12M', status:'confirmed' },
-  { name:'Esmir Bajraktarevic', pos:'LW', flag:'🎯', from:'NE Revolution', to:'PSV Eindhoven', fee:'~€3M', status:'confirmed' },
-  { name:'Ermedin Demirovic', pos:'ST', flag:'🎯', from:'FC Augsburg', to:'VfB Stuttgart', fee:'~€21M', status:'confirmed' },
-  { name:'Anel Ahmedodzic', pos:'CB', flag:'🏔️', from:'Sheffield Utd', to:'Atletico Madrid', fee:'Gerücht', status:'rumor' }
-];
+function triggerCommentImage() {
+  var inp = document.getElementById('comment-file-input');
+  if (inp) inp.click();
+}
 
+function previewCommentImage(input) {
+  var file = input.files[0];
+  if (!file) return;
+  window._commentImageFile = file;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var wrap = document.getElementById('comment-img-preview-wrap');
+    var prev = document.getElementById('comment-img-preview');
+    if (wrap && prev) { prev.src = e.target.result; wrap.style.display = 'flex'; }
+  };
+  reader.readAsDataURL(file);
+}
 function renderTransfers() {
   var h = '<div class="seclabel">TRANSFER-NEWS · UNSERE SPIELER</div>';
   TRANSFERS.forEach(function(t) {
@@ -1477,7 +1559,7 @@ function uploadStory() {
   if (!fbDb) { showToast('Verbindungsfehler!'); return; }
   var textInp = document.getElementById('story-text-inp');
   var overlayEl = document.getElementById('story-overlay-text');
-  var overlayText = overlayEl ? overlayEl.innerText.trim() : '';
+  var overlayText = overlayEl ? (overlayEl.innerText || '').trim() : '';
   var storyText = overlayText || (textInp ? textInp.value.trim() : '');
   if (!selectedStoryImageFile && !storyText) {
     showToast('Bitte Foto oder Text hinzufuegen.');
@@ -1498,7 +1580,7 @@ function uploadStory() {
     fbDb.collection('stories').add(sd).then(function() {
       if (btn) { btn.disabled = false; btn.textContent = 'Posten'; }
       closeStoryUpload();
-      showToast('Story ist 6 Stunden live!');
+      showToast('Story 6h live!');
       loadStories();
     }).catch(function(e) {
       if (btn) { btn.disabled = false; btn.textContent = 'Posten'; }
@@ -1507,21 +1589,23 @@ function uploadStory() {
   }
 
   if (selectedStoryImageFile) {
-    try {
-      var storage = firebase.storage();
-      var fname = Date.now() + '.jpg';
-      var sref = storage.ref('stories/' + ME.uid + '/' + fname);
-      sref.put(selectedStoryImageFile).then(function(snap) {
-        return snap.ref.getDownloadURL();
-      }).then(saveStory).catch(function() {
-        // fallback: use base64 data URL (works without storage, limited size)
-        var reader = new FileReader();
-        reader.onload = function(e) { saveStory(e.target.result); };
-        reader.readAsDataURL(selectedStoryImageFile);
-      });
-    } catch(e) {
-      saveStory(null);
-    }
+    // Always use base64 — works without Firebase Storage
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var dataUrl = e.target.result;
+      // Try Firebase Storage first (better performance)
+      try {
+        var storage = firebase.storage();
+        var sref = storage.ref('stories/' + ME.uid + '/' + Date.now() + '.jpg');
+        sref.put(selectedStoryImageFile)
+          .then(function(snap) { return snap.ref.getDownloadURL(); })
+          .then(saveStory)
+          .catch(function() { saveStory(dataUrl); }); // fallback to base64
+      } catch(e) {
+        saveStory(dataUrl); // fallback to base64
+      }
+    };
+    reader.readAsDataURL(selectedStoryImageFile);
   } else {
     saveStory(null);
   }
@@ -1679,7 +1763,14 @@ var currentShareData = {};
 
 function openShareSheetId(btn) {
   var postId = btn ? btn.getAttribute('data-id') : '';
-  openShareSheet({getAttribute: function(k) { return k === 'data-id' ? postId : ''; }});
+  // Find post data in current feed
+  var allPosts = window._currentFeedPosts || [];
+  var post = allPosts.find(function(p) { return p.docId === postId; });
+  window._sharePostData = post || { docId: postId };
+  var modal = document.getElementById('share-modal');
+  var prev = document.getElementById('share-preview-text');
+  if (prev && post) prev.textContent = '"' + (post.text || '').slice(0, 60) + '"';
+  if (modal) modal.classList.add('open');
 }
 function openShareSheet(btn) {
   var postId = btn ? btn.getAttribute('data-id') : '';
@@ -1698,12 +1789,27 @@ function closeShareSheet() {
 
 function shareVia(method) {
   var url = window.location.href;
-  var text = (currentShareData.text || 'Check this out!') + ' - Zmajevi App';
+  var post = window._sharePostData || {};
+  var text = (post.text || '') + ' - Zmajevi App';
   closeShareSheet();
-  if (method === 'copy') {
+
+  if (method === 'repost') {
+    // Repost: copy post content as new post
+    if (!ME || !fbDb) { showToast('Bitte einloggen!'); return; }
+    var pd = {
+      uid: ME.uid, displayName: ME.name, username: ME.username,
+      text: (post.text || '') + (post.displayName ? '\n\n&#8627; Geteilt von @' + (post.username || post.displayName) : ''),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      likedBy: {}, commentCount: 0, isRepost: true
+    };
+    if (post.imageUrl) pd.imageUrl = post.imageUrl;
+    fbDb.collection('posts').add(pd).then(function() {
+      showToast('Beitrag geteilt!');
+    }).catch(function(e) { showToast('Fehler: ' + e.message); });
+  } else if (method === 'copy') {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(url).then(function() { showToast('Link kopiert!'); });
-    } else { showToast('Link: ' + url); }
+    }
   } else if (method === 'whatsapp') {
     window.open('https://wa.me/?text=' + encodeURIComponent(text + ' ' + url), '_blank');
   } else if (method === 'instagram') {
@@ -1713,15 +1819,11 @@ function shareVia(method) {
   } else if (method === 'native') {
     if (navigator.share) {
       navigator.share({ title: 'Zmajevi App', text: text, url: url });
-    } else {
-      if (navigator.clipboard) navigator.clipboard.writeText(url).then(function() { showToast('Link kopiert!'); });
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(function() { showToast('Link kopiert!'); });
     }
   }
 }
-
-// ════════════════════════════════════════════════════════════
-// COMMENT LIKES
-// ════════════════════════════════════════════════════════════
 function likeCommentEl(btn) {
   likeComment(btn.getAttribute('data-pid'), btn.getAttribute('data-cid'), btn);
 }
