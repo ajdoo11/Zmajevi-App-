@@ -383,20 +383,11 @@ a{text-decoration:none;color:inherit}
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
+
 // ════════════════════════════════════════════════════════════
 // FIREBASE
 // ════════════════════════════════════════════════════════════
-var firebaseConfig = {
-  apiKey: "AIzaSyD19rUNDwsmw7ToGxJKSGlWzP1aSJof3kw",
-  authDomain: "bosnien-app.firebaseapp.com",
-  projectId: "bosnien-app",
-  storageBucket: "bosnien-app.firebasestorage.app",
-  messagingSenderId: "699054909708",
-  appId: "1:699054909708:web:ead5ab501af5145bce4129"
-};
-firebase.initializeApp(firebaseConfig);
-var fbAuth = firebase.auth();
-var fbDb = firebase.firestore();
+// Firebase initialized below
 
 // ════════════════════════════════════════════════════════════
 // STATE
@@ -433,27 +424,7 @@ function showScreen(id) {
 // ════════════════════════════════════════════════════════════
 // AUTH — Firebase
 // ════════════════════════════════════════════════════════════
-fbAuth.onAuthStateChanged(function(user) {
-  if (user) {
-    fbDb.collection('users').doc(user.uid).get().then(function(doc) {
-      if (doc.exists) {
-        ME = doc.data();
-        ME.uid = user.uid;
-      } else {
-        ME = { uid: user.uid, name: 'Fan', username: user.email.split('@')[0], email: user.email, bio: 'Zmajevi-Fan', posts: 0, joinedAt: '2026' };
-      }
-      showScreen('s-main');
-      renderUserPill();
-      renderAll();
-    }).catch(function() {
-      showScreen('s-auth');
-      renderAuthForm('login');
-    });
-  } else {
-    showScreen('s-auth');
-    renderAuthForm('login');
-  }
-});
+// Auth listener initialized below
 
 function switchAuth(mode) {
   document.querySelectorAll('.atab').forEach(function(t, i) {
@@ -496,6 +467,7 @@ function doAuth(mode) {
     if (!name || !uname) { showErr('Name und Benutzername sind Pflichtfelder.'); resetBtn(btn, mode); return; }
     if (pass !== pass2) { showErr('Passworter stimmen nicht uberein.'); resetBtn(btn, mode); return; }
     if (pass.length < 6) { showErr('Passwort mindestens 6 Zeichen.'); resetBtn(btn, mode); return; }
+    if (!fbAuth) { showErr('Verbindungsfehler. Seite neu laden.'); resetBtn(btn, mode); return; }
     fbAuth.createUserWithEmailAndPassword(email, pass).then(function(cred) {
       var ud = { uid: cred.user.uid, name: name, username: uname, email: email, bio: 'Zmajevi-Fan', posts: 0, joinedAt: new Date().getFullYear().toString() };
       return fbDb.collection('users').doc(cred.user.uid).set(ud).then(function() {
@@ -510,6 +482,7 @@ function doAuth(mode) {
       else showErr('Fehler: ' + err.message);
     });
   } else {
+    if (!fbAuth) { showErr('Verbindungsfehler. Seite neu laden.'); resetBtn(btn, mode); return; }
     fbAuth.signInWithEmailAndPassword(email, pass).then(function(cred) {
       return fbDb.collection('users').doc(cred.user.uid).get().then(function(doc) {
         ME = doc.exists ? doc.data() : { uid: cred.user.uid, name: 'Fan', username: email.split('@')[0], email: email, bio: '', posts: 0, joinedAt: '2026' };
@@ -563,7 +536,7 @@ var NTAGS = {
   Interview: { bg: 'rgba(58,26,26,.85)', c: '#e87a7a' }
 };
 var SCOL = { 'Klix.ba': '#2ed573', 'Fanatik.ba': '#ff6b35', 'Sportske.ba': '#a78bfa', 'N1 Info': '#4facfe', 'BBC Sport': '#e53e3e', 'Sky Sport': '#9b6dff' };
-var NEMOJI = { Nationalteam: '&#x1F1E7;&#x1F1E6;', Transfers: '&#x1F4B0;', Spielplan: '&#x1F4C5;', Spieler: '&#x1F464;', Ausruestung: '&#x1F455;', Interview: '&#x1F3A4;' };
+var NEMOJI = { Nationalteam: '🇧🇦', Transfers: '💰', Spielplan: '📅', Spieler: '👤', Ausruestung: '👕', Interview: '🎤' };
 
 var ALL_NEWS = [
   { id:1, src:'Klix.ba', time:'Mai 2026', tag:'Nationalteam', hot:true, likes:892,
@@ -628,7 +601,7 @@ function renderNewsTab() {
       '<div class="sdot" style="background:' + s.color + '"></div><span class="sn">' + s.label + '</span></div>';
   }).join('');
   nf.innerHTML = FILTERS.map(function(f) {
-    return '<div class="nfc' + (f === curNFilter ? ' on' : '') + '" onclick="pickNFilter(this,'' + f + '')">' + (f === 'Breaking' ? '&#x1F525; Breaking' : f) + '</div>';
+    return '<div class="nfc' + (f === curNFilter ? ' on' : '') + '" onclick="pickNFilter(this,'' + f + '')">' + (f === 'Breaking' ? '🔥 Breaking' : f) + '</div>';
   }).join('');
   renderNewsFeed();
 }
@@ -640,30 +613,30 @@ function renderNewsFeed() {
   else if (curNFilter !== 'Sve') data = data.filter(function(n) { return n.tag === curNFilter; });
   var feed = document.getElementById('news-feed');
   if (!feed) return;
-  if (!data.length) { feed.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--gray)">&#x1F409; Nema vijesti za ovaj filter.</div>'; return; }
+  if (!data.length) { feed.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--gray)">🐉 Nema vijesti za ovaj filter.</div>'; return; }
   var h = '';
   data.forEach(function(n, i) {
     var tc = NTAGS[n.tag] || { bg: '#1a2a3a', c: '#aaa' };
     var sc = SCOL[n.src] || '#7a8aaa';
-    var em = NEMOJI[n.tag] || '&#x1F4F0;';
+    var em = NEMOJI[n.tag] || '📰';
     var lk = likedNews[n.id];
     var delay = 'animation-delay:' + (i * 30) + 'ms;opacity:0';
     var tag = '<span class="ctag-badge" style="background:' + tc.bg + ';color:' + tc.c + '">' + n.tag + '</span>';
     var brk = n.hot ? '<div class="brk-row"><div class="brk-d"></div><span class="brk-t">BREAKING</span></div>' : '';
-    var like = '<button class="n-like' + (lk ? ' liked' : '') + '" onclick="event.preventDefault();event.stopPropagation();doNLike(' + n.id + ',this)">' + (lk ? '&#11088;' : '&#x2606;') + ' ' + (n.likes + (lk ? 1 : 0)) + '</button>';
+    var like = '<button class="n-like' + (lk ? ' liked' : '') + '" onclick="event.preventDefault();event.stopPropagation();doNLike(' + n.id + ',this)">' + (lk ? '⭐' : '☆') + ' ' + (n.likes + (lk ? 1 : 0)) + '</button>';
     if (i === 0) {
       h += '<a class="feat-card' + (n.hot ? ' hot' : '') + ' fu" href="' + n.url + '" target="_blank" rel="noopener" style="' + delay + '">' +
         '<div class="feat-img">' + em + '</div><div class="feat-body">' + brk +
         '<div class="cmeta"><div class="csrc"><div class="cdot" style="background:' + sc + '"></div><span class="cname">' + n.src + '</span></div><span class="ctime">' + n.time + '</span></div>' +
         '<div class="feat-title">' + n.title + '</div><div class="feat-desc">' + n.desc + '</div>' +
-        '<div class="feat-foot">' + like + tag + '<span class="n-open">Citaj na ' + n.src + ' &#x2197;</span></div></div></a>';
+        '<div class="feat-foot">' + like + tag + '<span class="n-open">Citaj na ' + n.src + ' ↗</span></div></div></a>';
     } else {
       h += '<a class="comp-card' + (n.hot ? ' hot' : '') + ' fu" href="' + n.url + '" target="_blank" rel="noopener" style="' + delay + '">' +
         '<div class="comp-emoji">' + em + '</div><div class="comp-body">' +
         (n.hot ? '<div class="brk-row" style="margin-bottom:5px"><div class="brk-d"></div><span class="brk-t">BREAKING</span></div>' : '') +
-        '<div class="cmeta" style="margin-bottom:5px"><div class="csrc"><div class="cdot" style="background:' + sc + '"></div><span class="cname">' + n.src + '</span></div><span class="ctime">&nbsp;&#xB7; ' + n.time + '</span></div>' +
+        '<div class="cmeta" style="margin-bottom:5px"><div class="csrc"><div class="cdot" style="background:' + sc + '"></div><span class="cname">' + n.src + '</span></div><span class="ctime"> · ' + n.time + '</span></div>' +
         '<div class="comp-title">' + n.title + '</div>' +
-        '<div class="comp-foot">' + tag + like + '<span class="comp-read">Citaj &#x2197;</span></div></div></a>';
+        '<div class="comp-foot">' + tag + like + '<span class="comp-read">Citaj ↗</span></div></div></a>';
     }
   });
   feed.innerHTML = h;
@@ -673,7 +646,7 @@ function doNLike(id, btn) {
   likedNews[id] = !likedNews[id];
   var n = ALL_NEWS.find(function(x) { return x.id === id; });
   btn.className = 'n-like' + (likedNews[id] ? ' liked' : '');
-  btn.innerHTML = (likedNews[id] ? '&#11088;' : '&#x2606;') + ' ' + (n.likes + (likedNews[id] ? 1 : 0));
+  btn.innerHTML = (likedNews[id] ? '⭐' : '☆') + ' ' + (n.likes + (likedNews[id] ? 1 : 0));
 }
 function pickNFilter(chip, f) {
   document.querySelectorAll('.nfc').forEach(function(c) { c.classList.remove('on'); });
@@ -699,36 +672,36 @@ function doRefresh() {
 // SPIELER — Echter WM 2026 Kader BiH
 // ════════════════════════════════════════════════════════════
 var PLAYERS = [
-  { id:1,  grp:'Golmani',   name:'Nikola Vasilj',         pos:'GK', club:'FC St. Pauli',       caps:18,  goals:0,  flag:'&#x1F9E4;', form:[1,1,1,0,1]  },
-  { id:2,  grp:'Golmani',   name:'Osman Hadzikic',         pos:'GK', club:'NK Slaven Belupo',   caps:4,   goals:0,  flag:'&#x1F9E4;', form:[1,1,0,1,1]  },
-  { id:3,  grp:'Golmani',   name:'Martin Zlomislic',       pos:'GK', club:'HNK Rijeka',         caps:3,   goals:0,  flag:'&#x1F9E4;', form:[0,1,1,0,1]  },
-  { id:4,  grp:'Odbrana',   name:'Dennis Hadzikadunic',    pos:'CB', club:'UC Sampdoria',       caps:31,  goals:2,  flag:'&#x1F3D4;&#xFE0F;', form:[1,0,1,1,1]  },
-  { id:5,  grp:'Odbrana',   name:'Nihad Mujakic',          pos:'RB', club:'Gaziantep FK',       caps:14,  goals:0,  flag:'&#x1F6E1;&#xFE0F;', form:[1,1,0,1,0]  },
-  { id:6,  grp:'Odbrana',   name:'Nidal Celic',            pos:'LB', club:'RC Lens',            caps:22,  goals:1,  flag:'&#x1F6E1;&#xFE0F;', form:[1,1,1,0,1]  },
-  { id:7,  grp:'Odbrana',   name:'Tarik Muharemovic',      pos:'CB', club:'US Sassuolo',        caps:19,  goals:1,  flag:'&#x1F3D4;&#xFE0F;', form:[0,1,1,1,1]  },
-  { id:8,  grp:'Odbrana',   name:'Sead Kolasinac',         pos:'LB', club:'Atalanta BC',        caps:61,  goals:2,  flag:'&#x1F6E1;&#xFE0F;', form:[1,0,1,1,1]  },
-  { id:9,  grp:'Odbrana',   name:'Amar Dedic',             pos:'RB', club:'SL Benfica',         caps:28,  goals:3,  flag:'&#x26A1;', form:[1,1,1,0,1]  },
-  { id:10, grp:'Odbrana',   name:'Nikola Katic',           pos:'CB', club:'Schalke 04',         caps:11,  goals:0,  flag:'&#x1F3D4;&#xFE0F;', form:[1,1,0,0,1]  },
-  { id:11, grp:'Vezni red', name:'Benjamin Tahirovic',     pos:'CM', club:'Bronby IF',          caps:21,  goals:3,  flag:'&#x26A1;', form:[1,1,0,1,1]  },
-  { id:12, grp:'Vezni red', name:'Armin Gigovic',          pos:'OM', club:'BSC Young Boys',     caps:16,  goals:2,  flag:'&#x26A1;', form:[1,0,1,1,0]  },
-  { id:13, grp:'Vezni red', name:'Ivan Sunjic',            pos:'CM', club:'Pafos FC',           caps:38,  goals:1,  flag:'&#x26A1;', form:[0,1,0,1,1]  },
-  { id:14, grp:'Vezni red', name:'Miralem Pjanic',         pos:'OM', club:'Sharjah FC',         caps:115, goals:17, flag:'&#x2B50;', form:[0,1,1,1,0]  },
-  { id:15, grp:'Vezni red', name:'Amar Memic',             pos:'CM', club:'FK Viktoria Plzen',  caps:9,   goals:0,  flag:'&#x26A1;', form:[1,1,1,1,0]  },
-  { id:16, grp:'Vezni red', name:'Ivan Basic',             pos:'CM', club:'FC Astana',          caps:12,  goals:1,  flag:'&#x26A1;', form:[1,1,1,0,1]  },
-  { id:17, grp:'Napadaci',  name:'Edin Dzeko',             pos:'ST', club:'Schalke 04',         caps:148, goals:73, flag:'&#x1F409;', form:[1,1,0,1,1]  },
-  { id:18, grp:'Napadaci',  name:'Ermedin Demirovicc',     pos:'ST', club:'VfB Stuttgart',      caps:33,  goals:11, flag:'&#x1F3AF;', form:[1,1,1,0,1]  },
-  { id:19, grp:'Napadaci',  name:'Amer Gojak',             pos:'LW', club:'Trabzonspor',        caps:42,  goals:7,  flag:'&#x1F3AF;', form:[0,1,1,1,1]  },
-  { id:20, grp:'Napadaci',  name:'Esmir Bajraktarevic',    pos:'LW', club:'PSV Eindhoven',      caps:14,  goals:5,  flag:'&#x1F3AF;', form:[1,0,1,1,1]  },
-  { id:21, grp:'Napadaci',  name:'Ermin Bicakcic',         pos:'CF', club:'1. FC Heidenheim',   caps:27,  goals:6,  flag:'&#x1F3AF;', form:[1,1,1,0,0]  },
-  { id:22, grp:'Napadaci',  name:'Dario Samic',            pos:'RW', club:'HNK Hajduk Split',   caps:18,  goals:4,  flag:'&#x1F3AF;', form:[1,1,0,1,0]  },
-  { id:23, grp:'Napadaci',  name:'Anel Husic',             pos:'LW', club:'FC Toulouse',        caps:11,  goals:2,  flag:'&#x1F3AF;', form:[0,1,0,1,1]  }
+  { id:1,  grp:'Golmani',   name:'Nikola Vasilj',         pos:'GK', club:'FC St. Pauli',       caps:18,  goals:0,  flag:'🧤', form:[1,1,1,0,1]  },
+  { id:2,  grp:'Golmani',   name:'Osman Hadzikic',         pos:'GK', club:'NK Slaven Belupo',   caps:4,   goals:0,  flag:'🧤', form:[1,1,0,1,1]  },
+  { id:3,  grp:'Golmani',   name:'Martin Zlomislic',       pos:'GK', club:'HNK Rijeka',         caps:3,   goals:0,  flag:'🧤', form:[0,1,1,0,1]  },
+  { id:4,  grp:'Odbrana',   name:'Dennis Hadzikadunic',    pos:'CB', club:'UC Sampdoria',       caps:31,  goals:2,  flag:'🏔️', form:[1,0,1,1,1]  },
+  { id:5,  grp:'Odbrana',   name:'Nihad Mujakic',          pos:'RB', club:'Gaziantep FK',       caps:14,  goals:0,  flag:'🛡️', form:[1,1,0,1,0]  },
+  { id:6,  grp:'Odbrana',   name:'Nidal Celic',            pos:'LB', club:'RC Lens',            caps:22,  goals:1,  flag:'🛡️', form:[1,1,1,0,1]  },
+  { id:7,  grp:'Odbrana',   name:'Tarik Muharemovic',      pos:'CB', club:'US Sassuolo',        caps:19,  goals:1,  flag:'🏔️', form:[0,1,1,1,1]  },
+  { id:8,  grp:'Odbrana',   name:'Sead Kolasinac',         pos:'LB', club:'Atalanta BC',        caps:61,  goals:2,  flag:'🛡️', form:[1,0,1,1,1]  },
+  { id:9,  grp:'Odbrana',   name:'Amar Dedic',             pos:'RB', club:'SL Benfica',         caps:28,  goals:3,  flag:'⚡', form:[1,1,1,0,1]  },
+  { id:10, grp:'Odbrana',   name:'Nikola Katic',           pos:'CB', club:'Schalke 04',         caps:11,  goals:0,  flag:'🏔️', form:[1,1,0,0,1]  },
+  { id:11, grp:'Vezni red', name:'Benjamin Tahirovic',     pos:'CM', club:'Bronby IF',          caps:21,  goals:3,  flag:'⚡', form:[1,1,0,1,1]  },
+  { id:12, grp:'Vezni red', name:'Armin Gigovic',          pos:'OM', club:'BSC Young Boys',     caps:16,  goals:2,  flag:'⚡', form:[1,0,1,1,0]  },
+  { id:13, grp:'Vezni red', name:'Ivan Sunjic',            pos:'CM', club:'Pafos FC',           caps:38,  goals:1,  flag:'⚡', form:[0,1,0,1,1]  },
+  { id:14, grp:'Vezni red', name:'Miralem Pjanic',         pos:'OM', club:'Sharjah FC',         caps:115, goals:17, flag:'⭐', form:[0,1,1,1,0]  },
+  { id:15, grp:'Vezni red', name:'Amar Memic',             pos:'CM', club:'FK Viktoria Plzen',  caps:9,   goals:0,  flag:'⚡', form:[1,1,1,1,0]  },
+  { id:16, grp:'Vezni red', name:'Ivan Basic',             pos:'CM', club:'FC Astana',          caps:12,  goals:1,  flag:'⚡', form:[1,1,1,0,1]  },
+  { id:17, grp:'Napadaci',  name:'Edin Dzeko',             pos:'ST', club:'Schalke 04',         caps:148, goals:73, flag:'🐉', form:[1,1,0,1,1]  },
+  { id:18, grp:'Napadaci',  name:'Ermedin Demirovicc',     pos:'ST', club:'VfB Stuttgart',      caps:33,  goals:11, flag:'🎯', form:[1,1,1,0,1]  },
+  { id:19, grp:'Napadaci',  name:'Amer Gojak',             pos:'LW', club:'Trabzonspor',        caps:42,  goals:7,  flag:'🎯', form:[0,1,1,1,1]  },
+  { id:20, grp:'Napadaci',  name:'Esmir Bajraktarevic',    pos:'LW', club:'PSV Eindhoven',      caps:14,  goals:5,  flag:'🎯', form:[1,0,1,1,1]  },
+  { id:21, grp:'Napadaci',  name:'Ermin Bicakcic',         pos:'CF', club:'1. FC Heidenheim',   caps:27,  goals:6,  flag:'🎯', form:[1,1,1,0,0]  },
+  { id:22, grp:'Napadaci',  name:'Dario Samic',            pos:'RW', club:'HNK Hajduk Split',   caps:18,  goals:4,  flag:'🎯', form:[1,1,0,1,0]  },
+  { id:23, grp:'Napadaci',  name:'Anel Husic',             pos:'LW', club:'FC Toulouse',        caps:11,  goals:2,  flag:'🎯', form:[0,1,0,1,1]  }
 ];
 
 function renderSpieler() {
   var groups = ['Golmani', 'Odbrana', 'Vezni red', 'Napadaci'];
   var h = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
-    '<span style="color:var(--gray);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase">WM 2026 KADER &#xB7; ' + PLAYERS.length + ' IGRACA</span>' +
-    '<span class="api-badge">&#x1F1E7;&#x1F1E6; Bosna</span></div>';
+    '<span style="color:var(--gray);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase">WM 2026 KADER · ' + PLAYERS.length + ' IGRACA</span>' +
+    '<span class="api-badge">🇧🇦 Bosna</span></div>';
   groups.forEach(function(grp) {
     var gp = PLAYERS.filter(function(p) { return p.grp === grp; });
     if (!gp.length) return;
@@ -736,9 +709,9 @@ function renderSpieler() {
     gp.forEach(function(p) {
       h += '<div class="pcard fu" onclick="showPlayer(' + p.id + ')">' +
         '<div class="pemoji">' + p.flag + '</div>' +
-        '<div style="flex:1"><div class="pname">' + p.name + '</div><div class="pmeta">' + p.pos + ' &#xB7; ' + p.club + '</div></div>' +
+        '<div style="flex:1"><div class="pname">' + p.name + '</div><div class="pmeta">' + p.pos + ' · ' + p.club + '</div></div>' +
         '<div class="pcaps"><div class="pcnum">' + p.caps + '</div><div class="pclabel">Caps</div></div>' +
-        '<span style="color:var(--gray);font-size:16px">&#x203A;</span></div>';
+        '<span style="color:var(--gray);font-size:16px">›</span></div>';
     });
   });
   document.getElementById('spieler-inner').innerHTML = h;
@@ -748,16 +721,16 @@ function showPlayer(id) {
   var p = PLAYERS.find(function(x) { return x.id === id; });
   if (!p) return;
   var form = p.form.map(function(f) {
-    return '<div class="fdot ' + (f === 1 ? 'w' : f === 0 ? 'l' : 'd') + '">' + (f === 1 ? '&#x2713;' : f === 0 ? '&#x2717;' : '&#x2014;') + '</div>';
+    return '<div class="fdot ' + (f === 1 ? 'w' : f === 0 ? 'l' : 'd') + '">' + (f === 1 ? '✓' : f === 0 ? '✗' : '—') + '</div>';
   }).join('');
   document.getElementById('spieler-inner').innerHTML =
-    '<button onclick="renderSpieler()" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);border-radius:10px;padding:8px 13px;cursor:pointer;margin-bottom:14px;font-family:Inter,sans-serif;font-size:13px">&#x2190; Nazad na kader</button>' +
+    '<button onclick="renderSpieler()" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);border-radius:10px;padding:8px 13px;cursor:pointer;margin-bottom:14px;font-family:Inter,sans-serif;font-size:13px">← Nazad na kader</button>' +
     '<div class="phero"><div class="photo-big">' + p.flag + '</div>' +
     '<div class="phname">' + p.name + '</div>' +
-    '<div class="phsub">' + p.pos + ' &#xB7; ' + p.club + '</div>' +
+    '<div class="phsub">' + p.pos + ' · ' + p.club + '</div>' +
     '<div style="margin-top:9px;display:flex;gap:7px;justify-content:center">' +
     '<span class="api-badge">' + p.grp + '</span>' +
-    '<span class="api-badge">&#x1F1E7;&#x1F1E6; BiH</span></div></div>' +
+    '<span class="api-badge">🇧🇦 BiH</span></div></div>' +
     '<div class="sgrid">' +
     '<div class="scard"><div class="snum">' + p.caps + '</div><div class="slabel">Caps</div></div>' +
     '<div class="scard"><div class="snum">' + p.goals + '</div><div class="slabel">Golovi</div></div>' +
@@ -769,17 +742,17 @@ function showPlayer(id) {
 // SPIELE + TABELLEN
 // ════════════════════════════════════════════════════════════
 var STANDINGS = {
-  wm: { title:'WM 2026 &#xB7; Gruppe B', sub:'Los Angeles &#xB7; Jun 2026', color:'#f5c518', badge:'&#x1F3C6; WM 2026', note:'Tabelle startet am 12. Juni 2026',
-    teams:[{f:'&#x1F1E8;&#x1F1ED;',n:'Svicarska',p:1,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'&#x1F1E7;&#x1F1E6;',n:'Bosna',p:2,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:true},{f:'&#x1F1E8;&#x1F1E6;',n:'Kanada',p:3,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'&#x1F1F6;&#x1F1E6;',n:'Katar',p:4,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false}],
-    adv:2, advNote:'Top 2 &#x2192; Runde der 32' },
-  quali: { title:'WM-Qualifikation &#xB7; Gruppe H', sub:'Abschlusstabelle 2025', color:'#2ed573', badge:'&#x2705; Qualifiziert',
-    note:'Bosna als 2. in die Playoffs &#x2192; WM!',
-    teams:[{f:'&#x1F1E6;&#x1F1F9;',n:'Austrija',p:1,pld:8,w:6,d:1,l:1,gf:22,ga:4,pts:19,bih:false},{f:'&#x1F1E7;&#x1F1E6;',n:'Bosna',p:2,pld:8,w:5,d:2,l:1,gf:17,ga:7,pts:17,bih:true},{f:'&#x1F1F7;&#x1F1F4;',n:'Rumanija',p:3,pld:8,w:4,d:1,l:3,gf:19,ga:10,pts:13,bih:false},{f:'&#x1F1E8;&#x1F1FE;',n:'Kipar',p:4,pld:8,w:2,d:2,l:4,gf:11,ga:11,pts:8,bih:false},{f:'&#x1F1F8;&#x1F1F2;',n:'San Marino',p:5,pld:8,w:0,d:0,l:8,gf:2,ga:39,pts:0,bih:false}],
-    adv:2, advNote:'1. direktno &#xB7; 2. &#x2192; Playoff' },
-  nl: { title:'Nations League &#xB7; Liga A', sub:'Ab September 2026', color:'#4facfe', badge:'&#x1F3F4; Nations League',
+  wm: { title:'WM 2026 · Gruppe B', sub:'Los Angeles · Jun 2026', color:'#f5c518', badge:'🏆 WM 2026', note:'Tabelle startet am 12. Juni 2026',
+    teams:[{f:'🇨🇭',n:'Svicarska',p:1,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'🇧🇦',n:'Bosna',p:2,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:true},{f:'🇨🇦',n:'Kanada',p:3,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'🇶🇦',n:'Katar',p:4,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false}],
+    adv:2, advNote:'Top 2 → Runde der 32' },
+  quali: { title:'WM-Qualifikation · Gruppe H', sub:'Abschlusstabelle 2025', color:'#2ed573', badge:'✅ Qualifiziert',
+    note:'Bosna als 2. in die Playoffs → WM!',
+    teams:[{f:'🇦🇹',n:'Austrija',p:1,pld:8,w:6,d:1,l:1,gf:22,ga:4,pts:19,bih:false},{f:'🇧🇦',n:'Bosna',p:2,pld:8,w:5,d:2,l:1,gf:17,ga:7,pts:17,bih:true},{f:'🇷🇴',n:'Rumanija',p:3,pld:8,w:4,d:1,l:3,gf:19,ga:10,pts:13,bih:false},{f:'🇨🇾',n:'Kipar',p:4,pld:8,w:2,d:2,l:4,gf:11,ga:11,pts:8,bih:false},{f:'🇸🇲',n:'San Marino',p:5,pld:8,w:0,d:0,l:8,gf:2,ga:39,pts:0,bih:false}],
+    adv:2, advNote:'1. direktno · 2. → Playoff' },
+  nl: { title:'Nations League · Liga A', sub:'Ab September 2026', color:'#4facfe', badge:'🏴 Nations League',
     note:'Tabelle ab Sep 2026 verfugbar',
-    teams:[{f:'&#x1F1E7;&#x1F1E6;',n:'Bosna',p:1,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:true},{f:'&#x1F1F5;&#x1F1F1;',n:'Poljska',p:2,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'&#x1F1E8;&#x1F1ED;',n:'Svicarska',p:3,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'&#x1F1F2;&#x1F1F0;',n:'S. Makedonija',p:4,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false}],
-    adv:1, advNote:'1. &#x2192; Nations League Finals' }
+    teams:[{f:'🇧🇦',n:'Bosna',p:1,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:true},{f:'🇵🇱',n:'Poljska',p:2,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'🇨🇭',n:'Svicarska',p:3,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'🇲🇰',n:'S. Makedonija',p:4,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false}],
+    adv:1, advNote:'1. → Nations League Finals' }
 };
 
 function renderSpiele() {
@@ -787,19 +760,19 @@ function renderSpiele() {
   h += '<div style="height:1px;background:var(--border);margin:16px 0"></div>';
   h += '<div class="seclabel">PREDSTOJECCE UTAKMICE WM 2026</div>';
   var fixtures = [
-    { date:'29. Mai 2026', opp:'Sjeverna Makedonija', comp:'Prijateljska', flag:'&#x1F1F2;&#x1F1F0;', time:'20:30' },
-    { date:'12. Jun 2026', opp:'Svicarska', comp:'WM 2026 &#xB7; Gruppe B', flag:'&#x1F1E8;&#x1F1ED;', time:'22:00' },
-    { date:'17. Jun 2026', opp:'Katar', comp:'WM 2026 &#xB7; Gruppe B', flag:'&#x1F1F6;&#x1F1E6;', time:'02:00' },
-    { date:'22. Jun 2026', opp:'Kanada', comp:'WM 2026 &#xB7; Gruppe B', flag:'&#x1F1E8;&#x1F1E6;', time:'22:00' }
+    { date:'29. Mai 2026', opp:'Sjeverna Makedonija', comp:'Prijateljska', flag:'🇲🇰', time:'20:30' },
+    { date:'12. Jun 2026', opp:'Svicarska', comp:'WM 2026 · Gruppe B', flag:'🇨🇭', time:'22:00' },
+    { date:'17. Jun 2026', opp:'Katar', comp:'WM 2026 · Gruppe B', flag:'🇶🇦', time:'02:00' },
+    { date:'22. Jun 2026', opp:'Kanada', comp:'WM 2026 · Gruppe B', flag:'🇨🇦', time:'22:00' }
   ];
   fixtures.forEach(function(f) {
     h += '<div style="background:linear-gradient(135deg,var(--bg2),var(--bg3));border-radius:16px;padding:16px;margin-bottom:10px;border:1px solid rgba(245,197,24,.18)">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px">' +
-      '<span style="color:var(--gray);font-size:11px;font-family:monospace">' + f.date + ' &#xB7; ' + f.time + '</span>' +
+      '<span style="color:var(--gray);font-size:11px;font-family:monospace">' + f.date + ' · ' + f.time + '</span>' +
       '<span style="background:#1a2f5e;color:#7eb8f7;font-size:10px;font-weight:700;padding:3px 8px;border-radius:9px">' + f.comp + '</span></div>' +
       '<div style="display:flex;align-items:center;justify-content:space-between">' +
-      '<div style="text-align:center;flex:1"><div style="font-size:30px">&#x1F1E7;&#x1F1E6;</div><div style="color:var(--white);font-weight:800;font-size:12px;margin-top:4px;font-family:Barlow Condensed,sans-serif">BOSNA</div></div>' +
-      '<div style="text-align:center;padding:0 12px"><div style="background:var(--bg);border-radius:9px;padding:9px 16px;border:1px solid var(--border2)"><div style="color:var(--gold);font-weight:900;font-size:22px;font-family:Barlow Condensed,sans-serif;letter-spacing:4px">VS</div></div><div style="color:var(--gray);font-size:10px;margin-top:3px">&#x2708;&#xFE0F; Auswarts</div></div>' +
+      '<div style="text-align:center;flex:1"><div style="font-size:30px">🇧🇦</div><div style="color:var(--white);font-weight:800;font-size:12px;margin-top:4px;font-family:Barlow Condensed,sans-serif">BOSNA</div></div>' +
+      '<div style="text-align:center;padding:0 12px"><div style="background:var(--bg);border-radius:9px;padding:9px 16px;border:1px solid var(--border2)"><div style="color:var(--gold);font-weight:900;font-size:22px;font-family:Barlow Condensed,sans-serif;letter-spacing:4px">VS</div></div><div style="color:var(--gray);font-size:10px;margin-top:3px">✈️ Auswarts</div></div>' +
       '<div style="text-align:center;flex:1"><div style="font-size:30px">' + f.flag + '</div><div style="color:var(--white);font-weight:800;font-size:12px;margin-top:4px;font-family:Barlow Condensed,sans-serif">' + f.opp.toUpperCase().slice(0, 12) + '</div></div>' +
       '</div></div>';
   });
@@ -831,7 +804,7 @@ function renderStandingsHTML() {
   var h = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
     '<span style="color:var(--gold);font-size:11px;font-weight:800;letter-spacing:1.5px;font-family:Barlow Condensed,sans-serif">TABELLE</span></div>';
   h += '<div class="league-tabs">';
-  [{key:'wm',i:'&#x1F3C6;',l:'WM 2026'},{key:'quali',i:'&#x2705;',l:'WM-Quali'},{key:'nl',i:'&#x1F3F4;',l:'Nations League'}].forEach(function(t) {
+  [{key:'wm',i:'🏆',l:'WM 2026'},{key:'quali',i:'✅',l:'WM-Quali'},{key:'nl',i:'🏴',l:'Nations League'}].forEach(function(t) {
     h += '<div class="ltab' + (activeLeagueTab === t.key ? ' on' : '') + '" onclick="switchLeague('' + t.key + '')">' + t.i + ' ' + t.l + '</div>';
   });
   h += '</div>';
@@ -877,9 +850,9 @@ function switchLeague(k) { activeLeagueTab = k; renderSpiele(); }
 // BIHBOOK — Firebase Realtime
 // ════════════════════════════════════════════════════════════
 var ADMIN_POLLS = [
-  { title:'&#x1F5F3;&#xFE0F; Abstimmung: Wer schiesst das WM-Tor?', body:'Wahle deinen Favoriten fur den WM-Helden 2026!', expires:'Endet am 15. Juli',
-    options:[{label:'Edin Dzeko &#x1F409;',votes:512},{label:'Ermedin Demirovic &#x1F3AF;',votes:287},{label:'Esmir Bajraktarevic &#x1F3AF;',votes:163},{label:'Jemand anderes',votes:44}] },
-  { title:'&#x1F4E2; Zmajevi bei der WM 2026 &#x2013; Gruppe B!', body:'Bosnien trifft auf Svicarska, Kanada und Katar. Los Angeles. Wir glauben an euch! &#x1F409;&#x1F1E7;&#x1F1E6;', expires:'WM: 11. Jun &#x2013; 19. Jul 2026' }
+  { title:'🗳️ Abstimmung: Wer schiesst das WM-Tor?', body:'Wahle deinen Favoriten fur den WM-Helden 2026!', expires:'Endet am 15. Juli',
+    options:[{label:'Edin Dzeko 🐉',votes:512},{label:'Ermedin Demirovic 🎯',votes:287},{label:'Esmir Bajraktarevic 🎯',votes:163},{label:'Jemand anderes',votes:44}] },
+  { title:'📢 Zmajevi bei der WM 2026 – Gruppe B!', body:'Bosnien trifft auf Svicarska, Kanada und Katar. Los Angeles. Wir glauben an euch! 🐉🇧🇦', expires:'WM: 11. Jun – 19. Jul 2026' }
 ];
 
 function renderBihbook() {
@@ -901,22 +874,22 @@ function renderBihbook() {
     [{i:'KZ',n:'Kemal'},{i:'AS',n:'Amira'},{i:'MB',n:'Mirza'},{i:'EG',n:'Edin'},{i:'BF',n:'BiH'}].map(function(s) {
       return '<div class="story-wrap"><div class="story-ring"><div class="story-av">' + s.i + '</div></div><span class="story-lbl">' + s.n + '</span></div>';
     }).join('') + '</div>' +
-    '<div class="fb-live-badge"><div class="fb-live-dot"></div><span class="fb-live-txt">BIHBOOK &#xB7; Firebase Live &#xB7; Echte Posts</span></div>' +
+    '<div class="fb-live-badge"><div class="fb-live-dot"></div><span class="fb-live-txt">BIHBOOK · Firebase Live · Echte Posts</span></div>' +
     '<div class="admin-pin">' +
-    '<div class="admin-badge"><div class="admin-icon">&#x1F6E1;&#xFE0F;</div><span class="admin-label">ADMIN &#xB7; ABSTIMMUNG</span><span class="admin-expires">' + ADMIN_POLLS[0].expires + '</span></div>' +
+    '<div class="admin-badge"><div class="admin-icon">🛡️</div><span class="admin-label">ADMIN · ABSTIMMUNG</span><span class="admin-expires">' + ADMIN_POLLS[0].expires + '</span></div>' +
     '<div class="admin-title">' + ADMIN_POLLS[0].title + '</div>' +
     '<div class="admin-body">' + ADMIN_POLLS[0].body + '</div>' +
     '<div class="vote-options">' + voteHTML + '</div></div>' +
     '<div class="admin-pin" style="margin-bottom:12px">' +
-    '<div class="admin-badge"><div class="admin-icon">&#x1F4E2;</div><span class="admin-label">ADMIN &#xB7; INFO</span><span class="admin-expires">' + ADMIN_POLLS[1].expires + '</span></div>' +
+    '<div class="admin-badge"><div class="admin-icon">📢</div><span class="admin-label">ADMIN · INFO</span><span class="admin-expires">' + ADMIN_POLLS[1].expires + '</span></div>' +
     '<div class="admin-title">' + ADMIN_POLLS[1].title + '</div>' +
     '<div class="admin-body">' + ADMIN_POLLS[1].body + '</div></div>' +
     '<div class="compose">' +
     '<div class="compose-top"><div class="cavatar">' + ini + '</div>' +
-    '<textarea class="carea" id="carea" placeholder="Was denkst du, Zmaji? &#x1F409;" oninput="togglePost()"></textarea></div>' +
-    '<div class="compose-foot"><div style="display:flex;gap:4px"><button class="ctool">&#x1F5BC;&#xFE0F;</button><button class="ctool">&#x1F60A;</button></div>' +
+    '<textarea class="carea" id="carea" placeholder="Was denkst du, Zmaji? 🐉" oninput="togglePost()"></textarea></div>' +
+    '<div class="compose-foot"><div style="display:flex;gap:4px"><button class="ctool">🖼️</button><button class="ctool">😊</button></div>' +
     '<button class="cpost" id="cpost-btn" onclick="submitPost()" disabled>Posten</button></div></div>' +
-    '<div id="feedlist"><div style="text-align:center;padding:20px;color:var(--gray);font-size:13px">&#x1F504; Ladt Posts...</div></div>';
+    '<div id="feedlist"><div style="text-align:center;padding:20px;color:var(--gray);font-size:13px">🔄 Ladt Posts...</div></div>';
 
   loadLiveFeed();
 }
@@ -929,7 +902,7 @@ function loadLiveFeed() {
     renderFeed(posts);
   }, function(err) {
     var list = document.getElementById('feedlist');
-    if (list) list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray);font-size:13px">&#x26A0;&#xFE0F; Konnte Posts nicht laden. Bitte Firebase Firestore aktivieren.</div>';
+    if (list) list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray);font-size:13px">⚠️ Konnte Posts nicht laden. Bitte Firebase Firestore aktivieren.</div>';
   });
 }
 
@@ -937,7 +910,7 @@ function renderFeed(posts) {
   var list = document.getElementById('feedlist');
   if (!list) return;
   if (!posts.length) {
-    list.innerHTML = '<div style="text-align:center;padding:28px;color:var(--gray);font-size:13px">Noch keine Posts. Sei der Erste! &#x1F409;</div>';
+    list.innerHTML = '<div style="text-align:center;padding:28px;color:var(--gray);font-size:13px">Noch keine Posts. Sei der Erste! 🐉</div>';
     return;
   }
   list.innerHTML = posts.map(function(p) {
@@ -950,17 +923,17 @@ function renderFeed(posts) {
     var lc = p.likedBy ? Object.keys(p.likedBy).length : 0;
     var liked = p.likedBy && ME && p.likedBy[ME.uid];
     var mine = ME && p.uid === ME.uid;
-    var txt = (p.text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    var txt = (p.text || '').replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>');
     return '<div class="fpost fu">' +
       '<div class="fpost-header"><div class="favatar">' + ini + '</div>' +
       '<div class="fuser"><div class="fdisplay">' + (p.displayName || 'Fan') + '</div>' +
-      '<div class="fusername">@' + (p.username || 'fan') + ' &#xB7; ' + ts + '</div></div>' +
-      (mine ? '<button class="fmore" onclick="deletePost('' + p.docId + '')">&#x1F5D1;&#xFE0F;</button>' : '<button class="fmore">&#x22EF;</button>') +
+      '<div class="fusername">@' + (p.username || 'fan') + ' · ' + ts + '</div></div>' +
+      (mine ? '<button class="fmore" onclick="deletePost('' + p.docId + '')">🗑️</button>' : '<button class="fmore">⋯</button>') +
       '</div><div class="ftext">' + txt + '</div>' +
       '<div class="factions">' +
-      '<button class="fact' + (liked ? ' liked' : '') + '" onclick="likePost('' + p.docId + '',this)">' + (liked ? '&#10084;&#65039;' : '&#x1F90D;') + ' <span>' + lc + '</span></button>' +
-      '<button class="fact">&#x1F4AC; <span>' + (p.commentCount || 0) + '</span></button>' +
-      '<button class="fact fact-share" onclick="sharePost('' + txt.slice(0,50) + '')">&#x2197; Teilen</button>' +
+      '<button class="fact' + (liked ? ' liked' : '') + '" onclick="likePost('' + p.docId + '',this)">' + (liked ? '❤️' : '🤍') + ' <span>' + lc + '</span></button>' +
+      '<button class="fact">💬 <span>' + (p.commentCount || 0) + '</span></button>' +
+      '<button class="fact fact-share" onclick="sharePost('' + txt.slice(0,50) + '')">↗ Teilen</button>' +
       '</div></div>';
   }).join('');
 }
@@ -984,7 +957,7 @@ function submitPost() {
   }).then(function() {
     if (area) area.value = '';
     if (btn) { btn.disabled = false; btn.textContent = 'Posten'; }
-    showToast('Post veroeffentlicht! &#x1F409;');
+    showToast('Post veroeffentlicht! 🐉');
     fbDb.collection('users').doc(ME.uid).update({ posts: firebase.firestore.FieldValue.increment(1) }).catch(function(){});
   }).catch(function(e) {
     if (btn) { btn.disabled = false; btn.textContent = 'Posten'; }
@@ -1026,7 +999,7 @@ function sharePost(txt) {
 // ════════════════════════════════════════════════════════════
 function openComments(id) {
   currentCommentId = id;
-  document.getElementById('clist').innerHTML = '<div style="text-align:center;padding:14px;color:var(--gray)">&#x1F504;</div>';
+  document.getElementById('clist').innerHTML = '<div style="text-align:center;padding:14px;color:var(--gray)">🔄</div>';
   document.getElementById('cmodal').classList.add('open');
   fbDb.collection('posts').doc(id).collection('comments').orderBy('createdAt', 'asc').get().then(function(snap) {
     var h = '';
@@ -1035,7 +1008,7 @@ function openComments(id) {
       h += '<div class="citem"><div class="favatar" style="width:32px;height:32px;font-size:11px">' + (c.displayName || 'F')[0].toUpperCase() + '</div>' +
         '<div class="cbubble"><div class="cuser">@' + (c.username || 'fan') + '</div><div class="ctext">' + (c.text || '') + '</div></div></div>';
     });
-    document.getElementById('clist').innerHTML = h || '<p style="color:var(--gray);text-align:center;margin-top:20px;font-size:13px">Noch keine Kommentare &#x1F409;</p>';
+    document.getElementById('clist').innerHTML = h || '<p style="color:var(--gray);text-align:center;margin-top:20px;font-size:13px">Noch keine Kommentare 🐉</p>';
   });
 }
 function closeComments() { document.getElementById('cmodal').classList.remove('open'); }
@@ -1053,22 +1026,22 @@ function sendComment() {
 // TRANSFERS
 // ════════════════════════════════════════════════════════════
 var TRANSFERS = [
-  { name:'Edin Dzeko', pos:'ST', flag:'&#x1F409;', from:'Fenerbahce', to:'Schalke 04', fee:'Ablösefrei', status:'confirmed' },
-  { name:'Amar Dedic', pos:'RB', flag:'&#x26A1;', from:'RB Salzburg', to:'SL Benfica', fee:'~&#x20AC;12M', status:'confirmed' },
-  { name:'Esmir Bajraktarevic', pos:'LW', flag:'&#x1F3AF;', from:'NE Revolution', to:'PSV Eindhoven', fee:'~&#x20AC;3M', status:'confirmed' },
-  { name:'Ermedin Demirovic', pos:'ST', flag:'&#x1F3AF;', from:'FC Augsburg', to:'VfB Stuttgart', fee:'~&#x20AC;21M', status:'confirmed' },
-  { name:'Anel Ahmedodzic', pos:'CB', flag:'&#x1F3D4;&#xFE0F;', from:'Sheffield Utd', to:'Atletico Madrid', fee:'Gerücht', status:'rumor' }
+  { name:'Edin Dzeko', pos:'ST', flag:'🐉', from:'Fenerbahce', to:'Schalke 04', fee:'Ablösefrei', status:'confirmed' },
+  { name:'Amar Dedic', pos:'RB', flag:'⚡', from:'RB Salzburg', to:'SL Benfica', fee:'~€12M', status:'confirmed' },
+  { name:'Esmir Bajraktarevic', pos:'LW', flag:'🎯', from:'NE Revolution', to:'PSV Eindhoven', fee:'~€3M', status:'confirmed' },
+  { name:'Ermedin Demirovic', pos:'ST', flag:'🎯', from:'FC Augsburg', to:'VfB Stuttgart', fee:'~€21M', status:'confirmed' },
+  { name:'Anel Ahmedodzic', pos:'CB', flag:'🏔️', from:'Sheffield Utd', to:'Atletico Madrid', fee:'Gerücht', status:'rumor' }
 ];
 
 function renderTransfers() {
-  var h = '<div class="seclabel">TRANSFER-NEWS &#xB7; UNSERE SPIELER</div>';
+  var h = '<div class="seclabel">TRANSFER-NEWS · UNSERE SPIELER</div>';
   TRANSFERS.forEach(function(t) {
     h += '<div class="trcard fu">' +
       '<div class="trplayer"><span class="tremoji">' + t.flag + '</span>' +
       '<div><div class="trname">' + t.name + '</div><div class="trpos">' + t.pos + '</div></div>' +
-      '<span class="trstatus ' + (t.status === 'confirmed' ? 'trconfirmed' : 'trrumor') + '">' + (t.status === 'confirmed' ? '&#x2705; Bestatigt' : '&#x1F504; Gerucht') + '</span></div>' +
-      '<div class="trarrow"><span class="trclub">&#x1F3DF;&#xFE0F; ' + t.from + '</span><span class="trarricon">&#x2192;</span><span class="trclub">' + t.to + '</span></div>' +
-      '<div class="trfee"><span class="trfeetxt">&#x1F4B6; ' + t.fee + '</span></div></div>';
+      '<span class="trstatus ' + (t.status === 'confirmed' ? 'trconfirmed' : 'trrumor') + '">' + (t.status === 'confirmed' ? '✅ Bestatigt' : '🔄 Gerucht') + '</span></div>' +
+      '<div class="trarrow"><span class="trclub">🏟️ ' + t.from + '</span><span class="trarricon">→</span><span class="trclub">' + t.to + '</span></div>' +
+      '<div class="trfee"><span class="trfeetxt">💶 ' + t.fee + '</span></div></div>';
   });
   document.getElementById('transfers-inner').innerHTML = h;
 }
@@ -1085,7 +1058,7 @@ function renderProfile() {
   if (!ME) return;
   var ini = ME.name.split(' ').map(function(w) { return w[0]; }).join('').toUpperCase().slice(0, 2);
   document.getElementById('prof-view').innerHTML =
-    '<div class="prof-hero"><button class="prof-back" onclick="closeProfile()">&#x2190; Zurück</button>' +
+    '<div class="prof-hero"><button class="prof-back" onclick="closeProfile()">← Zurück</button>' +
     '<div class="prof-avbig">' + ini + '</div>' +
     '<div class="prof-name">' + ME.name + '</div>' +
     '<div class="prof-un">@' + ME.username + '</div>' +
@@ -1098,8 +1071,8 @@ function renderProfile() {
     '<div class="edit-form">' +
     '<div class="ef-label">Anzeigename</div><input class="ef-input" id="ef-name" value="' + ME.name + '">' +
     '<div class="ef-label">Benutzername</div><input class="ef-input" id="ef-uname" value="' + ME.username + '">' +
-    '<div class="ef-hint">@' + ME.username + ' &#xB7; wird fur Login genutzt</div>' +
-    '<div class="ef-label">Bio</div><input class="ef-input" id="ef-bio" value="' + (ME.bio || '') + '" placeholder="Erzahl etwas uber dich &#x1F409;">' +
+    '<div class="ef-hint">@' + ME.username + ' · wird fur Login genutzt</div>' +
+    '<div class="ef-label">Bio</div><input class="ef-input" id="ef-bio" value="' + (ME.bio || '') + '" placeholder="Erzahl etwas uber dich 🐉">' +
     '<div class="ef-label">E-Mail</div><input class="ef-input" value="' + ME.email + '" disabled style="opacity:.5">' +
     '<button class="ef-save" onclick="saveProfile()">ÄNDERUNGEN SPEICHERN</button>' +
     '<button class="ef-logout" onclick="doLogout()">Abmelden</button></div>';
@@ -1111,7 +1084,7 @@ function saveProfile() {
   if (!name || !uname) { showToast('Pflichtfelder fehlen!'); return; }
   ME.name = name; ME.username = uname; ME.bio = bio;
   fbDb.collection('users').doc(ME.uid).update({ name: name, username: uname, bio: bio }).then(function() {
-    showToast('&#x2705; Profil gespeichert!');
+    showToast('✅ Profil gespeichert!');
     renderProfile(); renderUserPill();
   }).catch(function(e) { showToast('Fehler: ' + e.message); });
 }
@@ -1125,6 +1098,60 @@ function doLogout() {
     renderAuthForm('login');
   });
 }
+
+// ════════════════════════════════════════════════════════════
+// FIREBASE INIT — at bottom so all functions are defined first
+// ════════════════════════════════════════════════════════════
+var fbAuth = null;
+var fbDb = null;
+
+window.addEventListener('DOMContentLoaded', function() {
+  showScreen('s-auth');
+  renderAuthForm('login');
+
+  if (typeof firebase === 'undefined') {
+    console.log('Firebase SDK not loaded');
+    return;
+  }
+
+  try {
+    firebase.initializeApp({
+      apiKey: "AIzaSyD19rUNDwsmw7ToGxJKSGlWzP1aSJof3kw",
+      authDomain: "bosnien-app.firebaseapp.com",
+      projectId: "bosnien-app",
+      storageBucket: "bosnien-app.firebasestorage.app",
+      messagingSenderId: "699054909708",
+      appId: "1:699054909708:web:ead5ab501af5145bce4129"
+    });
+  } catch(e) {
+    if (e.code !== 'app/duplicate-app') {
+      console.log('Firebase init error:', e);
+      return;
+    }
+  }
+
+  fbAuth = firebase.auth();
+  fbDb = firebase.firestore();
+
+  fbAuth.onAuthStateChanged(function(user) {
+    if (user) {
+      fbDb.collection('users').doc(user.uid).get().then(function(doc) {
+        ME = doc.exists ? doc.data() : { uid: user.uid, name: 'Fan', username: user.email.split('@')[0], email: user.email, bio: 'Zmajevi-Fan', posts: 0, joinedAt: '2026' };
+        ME.uid = user.uid;
+        showScreen('s-main');
+        renderUserPill();
+        renderAll();
+      }).catch(function() {
+        showScreen('s-auth');
+        renderAuthForm('login');
+      });
+    } else {
+      showScreen('s-auth');
+      renderAuthForm('login');
+    }
+  });
+});
+
 </script>
 </body>
 </html>
