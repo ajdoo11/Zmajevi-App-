@@ -696,6 +696,9 @@ function doAuth(btnOrMode) {
       var ud = { uid: cred.user.uid, name: name, username: uname, email: email, bio: 'Zmajevi-Fan', posts: 0, joinedAt: new Date().getFullYear().toString() };
       return fbDb.collection('users').doc(cred.user.uid).set(ud).then(function() {
         ME = ud;
+        showScreen('s-main');
+        renderUserPill();
+        renderAll();
         showToast('Willkommen ' + name + '!');
       });
     }).catch(function(err) {
@@ -711,6 +714,9 @@ function doAuth(btnOrMode) {
       return fbDb.collection('users').doc(cred.user.uid).get().then(function(doc) {
         ME = doc.exists ? doc.data() : { uid: cred.user.uid, name: 'Fan', username: email.split('@')[0], email: email, bio: '', posts: 0, joinedAt: '2026' };
         ME.uid = cred.user.uid;
+        showScreen('s-main');
+        renderUserPill();
+        renderAll();
         showToast('Willkommen zuruck!');
       });
     }).catch(function(err) {
