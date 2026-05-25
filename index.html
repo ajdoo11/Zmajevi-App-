@@ -1187,6 +1187,27 @@ function togglePost() {
   if (b) b.disabled = !(v && v.value.trim()) && !selectedImageFile;
 }
 
+
+function compressImage(file, maxWidth, quality, callback) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      var w = img.width, h = img.height;
+      // Scale down if too large
+      if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+      canvas.width = w; canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      var compressed = canvas.toDataURL('image/jpeg', quality);
+      callback(compressed);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
 function submitPost() {
   var area = document.getElementById('carea');
   var txt = area ? area.value.trim() : '';
@@ -1198,24 +1219,17 @@ function submitPost() {
 
   function doSave(imgUrl) {
     var pd = {
-      uid: ME.uid,
-      displayName: ME.name,
-      username: ME.username,
-      text: txt || '',
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      likedBy: {},
-      commentCount: 0
+      uid: ME.uid, displayName: ME.name, username: ME.username,
+      text: txt || '', createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      likedBy: {}, commentCount: 0
     };
     if (imgUrl) pd.imageUrl = imgUrl;
     fbDb.collection('posts').add(pd).then(function() {
       if (area) area.value = '';
       if (btn) { btn.disabled = false; btn.textContent = 'Posten'; }
-      removeImage();
-      togglePost();
+      removeImage(); togglePost();
       showToast('Post veroeffentlicht!');
-      fbDb.collection('users').doc(ME.uid)
-        .update({ posts: firebase.firestore.FieldValue.increment(1) })
-        .catch(function(){});
+      fbDb.collection('users').doc(ME.uid).update({posts: firebase.firestore.FieldValue.increment(1)}).catch(function(){});
     }).catch(function(e) {
       if (btn) { btn.disabled = false; btn.textContent = 'Posten'; }
       showToast('Fehler: ' + e.message);
@@ -1223,15 +1237,10 @@ function submitPost() {
   }
 
   if (selectedImageFile) {
-    // Use FileReader - works always, no Storage needed
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      doSave(e.target.result);
-    };
-    reader.onerror = function() {
-      doSave(null);
-    };
-    reader.readAsDataURL(selectedImageFile);
+    // Compress to max 800px wide, 70% quality — stays well under 1MB
+    compressImage(selectedImageFile, 800, 0.7, function(compressed) {
+      doSave(compressed);
+    });
   } else {
     doSave(null);
   }
@@ -1319,21 +1328,10 @@ function sendComment() {
   }
 
   if (imgFile) {
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      var dataUrl = e.target.result;
-      try {
-        var storage = firebase.storage();
-        var sref = storage.ref('comments/' + ME.uid + '/' + Date.now() + '.jpg');
-        sref.put(imgFile)
-          .then(function(snap) { return snap.ref.getDownloadURL(); })
-          .then(saveComment)
-          .catch(function() { saveComment(dataUrl); });
-      } catch(err) {
-        saveComment(dataUrl);
-      }
-    };
-    reader.readAsDataURL(imgFile);
+    // Compress comment image
+    compressImage(imgFile, 600, 0.65, function(compressed) {
+      saveComment(compressed);
+    });
   } else {
     saveComment(null);
   }
@@ -1613,8 +1611,7 @@ function uploadStory() {
   var overlayText = overlayEl ? (overlayEl.innerText || '').trim() : '';
   var storyText = overlayText || (textInp ? textInp.value.trim() : '');
   if (!selectedStoryImageFile && !storyText) {
-    showToast('Bitte Foto oder Text hinzufuegen.');
-    return;
+    showToast('Bitte Foto oder Text hinzufuegen.'); return;
   }
   var btn = document.getElementById('story-post-btn');
   if (btn) { btn.disabled = true; btn.textContent = '...'; }
@@ -1622,21 +1619,14 @@ function uploadStory() {
 
   function saveStory(imgUrl) {
     var sd = {
-      uid: ME.uid,
-      displayName: ME.name,
-      username: ME.username,
-      text: storyText,
-      imageUrl: imgUrl || null,
-      bgColor: selectedStoryBg,
+      uid: ME.uid, displayName: ME.name, username: ME.username,
+      text: storyText, imageUrl: imgUrl || null, bgColor: selectedStoryBg,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      expiresAt: expiresAt,
-      views: 0
+      expiresAt: expiresAt, views: 0
     };
     fbDb.collection('stories').add(sd).then(function() {
       if (btn) { btn.disabled = false; btn.textContent = 'Posten'; }
-      closeStoryUpload();
-      showToast('Story 6h live!');
-      loadStories();
+      closeStoryUpload(); showToast('Story 6h live!'); loadStories();
     }).catch(function(e) {
       if (btn) { btn.disabled = false; btn.textContent = 'Posten'; }
       showToast('Fehler: ' + e.message);
@@ -1644,14 +1634,10 @@ function uploadStory() {
   }
 
   if (selectedStoryImageFile) {
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      saveStory(e.target.result);
-    };
-    reader.onerror = function() {
-      saveStory(null);
-    };
-    reader.readAsDataURL(selectedStoryImageFile);
+    // Compress to max 900px, 75% quality for stories
+    compressImage(selectedStoryImageFile, 900, 0.75, function(compressed) {
+      saveStory(compressed);
+    });
   } else {
     saveStory(null);
   }
