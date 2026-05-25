@@ -350,7 +350,7 @@ a{text-decoration:none;color:inherit}
     </div>
     <div class="topbar-right">
       <div id="upill"></div>
-      <div class="icon-btn">&#x1F514;</div>
+      <div class="icon-btn" id="notif-btn" onclick="openNotifications()" style="position:relative;cursor:pointer">&#x1F514;</div>
     </div>
   </div>
   <div class="tabs-wrap">
@@ -376,7 +376,8 @@ a{text-decoration:none;color:inherit}
     </div>
     <div id="tp-spieler" class="tab-panel"><div class="spieler-pad" id="spieler-inner"><div style="text-align:center;padding:40px 20px;color:var(--gray)">&#x1F504; Učitavanje kadra...</div></div></div>
     <div id="tp-spiele" class="tab-panel"><div class="spiele-pad" id="spiele-inner"></div></div>
-    <div id="tp-bihbook" class="tab-panel"><div class="bihbook-pad" id="bihbook-inner"></div></div>
+    <div id="tp-bihbook" class="tab-panel"><div id="pull-indicator" style="display:none;align-items:center;justify-content:center;gap:8px;padding:12px;color:var(--gold);font-size:13px;font-weight:600">&#x21BB; Aktualisiere...</div>
+      <div class="bihbook-pad" id="bihbook-inner"></div></div>
     <div id="tp-transfers" class="tab-panel"><div class="tr-pad" id="transfers-inner"></div></div>
   </div>
   <nav class="bnav">
@@ -411,7 +412,7 @@ a{text-decoration:none;color:inherit}
 </div>
 
 <!-- STORY VIEWER -->
-<div id="story-modal" style="display:none;position:fixed;inset:0;background:#000;z-index:300;flex-direction:column">
+<div id="story-modal" class="modal" style="align-items:stretch;z-index:500">
   <div id="story-progress" style="display:flex;gap:3px;padding:12px 12px 6px;position:absolute;top:0;left:0;right:0;z-index:2"></div>
   <div style="position:absolute;top:22px;left:0;right:0;display:flex;align-items:center;padding:8px 14px;z-index:2">
     <div id="story-av" style="width:36px;height:36px;border-radius:50%;border:2px solid #fff;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#0a0f1e;flex-shrink:0"></div>
@@ -520,6 +521,18 @@ a{text-decoration:none;color:inherit}
 </div>
 
 <input type="file" id="file-input" accept="image/*" style="display:none" onchange="previewImage(this)">
+<!-- NOTIFICATIONS MODAL -->
+<div class="modal" id="notif-modal" style="align-items:flex-end">
+  <div style="background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-height:75vh;display:flex;flex-direction:column;border-top:1px solid var(--border2)">
+    <div style="width:34px;height:4px;border-radius:2px;background:var(--gray2);margin:12px auto 4px"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 13px;border-bottom:1px solid var(--border)">
+      <span style="color:var(--white);font-weight:800;font-size:17px">&#x1F514; Benachrichtigungen</span>
+      <button onclick="closeNotifModal()" style="background:var(--bg3);border:none;color:var(--gray);font-size:17px;cursor:pointer;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center">&#x2715;</button>
+    </div>
+    <div id="notif-list" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch"></div>
+  </div>
+</div>
+
 <div id="toast"></div>
 </div>
 
@@ -719,6 +732,7 @@ function doAuth(btnOrMode) {
         renderAll();
         showToast('Willkommen zuruck!');
         setTimeout(runAutoCleanup, 3000);
+        setTimeout(loadNotifications, 1000);
       });
     }).catch(function(err) {
       resetBtn(btn, mode);
@@ -1135,6 +1149,7 @@ function renderBihbook() {
 
   loadLiveFeed();
   loadStories();
+  setTimeout(initPullToRefresh, 200);
 }
 
 function loadLiveFeed() {
@@ -1896,7 +1911,7 @@ function closeStory() {
   if (storyTimer) clearTimeout(storyTimer);
   if (storyProgressTimer) clearInterval(storyProgressTimer);
   var modal = document.getElementById('story-modal');
-  if (modal) modal.classList.remove('open');
+  if (modal) { modal.classList.remove('open'); }
   var delBtn = document.getElementById('story-delete-btn');
   if (delBtn) delBtn.remove();
   var viewsEl = document.getElementById('story-views');
@@ -2129,6 +2144,120 @@ function deleteStory(docId) {
   }).catch(function(e) {
     showToast('Fehler: ' + e.message);
   });
+}
+
+// Pull-to-refresh for BIHBOOK
+var _pullStartY = 0;
+var _pullRefreshing = false;
+
+function initPullToRefresh() {
+  var panel = document.getElementById('tp-bihbook');
+  if (!panel) return;
+
+  panel.addEventListener('touchstart', function(e) {
+    if (panel.scrollTop === 0) {
+      _pullStartY = e.touches[0].clientY;
+    }
+  }, { passive: true });
+
+  panel.addEventListener('touchmove', function(e) {
+    if (_pullRefreshing) return;
+    var pullDist = e.touches[0].clientY - _pullStartY;
+    if (panel.scrollTop === 0 && pullDist > 60) {
+      var indicator = document.getElementById('pull-indicator');
+      if (indicator) indicator.style.display = 'flex';
+    }
+  }, { passive: true });
+
+  panel.addEventListener('touchend', function(e) {
+    var pullDist = e.changedTouches[0].clientY - _pullStartY;
+    if (panel.scrollTop === 0 && pullDist > 60 && !_pullRefreshing) {
+      _pullRefreshing = true;
+      var indicator = document.getElementById('pull-indicator');
+      if (indicator) { indicator.style.display = 'flex'; indicator.textContent = 'Aktualisiere...'; }
+      // Reload feed and stories
+      loadLiveFeed();
+      loadStories();
+      setTimeout(function() {
+        _pullRefreshing = false;
+        var ind = document.getElementById('pull-indicator');
+        if (ind) ind.style.display = 'none';
+      }, 1500);
+    } else {
+      var ind = document.getElementById('pull-indicator');
+      if (ind) ind.style.display = 'none';
+    }
+    _pullStartY = 0;
+  }, { passive: true });
+}
+
+// ════ NOTIFICATIONS — @mentions ════════════════════════════
+function loadNotifications() {
+  if (!fbDb || !ME) return;
+  var btn = document.getElementById('notif-btn');
+
+  fbDb.collection('posts').orderBy('createdAt', 'desc').limit(100)
+    .get().then(function(snap) {
+      var notifs = [];
+      snap.forEach(function(doc) {
+        var d = doc.data();
+        if (!d.text) return;
+        var mentions = d.text.match(/@(\w+)/g) || [];
+        var myUsername = (ME.username || '').toLowerCase();
+        mentions.forEach(function(m) {
+          if (m.slice(1).toLowerCase() === myUsername) {
+            notifs.push({ docId: doc.id, from: d.displayName, username: d.username, text: d.text, createdAt: d.createdAt });
+          }
+        });
+        // Check comments too
+        fbDb.collection('posts').doc(doc.id).collection('comments')
+          .where('mentions', 'array-contains', myUsername)
+          .get().then(function(cSnap) {
+            cSnap.forEach(function(cDoc) {
+              var c = cDoc.data();
+              notifs.push({ docId: doc.id, from: c.displayName, username: c.username, text: c.text, isComment: true, createdAt: c.createdAt });
+            });
+          }).catch(function(){});
+      });
+      window._notifications = notifs;
+      if (btn) {
+        if (notifs.length > 0) {
+          btn.innerHTML = '&#x1F514;<span style="position:absolute;top:-2px;right:-2px;background:var(--red);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:800">' + Math.min(notifs.length, 9) + '</span>';
+        } else {
+          btn.innerHTML = '&#x1F514;';
+        }
+      }
+    }).catch(function(){});
+}
+
+function openNotifications() {
+  var notifs = window._notifications || [];
+  var modal = document.getElementById('notif-modal');
+  var list = document.getElementById('notif-list');
+  if (!modal || !list) return;
+
+  if (!notifs.length) {
+    list.innerHTML = '<div style="text-align:center;padding:28px;color:var(--gray);font-size:14px">Keine Benachrichtigungen</div>';
+  } else {
+    list.innerHTML = notifs.map(function(n) {
+      var ts = n.createdAt && n.createdAt.toDate ? n.createdAt.toDate().toLocaleDateString('de-DE',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+      var txt = (n.text||'').replace(/@(\w+)/g, '<span style="color:var(--gold);font-weight:700">@$1</span>');
+      return '<div style="display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer" onclick="closeNotifModal()">' +
+        '<div style="width:38px;height:38px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#0a0f1e;flex-shrink:0">' + (n.from||'F')[0].toUpperCase() + '</div>' +
+        '<div style="flex:1"><div style="color:var(--white);font-size:13px;font-weight:700">@' + (n.username||'fan') + ' hat dich erwaehnt</div>' +
+        '<div style="color:var(--gray);font-size:12px;margin-top:3px;line-height:1.4">' + txt.slice(0,80) + '</div>' +
+        '<div style="color:var(--gray2);font-size:10px;margin-top:4px">' + ts + (n.isComment ? ' &#xB7; Kommentar' : ' &#xB7; Post') + '</div></div></div>';
+    }).join('');
+  }
+  modal.classList.add('open');
+  // Clear badge
+  var btn = document.getElementById('notif-btn');
+  if (btn) btn.innerHTML = '&#x1F514;';
+}
+
+function closeNotifModal() {
+  var modal = document.getElementById('notif-modal');
+  if (modal) modal.classList.remove('open');
 }
 </script>
 </body>
