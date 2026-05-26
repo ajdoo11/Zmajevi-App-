@@ -334,6 +334,41 @@ a{text-decoration:none;color:inherit}
   }
   .screen { border-radius: 0 !important; }
 }
+
+/* ── ADMIN SYSTEM ────────────────────────── */
+.admin-btn{background:linear-gradient(135deg,#ff4757,#c0392b);border:none;border-radius:9px;padding:5px 11px;color:#fff;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;letter-spacing:.5px;font-family:'Barlow Condensed',sans-serif;box-shadow:0 4px 12px rgba(255,71,87,.4);flex-shrink:0}
+.admin-btn:active{transform:scale(.96)}
+#admin-panel-screen{position:absolute;inset:0;background:var(--bg);z-index:200;display:none;flex-direction:column}
+.apanel-hero{background:linear-gradient(135deg,rgba(255,71,87,.18),rgba(192,57,43,.08));border-bottom:1px solid rgba(255,71,87,.3);padding:calc(env(safe-area-inset-top,0px)+14px) 16px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.apanel-title{color:var(--white);font-size:18px;font-weight:900;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px}
+.apanel-sub{color:var(--gray);font-size:11px;margin-top:2px}
+.apanel-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px}
+.apanel-footer{flex-shrink:0;padding:12px 16px calc(env(safe-area-inset-bottom,0px)+12px);border-top:1px solid var(--border);background:var(--bg2)}
+.amod-title{color:var(--gold);font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;font-family:'Barlow Condensed',sans-serif;margin-bottom:10px}
+.amod-card{background:var(--bg2);border-radius:14px;border:1px solid var(--border);margin-bottom:10px;overflow:hidden}
+.amod-row{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border-bottom:1px solid var(--border)}
+.amod-row:last-child{border-bottom:none}
+.amod-name{color:var(--white);font-size:13px;font-weight:700}
+.amod-meta{color:var(--gray);font-size:11px;line-height:1.4}
+.amod-del{background:rgba(255,71,87,.15);border:1px solid rgba(255,71,87,.3);border-radius:8px;color:var(--red);font-size:12px;font-weight:700;padding:5px 10px;cursor:pointer;flex-shrink:0}
+.amod-unblock{background:rgba(46,213,115,.12);border:1px solid rgba(46,213,115,.3);border-radius:8px;color:var(--green);font-size:12px;font-weight:700;padding:5px 9px;cursor:pointer;flex-shrink:0}
+.amod-block-btn{background:rgba(255,71,87,.1);border:1px solid rgba(255,71,87,.25);border-radius:8px;color:var(--red);font-size:12px;font-weight:700;padding:5px 9px;cursor:pointer;flex-shrink:0;margin-right:5px}
+.poll-inp{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:var(--white);font-size:14px;outline:none;margin-bottom:7px;font-family:'Inter',sans-serif}
+.poll-inp::placeholder{color:var(--gray2)}
+.apin-btn{background:linear-gradient(135deg,var(--gold),#e6b800);border:none;border-radius:12px;padding:13px;width:100%;color:#0a0f1e;font-size:14px;font-weight:800;cursor:pointer;margin-top:5px;font-family:'Inter',sans-serif}
+.atab-row{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none}
+.atab-row::-webkit-scrollbar{display:none}
+.atab-pill{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:6px 13px;color:var(--gray);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.atab-pill.on{background:rgba(255,71,87,.2);border-color:rgba(255,71,87,.5);color:var(--red)}
+.blocked-badge{background:rgba(255,71,87,.15);color:var(--red);font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:5px}
+.admin-post-card{background:linear-gradient(135deg,#0f1f3d,#1a2f5e);border-radius:16px;margin-bottom:11px;border:1px solid rgba(79,172,254,.35);overflow:hidden;position:relative}
+.admin-post-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--gold))}
+.afield-label{color:var(--gray);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin:10px 0 6px}
+.afield-label:first-child{margin-top:0}
+.duration-row{display:flex;gap:8px;margin-bottom:7px}
+.dur-btn{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:9px;padding:8px 5px;color:var(--gray);font-size:12px;font-weight:700;cursor:pointer;text-align:center}
+.dur-btn.on{background:rgba(245,197,24,.15);border-color:rgba(245,197,24,.5);color:var(--gold)}
+
 </style>
 </head>
 <body>
@@ -536,6 +571,162 @@ a{text-decoration:none;color:inherit}
       <div onclick="shareVia('native')" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer"><div style="width:52px;height:52px;border-radius:16px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:20px">&#x22EF;</div><span style="color:var(--gray);font-size:11px;font-weight:600">Mehr</span></div>
     </div>
     <button onclick="closeShareSheet()" style="width:100%;background:var(--bg3);border:none;border-radius:13px;padding:14px;color:var(--white);font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">Abbrechen</button>
+  </div>
+</div>
+
+<!-- ════ ADMIN PANEL ════ -->
+<div id="admin-panel-screen">
+  <!-- Header -->
+  <div class="apanel-hero">
+    <div style="width:40px;height:40px;border-radius:12px;background:rgba(255,71,87,.2);border:1px solid rgba(255,71,87,.4);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">&#x1F6E1;</div>
+    <div><div class="apanel-title">ADMIN PANEL</div><div class="apanel-sub">Zmajevi App &#xB7; Moderations-Dashboard</div></div>
+  </div>
+  <!-- Scrollable body -->
+  <div class="apanel-body">
+    <!-- Tabs -->
+    <div class="atab-row">
+      <div class="atab-pill on" onclick="adminTab('posts',this)">&#x1F4CB; Posts</div>
+      <div class="atab-pill" onclick="adminTab('users',this)">&#x1F465; User</div>
+      <div class="atab-pill" onclick="adminTab('stories',this)">&#x23F1; Stories</div>
+      <div class="atab-pill" onclick="adminTab('compose',this)">&#x270F; Beitrag</div>
+      <div class="atab-pill" onclick="adminTab('news',this)">&#x1F4F0; News</div>
+      <div class="atab-pill" onclick="adminTab('poll',this)">&#x1F5F3; Umfrage</div>
+      <div class="atab-pill" onclick="adminTab('announce',this)">&#x1F4E2; Info</div>
+    </div>
+
+    <!-- Posts tab -->
+    <div id="atab-posts">
+      <div class="amod-title">Alle Posts moderieren</div>
+      <div id="admin-posts-list"><div style="color:var(--gray);text-align:center;padding:20px;font-size:13px">Lade...</div></div>
+    </div>
+
+    <!-- Users tab -->
+    <div id="atab-users" style="display:none">
+      <div class="amod-title">Nutzer verwalten</div>
+      <div id="admin-users-list"><div style="color:var(--gray);text-align:center;padding:20px;font-size:13px">Lade...</div></div>
+    </div>
+
+    <!-- Stories tab -->
+    <div id="atab-stories" style="display:none">
+      <div class="amod-title">Aktive Stories</div>
+      <div id="admin-stories-list"><div style="color:var(--gray);text-align:center;padding:20px;font-size:13px">Lade...</div></div>
+    </div>
+
+    <!-- Compose admin post (pinned blue post in BIHBOOK) -->
+    <div id="atab-compose" style="display:none">
+      <div class="amod-title">Admin-Beitrag ins BIHBOOK</div>
+      <div style="background:var(--bg2);border-radius:14px;border:1px solid var(--border);padding:14px;margin-bottom:10px">
+        <div class="afield-label">Text</div>
+        <textarea class="poll-inp" id="ac-text" placeholder="Beitragstext eingeben..." style="height:90px;resize:none;line-height:1.5"></textarea>
+        <div class="afield-label">Bild (optional)</div>
+        <div style="display:flex;gap:9px;align-items:center;margin-bottom:10px">
+          <input type="file" id="ac-file" accept="image/*" style="display:none" onchange="acPreviewImg(this)">
+          <button onclick="document.getElementById('ac-file').click()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:9px;padding:9px 14px;color:var(--gray);font-size:13px;font-weight:600;cursor:pointer">&#128444; Bild wahlen</button>
+          <span id="ac-img-name" style="color:var(--gray);font-size:12px">Kein Bild</span>
+        </div>
+        <img id="ac-img-preview" src="" style="display:none;width:100%;max-height:180px;object-fit:cover;border-radius:10px;margin-bottom:10px">
+        <div class="afield-label">Dauer (wie lange online)</div>
+        <div class="duration-row">
+          <div class="dur-btn on" data-h="24" onclick="acPickDur(this)">1 Tag</div>
+          <div class="dur-btn" data-h="72" onclick="acPickDur(this)">3 Tage</div>
+          <div class="dur-btn" data-h="168" onclick="acPickDur(this)">1 Woche</div>
+          <div class="dur-btn" data-h="720" onclick="acPickDur(this)">1 Monat</div>
+          <div class="dur-btn" data-h="0" onclick="acPickDur(this)">Unbegrenzt</div>
+        </div>
+        <button class="apin-btn" onclick="publishAdminCompose()">&#x1F4CC; Beitrag pinnen</button>
+      </div>
+      <div class="amod-title" style="margin-top:4px">Gepinnte Admin-Beitraege</div>
+      <div id="admin-compose-list"><div style="color:var(--gray);font-size:12px;padding:8px 0">Noch keine Beitraege</div></div>
+    </div>
+
+    <!-- Admin NEWS post -->
+    <div id="atab-news" style="display:none">
+      <div class="amod-title">News-Beitrag erstellen</div>
+      <div style="background:var(--bg2);border-radius:14px;border:1px solid var(--border);padding:14px;margin-bottom:10px">
+        <div class="afield-label">Quelle / Absender</div>
+        <input class="poll-inp" id="an-src" placeholder="z.B. Zmajevi App" value="Zmajevi App">
+        <div class="afield-label">Kategorie</div>
+        <select class="poll-inp" id="an-tag" style="cursor:pointer;-webkit-appearance:none">
+          <option value="Nationalteam">Nationalteam</option>
+          <option value="Spieler">Spieler</option>
+          <option value="Transfers">Transfers</option>
+          <option value="Spielplan">Spielplan</option>
+          <option value="Breaking">Breaking</option>
+          <option value="Ausruestung">Ausruestung</option>
+          <option value="Interview">Interview</option>
+        </select>
+        <div class="afield-label">Titel</div>
+        <input class="poll-inp" id="an-title" placeholder="Titel des Beitrags">
+        <div class="afield-label">Beschreibung</div>
+        <textarea class="poll-inp" id="an-desc" placeholder="Kurzbeschreibung..." style="height:80px;resize:none;line-height:1.5"></textarea>
+        <div class="afield-label">Link (optional)</div>
+        <input class="poll-inp" id="an-url" placeholder="https://">
+        <div class="afield-label">Bild (optional)</div>
+        <div style="display:flex;gap:9px;align-items:center;margin-bottom:10px">
+          <input type="file" id="an-file" accept="image/*" style="display:none" onchange="anPreviewImg(this)">
+          <button onclick="document.getElementById('an-file').click()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:9px;padding:9px 14px;color:var(--gray);font-size:13px;font-weight:600;cursor:pointer">&#128444; Bild wahlen</button>
+          <span id="an-img-name" style="color:var(--gray);font-size:12px">Kein Bild</span>
+        </div>
+        <img id="an-img-preview" src="" style="display:none;width:100%;max-height:180px;object-fit:cover;border-radius:10px;margin-bottom:10px">
+        <div style="display:flex;gap:9px">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--white);font-size:13px"><input type="checkbox" id="an-hot" style="width:16px;height:16px;accent-color:var(--red)"> Breaking / Hot</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--white);font-size:13px;margin-left:8px"><input type="checkbox" id="an-bihbook" style="width:16px;height:16px;accent-color:var(--blue)"> Auch ins BIHBOOK</label>
+        </div>
+        <button class="apin-btn" style="margin-top:12px" onclick="publishAdminNews()">&#x1F4F0; News veroeffentlichen</button>
+      </div>
+    </div>
+
+    <!-- Poll builder -->
+    <div id="atab-poll" style="display:none">
+      <div class="amod-title">Umfrage erstellen</div>
+      <div style="background:var(--bg2);border-radius:14px;border:1px solid var(--border);padding:14px;margin-bottom:10px">
+        <div class="afield-label">Frage</div>
+        <input class="poll-inp" id="poll-question" placeholder="z.B. Wer schiesst das erste WM-Tor?">
+        <div class="afield-label">Antwortoptionen</div>
+        <input class="poll-inp" id="poll-opt1" placeholder="Option 1">
+        <input class="poll-inp" id="poll-opt2" placeholder="Option 2">
+        <input class="poll-inp" id="poll-opt3" placeholder="Option 3 (optional)">
+        <input class="poll-inp" id="poll-opt4" placeholder="Option 4 (optional)">
+        <div class="afield-label">Dauer</div>
+        <div class="duration-row">
+          <div class="dur-btn on" data-h="24" onclick="pollPickDur(this)">1 Tag</div>
+          <div class="dur-btn" data-h="72" onclick="pollPickDur(this)">3 Tage</div>
+          <div class="dur-btn" data-h="168" onclick="pollPickDur(this)">1 Woche</div>
+          <div class="dur-btn" data-h="720" onclick="pollPickDur(this)">1 Monat</div>
+        </div>
+        <button class="apin-btn" onclick="publishAdminPoll()">&#x1F5F3; Umfrage veroeffentlichen</button>
+      </div>
+    </div>
+
+    <!-- Announce builder -->
+    <div id="atab-announce" style="display:none">
+      <div class="amod-title">Info-Nachricht pinnen</div>
+      <div style="background:var(--bg2);border-radius:14px;border:1px solid var(--border);padding:14px;margin-bottom:10px">
+        <div class="afield-label">Titel</div>
+        <input class="poll-inp" id="ann-title" placeholder="z.B. Zmajevi bei der WM 2026!">
+        <div class="afield-label">Text</div>
+        <textarea class="poll-inp" id="ann-body" placeholder="Inhalt..." style="height:90px;resize:none;line-height:1.5"></textarea>
+        <div class="afield-label">Zeitraum / Label</div>
+        <input class="poll-inp" id="ann-expires" placeholder="z.B. WM: 11. Jun - 19. Jul 2026">
+        <div class="afield-label">Dauer</div>
+        <div class="duration-row">
+          <div class="dur-btn on" data-h="24" onclick="annPickDur(this)">1 Tag</div>
+          <div class="dur-btn" data-h="72" onclick="annPickDur(this)">3 Tage</div>
+          <div class="dur-btn" data-h="168" onclick="annPickDur(this)">1 Woche</div>
+          <div class="dur-btn" data-h="720" onclick="annPickDur(this)">1 Monat</div>
+          <div class="dur-btn" data-h="0" onclick="annPickDur(this)">Unbegrenzt</div>
+        </div>
+        <button class="apin-btn" onclick="publishAdminAnnounce()">&#x1F4E2; Info veroeffentlichen</button>
+      </div>
+    </div>
+
+  </div><!-- end apanel-body -->
+
+  <!-- CLOSE BUTTON AT BOTTOM — always visible, easy to tap -->
+  <div class="apanel-footer">
+    <button onclick="closeAdminPanel()" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:13px;padding:14px;color:var(--white);font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">
+      &#x2715; Admin Panel schliessen
+    </button>
   </div>
 </div>
 
@@ -890,7 +1081,7 @@ function renderNewsFeed() {
     var like = '<button class="n-like' + (lk ? ' liked' : '') + '" onclick="event.preventDefault();event.stopPropagation();doNLike(' + n.id + ',this)">' + (lk ? '⭐' : '☆') + ' ' + (n.likes + (lk ? 1 : 0)) + '</button>';
     if (i === 0) {
       h += '<a class="feat-card' + (n.hot ? ' hot' : '') + ' fu" href="' + n.url + '" target="_blank" rel="noopener" style="' + delay + '">' +
-        '<div class="feat-img">' + em + '</div><div class="feat-body">' + brk +
+        '<div class="feat-img"' + (n.imageData ? ' style="padding:0;overflow:hidden"><img src="' + n.imageData + '" style="width:100%;height:100%;object-fit:cover">' : '>' + em) + '</div><div class="feat-body">' + brk +
         '<div class="cmeta"><div class="csrc"><div class="cdot" style="background:' + sc + '"></div><span class="cname">' + n.src + '</span></div><span class="ctime">' + n.time + '</span></div>' +
         '<div class="feat-title">' + n.title + '</div><div class="feat-desc">' + n.desc + '</div>' +
         '<div class="feat-foot">' + like + tag + '<span class="n-open">Citaj na ' + n.src + ' ↗</span></div></div></a>';
@@ -1011,15 +1202,15 @@ function showPlayer(id) {
 // ════════════════════════════════════════════════════════════
 var STANDINGS = {
   wm: { title:'WM 2026 · Gruppe B', sub:'Los Angeles · Jun 2026', color:'#f5c518', badge:'🏆 WM 2026', note:'Tabelle startet am 12. Juni 2026',
-    teams:[{f:'ch',n:'Svicarska',p:1,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'ba',n:'Bosna',p:2,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:true},{f:'ca',n:'Kanada',p:3,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'qa',n:'Katar',p:4,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false}],
+    teams:[{f:'🇨🇭',n:'Svicarska',p:1,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'🇧🇦',n:'Bosna',p:2,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:true},{f:'🇨🇦',n:'Kanada',p:3,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'🇶🇦',n:'Katar',p:4,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false}],
     adv:2, advNote:'Top 2 → Runde der 32' },
   quali: { title:'WM-Qualifikation · Gruppe H', sub:'Abschlusstabelle 2025', color:'#2ed573', badge:'✅ Qualifiziert',
     note:'Bosna als 2. in die Playoffs → WM!',
-    teams:[{f:'at',n:'Austrija',p:1,pld:8,w:6,d:1,l:1,gf:22,ga:4,pts:19,bih:false},{f:'ba',n:'Bosna',p:2,pld:8,w:5,d:2,l:1,gf:17,ga:7,pts:17,bih:true},{f:'ro',n:'Rumanija',p:3,pld:8,w:4,d:1,l:3,gf:19,ga:10,pts:13,bih:false},{f:'cy',n:'Kipar',p:4,pld:8,w:2,d:2,l:4,gf:11,ga:11,pts:8,bih:false},{f:'sm',n:'San Marino',p:5,pld:8,w:0,d:0,l:8,gf:2,ga:39,pts:0,bih:false}],
+    teams:[{f:'🇦🇹',n:'Austrija',p:1,pld:8,w:6,d:1,l:1,gf:22,ga:4,pts:19,bih:false},{f:'🇧🇦',n:'Bosna',p:2,pld:8,w:5,d:2,l:1,gf:17,ga:7,pts:17,bih:true},{f:'🇷🇴',n:'Rumanija',p:3,pld:8,w:4,d:1,l:3,gf:19,ga:10,pts:13,bih:false},{f:'🇨🇾',n:'Kipar',p:4,pld:8,w:2,d:2,l:4,gf:11,ga:11,pts:8,bih:false},{f:'🇸🇲',n:'San Marino',p:5,pld:8,w:0,d:0,l:8,gf:2,ga:39,pts:0,bih:false}],
     adv:2, advNote:'1. direktno · 2. → Playoff' },
   nl: { title:'Nations League · Liga A', sub:'Ab September 2026', color:'#4facfe', badge:'🏴 Nations League',
     note:'Tabelle ab Sep 2026 verfugbar',
-    teams:[{f:'ba',n:'Bosna',p:1,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:true},{f:'pl',n:'Poljska',p:2,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'ch',n:'Svicarska',p:3,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'mk',n:'S. Makedonija',p:4,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false}],
+    teams:[{f:'🇧🇦',n:'Bosna',p:1,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:true},{f:'🇵🇱',n:'Poljska',p:2,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'🇨🇭',n:'Svicarska',p:3,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'🇲🇰',n:'S. Makedonija',p:4,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false}],
     adv:1, advNote:'1. → Nations League Finals' }
 };
 
@@ -1028,10 +1219,10 @@ function renderSpiele() {
   h += '<div style="height:1px;background:var(--border);margin:16px 0"></div>';
   h += '<div class="seclabel">PREDSTOJECCE UTAKMICE WM 2026</div>';
   var fixtures = [
-    { date:'29. Mai 2026', opp:'Sjeverna Makedonija', comp:'Prijateljska', flag:'mk', time:'20:30' },
-    { date:'12. Jun 2026', opp:'Svicarska', comp:'WM 2026 · Gruppe B', flag:'ch', time:'22:00' },
-    { date:'17. Jun 2026', opp:'Katar', comp:'WM 2026 · Gruppe B', flag:'qa', time:'02:00' },
-    { date:'22. Jun 2026', opp:'Kanada', comp:'WM 2026 · Gruppe B', flag:'ca', time:'22:00' }
+    { date:'29. Mai 2026', opp:'Sjeverna Makedonija', comp:'Prijateljska', flag:'🇲🇰', time:'20:30' },
+    { date:'12. Jun 2026', opp:'Svicarska', comp:'WM 2026 · Gruppe B', flag:'🇨🇭', time:'22:00' },
+    { date:'17. Jun 2026', opp:'Katar', comp:'WM 2026 · Gruppe B', flag:'🇶🇦', time:'02:00' },
+    { date:'22. Jun 2026', opp:'Kanada', comp:'WM 2026 · Gruppe B', flag:'🇨🇦', time:'22:00' }
   ];
   fixtures.forEach(function(f) {
     h += '<div style="background:linear-gradient(135deg,var(--bg2),var(--bg3));border-radius:16px;padding:16px;margin-bottom:10px;border:1px solid rgba(245,197,24,.18)">' +
@@ -1039,9 +1230,9 @@ function renderSpiele() {
       '<span style="color:var(--gray);font-size:11px;font-family:monospace">' + f.date + ' · ' + f.time + '</span>' +
       '<span style="background:#1a2f5e;color:#7eb8f7;font-size:10px;font-weight:700;padding:3px 8px;border-radius:9px">' + f.comp + '</span></div>' +
       '<div style="display:flex;align-items:center;justify-content:space-between">' +
-      '<div style="text-align:center;flex:1"><img src="https://flagcdn.com/w80/ba.png" width="52" height="34" style="border-radius:6px;object-fit:cover;display:block;margin:0 auto"><div style="color:var(--white);font-weight:800;font-size:12px;margin-top:4px;font-family:Barlow Condensed,sans-serif">BOSNA</div></div>' +
+      '<div style="text-align:center;flex:1"><div style="font-size:30px">🇧🇦</div><div style="color:var(--white);font-weight:800;font-size:12px;margin-top:4px;font-family:Barlow Condensed,sans-serif">BOSNA</div></div>' +
       '<div style="text-align:center;padding:0 12px"><div style="background:var(--bg);border-radius:9px;padding:9px 16px;border:1px solid var(--border2)"><div style="color:var(--gold);font-weight:900;font-size:22px;font-family:Barlow Condensed,sans-serif;letter-spacing:4px">VS</div></div><div style="color:var(--gray);font-size:10px;margin-top:3px">✈️ Auswarts</div></div>' +
-      '<div style="text-align:center;flex:1"><img src="https://flagcdn.com/w80/'+f.flag+'.png" width="52" height="34" style="border-radius:6px;object-fit:cover;display:block;margin:0 auto"><div style="color:var(--white);font-weight:800;font-size:12px;margin-top:6px;font-family:Barlow Condensed,sans-serif">' + f.opp.toUpperCase() + '</div></div>' +
+      '<div style="text-align:center;flex:1"><div style="font-size:30px">' + f.flag + '</div><div style="color:var(--white);font-weight:800;font-size:12px;margin-top:4px;font-family:Barlow Condensed,sans-serif">' + f.opp.toUpperCase().slice(0, 12) + '</div></div>' +
       '</div></div>';
   });
   h += '<div class="seclabel" style="margin-top:8px">NEDAVNI REZULTATI</div>';
@@ -1097,7 +1288,7 @@ function renderStandingsHTML() {
     h += '<div style="display:flex;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);background:' + (t.bih ? 'rgba(' + rgb + ',.06)' : 'transparent') + ';border-left:3px solid ' + (t.bih ? col : 'transparent') + '">' +
       '<div style="width:20px;color:' + (adv ? '#2ed573' : 'var(--gray2)') + ';font-size:13px;font-weight:800;font-family:Barlow Condensed,sans-serif">' + t.p + '</div>' +
       '<div style="flex:1;display:flex;align-items:center;gap:7px;padding-left:8px">' +
-      '<img src="https://flagcdn.com/w40/"+t.f+".png" width="24" height="16" style="border-radius:3px;object-fit:cover;vertical-align:middle" onerror="this.style.display=\"none\"">' +
+      '<span style="font-size:18px">' + t.f + '</span>' +
       '<div style="color:' + (t.bih ? col : 'var(--white)') + ';font-size:12px;font-weight:' + (t.bih ? 800 : 600) + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:85px">' + t.n + '</div></div>' +
       '<div style="width:22px;text-align:center;color:var(--gray);font-size:12px">' + t.pld + '</div>' +
       '<div style="width:20px;text-align:center;color:var(--green);font-size:12px">' + t.w + '</div>' +
@@ -1136,9 +1327,28 @@ function renderBihbook() {
       (votedPoll !== null ? '<div class="vote-bar-wrap"><div class="vote-bar" style="width:' + pct + '%"></div></div>' : '');
   }).join('');
 
+  // Build pinned admin posts HTML
+  var pinnedHTML = '';
+  var nowAB = Date.now();
+  adminPinnedPosts = adminPinnedPosts.filter(function(p){ return !p.expiresAt || p.expiresAt.getTime() > nowAB; });
+  adminPinnedPosts.forEach(function(p, i) {
+    pinnedHTML += '<div class="admin-post-card" style="padding:14px;position:relative">' +
+      '<div style="display:flex;align-items:center;gap:7px;margin-bottom:9px">' +
+      '<div class="admin-icon" style="background:var(--gold);width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px">&#x1F6E1;</div>' +
+      '<span style="color:var(--gold);font-size:11px;font-weight:800;letter-spacing:1.5px">ADMIN · BEITRAG</span>' +
+      '<span style="color:var(--gray);font-size:10px;margin-left:auto">' + (p.durLabel||'') + '</span>' +
+      (isAdmin() ? '<button class="amod-del" style="margin-left:6px;padding:3px 7px;font-size:11px" data-idx="' + i + '" onclick="aDelPinnedEl(this)">&#x1F5D1;</button>' : '') +
+      '</div>' +
+      (p.text ? '<div style="color:var(--white);font-size:14px;line-height:1.55;margin-bottom:' + (p.imageUrl?'10px':'0') + '">' + p.text.replace(/\n/g,'<br>') + '</div>' : '') +
+      (p.imageUrl ? '<img src="' + p.imageUrl + '" style="width:100%;max-height:280px;object-fit:cover;border-radius:10px;display:block;cursor:pointer" onclick="openImgFull(this.src)">' : '') +
+      '</div>';
+  });
+
   document.getElementById('bihbook-inner').innerHTML =
-    '<div class="stories" id="stories-row">' +
+    pinnedHTML +
+    '<div class="stories">' +
     '<div class="story-wrap" onclick="openStoryUpload()"><div class="story-ring add"><div class="story-av" style="font-size:20px">+</div></div><span class="story-lbl">Deine Story</span></div>' +
+    '<div id="stories-dynamic"></div>' +
     '</div>' +
     '<div class="fb-live-badge"><div class="fb-live-dot"></div><span class="fb-live-txt">BIHBOOK · Firebase Live · Echte Posts</span></div>' +
     '<div class="admin-pin">' +
@@ -1228,7 +1438,7 @@ function renderFeed(posts) {
       '<div class="fpost-header"><div class="favatar">' + ini + '</div>' +
       '<div class="fuser"><div class="fdisplay">' + (p.displayName||'Fan') + '</div>' +
       '<div class="fusername">@' + (p.username||'fan') + ' &#xB7; ' + ts + timeBadge + '</div></div>' +
-      (mine ? '<button class="fmore" data-id="' + p.docId + '" onclick="deletePostEl(this)">&#x1F5D1;</button>' : '<button class="fmore">&#x22EF;</button>') +
+      ((mine || isAdmin()) ? '<button class="fmore" data-id="' + p.docId + '" onclick="deletePostEl(this)">&#x1F5D1;</button>' : '<button class="fmore">&#x22EF;</button>') +
       '</div>' +
       (repostLabel ? '<div style="padding:6px 14px 0">' + repostLabel + '</div>' : '') +
       (txt ? '<div class="ftext">' + txt + '</div>' : '') +
@@ -1429,9 +1639,13 @@ function renderTransfers() {
 // ════════════════════════════════════════════════════════════
 // PROFILE
 // ════════════════════════════════════════════════════════════
+function isAdmin() { return ME && (ME.email==='admin@zmajevi.app'||ME.email==='Admin@zmajevi.app'); }
 function renderUserPill() {
-  var ini = ME.name.split(' ').map(function(w) { return w[0]; }).join('').toUpperCase().slice(0, 2);
-  document.getElementById('upill').innerHTML = '<div class="user-pill" onclick="openProfile()"><div class="uavatar">' + ini + '</div><span class="uname">@' + ME.username + '</span></div>';
+  var ini = ME.name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+  var adminBtn = isAdmin() ? '<button class="admin-btn" onclick="openAdminPanel()">&#x1F6E1; ADMIN</button>' : '';
+  document.getElementById('upill').innerHTML =
+    '<div style="display:flex;align-items:center;gap:7px">' + adminBtn +
+    '<div class="user-pill" onclick="openProfile()"><div class="uavatar">' + ini + '</div><span class="uname">@' + ME.username + '</span></div></div>';
 }
 function openProfile() { showScreen('s-profile'); renderProfile(); }
 function renderProfile() {
@@ -1727,15 +1941,13 @@ function loadStories() {
     });
 }
 function renderStoryRings(stories) {
-  // Insert story rings into the main stories row (after the + button)
-  var row = document.getElementById('stories-row');
-  if (!row) return;
+  var container = document.getElementById('stories-dynamic');
+  if (!container) return;
 
-  // Remove old dynamic story items (keep the first child = "Deine Story")
-  var children = Array.from(row.children);
-  children.slice(1).forEach(function(c) { c.remove(); });
-
-  if (!stories.length) return;
+  if (!stories.length) {
+    container.innerHTML = '';
+    return;
+  }
 
   // Group by user, newest first
   var byUser = {};
@@ -1778,12 +1990,7 @@ function renderStoryRings(stories) {
       '<span class="story-lbl">' + name + '</span></div>';
   });
 
-  // Append each story wrap directly into the row div
-  var temp = document.createElement('div');
-  temp.innerHTML = html;
-  while (temp.firstChild) {
-    row.appendChild(temp.firstChild);
-  }
+  container.innerHTML = html;
 }
 function viewStoryEl(el) {
   var uid = el.getAttribute('data-uid');
@@ -2053,6 +2260,303 @@ function likeComment(postId, commentId, btn) {
   });
 }
 
+
+
+// ════ ADMIN SYSTEM ══════════════════════════════════════════
+var ADMIN_EMAILS = ['admin@zmajevi.app','Admin@zmajevi.app'];
+function isAdmin() { return ME && ADMIN_EMAILS.indexOf(ME.email) !== -1; }
+
+// State
+var acDurHours = 24;
+var pollDurHours = 24;
+var annDurHours = 24;
+var acImageData = null;
+var anImageData = null;
+var adminPinnedPosts = []; // extra admin posts to show pinned in BIHBOOK
+
+function openAdminPanel() {
+  if (!isAdmin()) { showToast('Kein Zugriff!'); return; }
+  var p = document.getElementById('admin-panel-screen');
+  if (p) p.style.display = 'flex';
+  adminTab('posts', document.querySelector('.atab-pill'));
+}
+function closeAdminPanel() {
+  var p = document.getElementById('admin-panel-screen');
+  if (p) p.style.display = 'none';
+}
+
+function adminTab(tab, el) {
+  ['posts','users','stories','compose','news','poll','announce'].forEach(function(t) {
+    var d = document.getElementById('atab-' + t);
+    if (d) d.style.display = t === tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.atab-pill').forEach(function(p) { p.classList.remove('on'); });
+  if (el) el.classList.add('on');
+  if (tab === 'posts') loadAdminPosts();
+  if (tab === 'users') loadAdminUsers();
+  if (tab === 'stories') loadAdminStories();
+  if (tab === 'compose') loadAdminComposeList();
+}
+
+// ── Duration pickers ──
+function acPickDur(btn) {
+  document.querySelectorAll('#atab-compose .dur-btn').forEach(function(b){b.classList.remove('on');}); btn.classList.add('on');
+  acDurHours = parseInt(btn.getAttribute('data-h')||'24');
+}
+function pollPickDur(btn) {
+  document.querySelectorAll('#atab-poll .dur-btn').forEach(function(b){b.classList.remove('on');}); btn.classList.add('on');
+  pollDurHours = parseInt(btn.getAttribute('data-h')||'24');
+}
+function annPickDur(btn) {
+  document.querySelectorAll('#atab-announce .dur-btn').forEach(function(b){b.classList.remove('on');}); btn.classList.add('on');
+  annDurHours = parseInt(btn.getAttribute('data-h')||'24');
+}
+
+// ── Image preview for compose ──
+function acPreviewImg(input) {
+  var f = input.files[0]; if (!f) return;
+  var nameEl = document.getElementById('ac-img-name');
+  var prev = document.getElementById('ac-img-preview');
+  if (nameEl) nameEl.textContent = f.name.slice(0,20);
+  compressImage(f, 900, 0.75, function(data) {
+    acImageData = data;
+    if (prev) { prev.src = data; prev.style.display = 'block'; }
+  });
+}
+function anPreviewImg(input) {
+  var f = input.files[0]; if (!f) return;
+  var nameEl = document.getElementById('an-img-name');
+  var prev = document.getElementById('an-img-preview');
+  if (nameEl) nameEl.textContent = f.name.slice(0,20);
+  compressImage(f, 900, 0.75, function(data) {
+    anImageData = data;
+    if (prev) { prev.src = data; prev.style.display = 'block'; }
+  });
+}
+
+// ── Posts ──
+function loadAdminPosts() {
+  if (!fbDb) return;
+  var list = document.getElementById('admin-posts-list');
+  if (list) list.innerHTML = '<div style="color:var(--gray);text-align:center;padding:14px;font-size:13px">Lade...</div>';
+  fbDb.collection('posts').orderBy('createdAt','desc').limit(50).get().then(function(snap) {
+    if (!list) return;
+    if (snap.empty) { list.innerHTML = '<div style="color:var(--gray);text-align:center;padding:14px">Keine Posts vorhanden</div>'; return; }
+    var rows = '';
+    snap.forEach(function(doc) {
+      var d = doc.data();
+      var ts = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toLocaleDateString('de-DE') : '';
+      var txt = (d.text||'').slice(0,55) + ((d.text||'').length>55?'...':'');
+      rows += '<div class="amod-row">'
+        + '<div style="flex:1"><div class="amod-name">@' + (d.username||'?') + (d.imageUrl?' &#128247;':'') + '</div>'
+        + '<div class="amod-meta">' + txt + '</div>'
+        + '<div class="amod-meta">' + ts + '</div></div>'
+        + '<button class="amod-del" data-id="' + doc.id + '" onclick="aDelPostEl(this)">&#x1F5D1;</button>'
+        + '</div>';
+    });
+    list.innerHTML = '<div class="amod-card">' + rows + '</div>';
+  }).catch(function(e) { if (list) list.innerHTML = '<div style="color:var(--red);padding:14px">' + e.message + '</div>'; });
+}
+function aDelPostEl(btn) {
+  var id = btn.getAttribute('data-id');
+  if (!confirm('Post loeschen?')) return;
+  fbDb.collection('posts').doc(id).delete().then(function() {
+    showToast('Post geloescht');
+    var row = btn.closest ? btn.closest('.amod-row') : btn.parentNode;
+    if (row) row.remove();
+  }).catch(function(e) { showToast('Fehler: '+e.message); });
+}
+
+// ── Users ──
+function loadAdminUsers() {
+  if (!fbDb) return;
+  var list = document.getElementById('admin-users-list');
+  if (list) list.innerHTML = '<div style="color:var(--gray);text-align:center;padding:14px;font-size:13px">Lade...</div>';
+  fbDb.collection('users').limit(100).get().then(function(snap) {
+    if (!list) return;
+    if (!window._blockedUsers) window._blockedUsers = {};
+    var rows = '';
+    snap.forEach(function(doc) {
+      var d = doc.data();
+      if (d.blocked) window._blockedUsers[doc.id] = true;
+      var blocked = !!window._blockedUsers[doc.id];
+      var isMe = ME && doc.id === ME.uid;
+      var blockedBadge = blocked ? '<span class="blocked-badge">BLOCKIERT</span>' : '';
+      var btns = isMe
+        ? '<span style="color:var(--gray);font-size:10px">Du (Admin)</span>'
+        : (blocked
+            ? '<button class="amod-unblock" data-uid="' + doc.id + '" onclick="aUnblockEl(this)">&#x2705; Freig.</button>'
+            : '<button class="amod-block-btn" data-uid="' + doc.id + '" onclick="aBlockEl(this)">&#128683; Block</button>')
+          + '<button class="amod-del" data-uid="' + doc.id + '" onclick="aDelUserEl(this)">&#x1F5D1;</button>';
+      rows += '<div class="amod-row">'
+        + '<div style="width:34px;height:34px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#0a0f1e;flex-shrink:0">' + (d.name||'F')[0].toUpperCase() + '</div>'
+        + '<div style="flex:1;margin-left:9px"><div class="amod-name">' + (d.name||'?') + blockedBadge + '</div>'
+        + '<div class="amod-meta">@' + (d.username||'') + ' &#183; ' + (d.email||'') + '</div></div>'
+        + '<div style="display:flex;gap:5px;flex-shrink:0">' + btns + '</div></div>';
+    });
+    list.innerHTML = rows ? '<div class="amod-card">' + rows + '</div>' : '<div style="color:var(--gray);text-align:center;padding:14px">Keine User</div>';
+  }).catch(function(e) { if (list) list.innerHTML = '<div style="color:var(--red);padding:14px">' + e.message + '</div>'; });
+}
+function aBlockEl(btn) {
+  var uid = btn.getAttribute('data-uid');
+  if (!confirm('Nutzer blockieren?')) return;
+  if (!window._blockedUsers) window._blockedUsers = {};
+  window._blockedUsers[uid] = true;
+  fbDb.collection('users').doc(uid).update({blocked:true}).then(function(){showToast('Nutzer blockiert'); loadAdminUsers();}).catch(function(e){showToast('Fehler: '+e.message);});
+}
+function aUnblockEl(btn) {
+  var uid = btn.getAttribute('data-uid');
+  if (!window._blockedUsers) window._blockedUsers = {};
+  delete window._blockedUsers[uid];
+  fbDb.collection('users').doc(uid).update({blocked:false}).then(function(){showToast('Freigegeben'); loadAdminUsers();}).catch(function(e){showToast('Fehler: '+e.message);});
+}
+function aDelUserEl(btn) {
+  var uid = btn.getAttribute('data-uid');
+  if (!confirm('Nutzer-Daten loeschen?')) return;
+  fbDb.collection('users').doc(uid).delete().then(function(){
+    showToast('Nutzer entfernt');
+    var row = btn.closest ? btn.closest('.amod-row') : btn.parentNode;
+    if (row) row.remove();
+  }).catch(function(e){showToast('Fehler: '+e.message);});
+}
+
+// ── Stories ──
+function loadAdminStories() {
+  if (!fbDb) return;
+  var list = document.getElementById('admin-stories-list');
+  if (list) list.innerHTML = '<div style="color:var(--gray);text-align:center;padding:14px;font-size:13px">Lade...</div>';
+  var now = new Date();
+  fbDb.collection('stories').orderBy('createdAt','desc').limit(50).get().then(function(snap) {
+    if (!list) return;
+    var rows = ''; var count = 0;
+    snap.forEach(function(doc) {
+      var d = doc.data();
+      var created = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate() : new Date(0);
+      var expires = d.expiresAt && d.expiresAt.toDate ? d.expiresAt.toDate() : new Date(created.getTime()+6*3600000);
+      if (expires <= now) return;
+      count++;
+      var remH = Math.max(0,Math.floor((expires-now)/3600000));
+      var remM = Math.max(0,Math.floor(((expires-now)%3600000)/60000));
+      rows += '<div class="amod-row">'
+        + '<div style="flex:1"><div class="amod-name">@' + (d.username||'?') + '</div>'
+        + '<div class="amod-meta">' + (d.text||'(Foto)').slice(0,40) + '</div>'
+        + '<div class="amod-meta">Noch ' + remH + 'h ' + remM + 'min aktiv</div></div>'
+        + '<button class="amod-del" data-id="' + doc.id + '" onclick="aDelStoryEl(this)">&#x1F5D1;</button>'
+        + '</div>';
+    });
+    if (!count) { list.innerHTML = '<div style="color:var(--gray);text-align:center;padding:14px">Keine aktiven Stories</div>'; return; }
+    list.innerHTML = '<div class="amod-card">' + rows + '</div>';
+  }).catch(function(e) { if (list) list.innerHTML = '<div style="color:var(--red);padding:14px">' + e.message + '</div>'; });
+}
+function aDelStoryEl(btn) {
+  var id = btn.getAttribute('data-id');
+  if (!confirm('Story loeschen?')) return;
+  fbDb.collection('stories').doc(id).delete().then(function(){
+    showToast('Story geloescht'); loadStories();
+    var row = btn.closest ? btn.closest('.amod-row') : btn.parentNode;
+    if (row) row.remove();
+  }).catch(function(e){showToast('Fehler: '+e.message);});
+}
+
+// ── Admin Compose (pinned blue post) ──
+function loadAdminComposeList() {
+  var listEl = document.getElementById('admin-compose-list');
+  if (!listEl) return;
+  if (!adminPinnedPosts.length) { listEl.innerHTML = '<div style="color:var(--gray);font-size:12px;padding:8px 0">Noch keine gepinnten Beitraege</div>'; return; }
+  listEl.innerHTML = adminPinnedPosts.map(function(p, i) {
+    return '<div style="background:var(--bg2);border-radius:11px;border:1px solid rgba(79,172,254,.25);padding:11px 13px;margin-bottom:8px;display:flex;align-items:flex-start;gap:9px">'
+      + '<div style="flex:1"><div style="color:var(--white);font-size:13px;font-weight:600">' + (p.text||'').slice(0,50) + (p.imageUrl?'  &#128247;':'') + '</div>'
+      + '<div style="color:var(--gray);font-size:11px;margin-top:3px">' + (p.durLabel||'') + '</div></div>'
+      + '<button class="amod-del" data-idx="' + i + '" onclick="aDelPinnedEl(this)">&#x1F5D1;</button>'
+      + '</div>';
+  }).join('');
+}
+function aDelPinnedEl(btn) {
+  var idx = parseInt(btn.getAttribute('data-idx')||'0');
+  adminPinnedPosts.splice(idx, 1);
+  loadAdminComposeList();
+  var bb = document.getElementById('tp-bihbook');
+  if (bb && bb.classList.contains('on')) renderBihbook();
+  showToast('Beitrag entfernt');
+}
+
+function publishAdminCompose() {
+  var txt = (document.getElementById('ac-text')||{}).value||'';
+  if (!txt && !acImageData) { showToast('Text oder Bild benoetigt!'); return; }
+  var durLabel = acDurHours === 0 ? 'Unbegrenzt' : 'Online fuer ' + (acDurHours < 24 ? acDurHours + 'h' : (acDurHours/24|0) + ' Tag(e)');
+  var expiresAt = acDurHours === 0 ? null : new Date(Date.now() + acDurHours*3600000);
+  adminPinnedPosts.unshift({ text: txt, imageUrl: acImageData||null, durLabel: durLabel, expiresAt: expiresAt, postedAt: new Date() });
+  // Reset form
+  var ta = document.getElementById('ac-text'); if(ta) ta.value = '';
+  var pr = document.getElementById('ac-img-preview'); if(pr){pr.style.display='none';pr.src='';}
+  var nm = document.getElementById('ac-img-name'); if(nm) nm.textContent = 'Kein Bild';
+  var fi = document.getElementById('ac-file'); if(fi) fi.value='';
+  acImageData = null;
+  loadAdminComposeList();
+  var bb = document.getElementById('tp-bihbook');
+  if (bb && bb.classList.contains('on')) renderBihbook();
+  showToast('Beitrag gepinnt!'); closeAdminPanel();
+}
+
+// ── Admin News ──
+function publishAdminNews() {
+  var src   = (document.getElementById('an-src')||{}).value||'Zmajevi App';
+  var tag   = (document.getElementById('an-tag')||{}).value||'Nationalteam';
+  var title = (document.getElementById('an-title')||{}).value||'';
+  var desc  = (document.getElementById('an-desc')||{}).value||'';
+  var url   = (document.getElementById('an-url')||{}).value||'#';
+  var hot   = document.getElementById('an-hot') ? document.getElementById('an-hot').checked : false;
+  var toBihbook = document.getElementById('an-bihbook') ? document.getElementById('an-bihbook').checked : false;
+  if (!title) { showToast('Titel benoetigt!'); return; }
+  var newId = Date.now();
+  var entry = { id: newId, src: src, time: new Date().toLocaleDateString('de-DE',{month:'short',year:'numeric'}), tag: tag, hot: hot, likes: 0, title: title, desc: desc, url: url||'#', adminPost: true };
+  if (anImageData) entry.imageData = anImageData;
+  ALL_NEWS.unshift(entry);
+  if (toBihbook) {
+    adminPinnedPosts.unshift({ text: title + (desc ? '\n\n' + desc : ''), imageUrl: anImageData||null, durLabel: 'News-Beitrag', expiresAt: null, postedAt: new Date() });
+  }
+  // Reset
+  var fields = ['an-title','an-desc','an-url'];
+  fields.forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  var pr = document.getElementById('an-img-preview'); if(pr){pr.style.display='none';pr.src='';}
+  var nm = document.getElementById('an-img-name'); if(nm) nm.textContent = 'Kein Bild';
+  var fi = document.getElementById('an-file'); if(fi) fi.value='';
+  anImageData = null;
+  renderNewsFeed();
+  var bb = document.getElementById('tp-bihbook');
+  if (bb && bb.classList.contains('on')) renderBihbook();
+  showToast('News veroeffentlicht!'); closeAdminPanel();
+}
+
+// ── Poll ──
+function publishAdminPoll() {
+  var q = (document.getElementById('poll-question')||{}).value||'';
+  var o1= (document.getElementById('poll-opt1')||{}).value||'';
+  var o2= (document.getElementById('poll-opt2')||{}).value||'';
+  var o3= (document.getElementById('poll-opt3')||{}).value||'';
+  var o4= (document.getElementById('poll-opt4')||{}).value||'';
+  if (!q||!o1||!o2) { showToast('Frage + mind. 2 Optionen!'); return; }
+  var opts = [o1,o2]; if(o3)opts.push(o3); if(o4)opts.push(o4);
+  var durLabel = pollDurHours === 0 ? 'Unbegrenzt' : 'Endet in ' + (pollDurHours<24?pollDurHours+'h':(pollDurHours/24|0)+' Tag(en)');
+  ADMIN_POLLS[0] = { title: q, body: 'Wahle deine Antwort!', expires: durLabel, options: opts.map(function(o){return{label:o,votes:0};}) };
+  votedPoll = null;
+  var bb = document.getElementById('tp-bihbook');
+  if (bb && bb.classList.contains('on')) renderBihbook();
+  showToast('Umfrage veroeffentlicht!'); closeAdminPanel();
+}
+
+// ── Announce ──
+function publishAdminAnnounce() {
+  var title= (document.getElementById('ann-title')||{}).value||'';
+  var body = (document.getElementById('ann-body')||{}).value||'';
+  var exp  = (document.getElementById('ann-expires')||{}).value||'';
+  if (!title||!body) { showToast('Titel + Text erforderlich!'); return; }
+  ADMIN_POLLS[1] = { title: title, body: body, expires: exp };
+  var bb = document.getElementById('tp-bihbook');
+  if (bb && bb.classList.contains('on')) renderBihbook();
+  showToast('Info veroeffentlicht!'); closeAdminPanel();
+}
+// ════ END ADMIN ══════════════════════════════════════════════
 
 // ════════════════════════════════════════════════════════════
 // FIREBASE INIT — at bottom so all functions are defined first
