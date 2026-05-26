@@ -1241,11 +1241,11 @@ function renderNewsFeed() {
     var like = '<button class="n-like' + (lk ? ' liked' : '') + '" onclick="event.preventDefault();event.stopPropagation();doNLike(' + n.id + ',this)">' + (lk ? '⭐' : '☆') + ' ' + (n.likes + (lk ? 1 : 0)) + '</button>';
     // Admin-Loeschbutton nur fuer eigene Admin-News (haben docId = Firestore-ID)
     var adminDel = (isAdmin() && n.adminPost && n.docId)
-      ? '<button onclick="event.preventDefault();event.stopPropagation();deleteAdminNews(''+n.docId+'')" style="background:rgba(255,71,87,.15);border:1px solid rgba(255,71,87,.3);border-radius:8px;padding:4px 9px;color:var(--red);font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">&#x1F5D1;</button>'
+      ? '<button onclick="event.preventDefault();event.stopPropagation();deleteAdminNews(\'' + n.docId + '\')" style="background:rgba(255,71,87,.15);border:1px solid rgba(255,71,87,.3);border-radius:8px;padding:4px 9px;color:var(--red);font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">&#x1F5D1;</button>'
       : '';
     if (i === 0) {
       h += '<div class="feat-card' + (n.hot ? ' hot' : '') + ' fu" style="' + delay + ';cursor:pointer;position:relative" data-nid="' + n.id + '" onclick="openNewsById(this.dataset.nid)">' +
-        (isAdmin() && n.adminPost && n.docId ? '<button onclick="event.preventDefault();event.stopPropagation();deleteAdminNews(''+n.docId+'')" style="position:absolute;top:8px;right:8px;z-index:5;background:rgba(255,71,87,.85);border:none;border-radius:8px;padding:5px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer">&#x1F5D1; Loeschen</button>' : '') +
+        (isAdmin() && n.adminPost && n.docId ? '<button onclick="event.preventDefault();event.stopPropagation();deleteAdminNews(\'' + n.docId + '\')" style="position:absolute;top:8px;right:8px;z-index:5;background:rgba(255,71,87,.85);border:none;border-radius:8px;padding:5px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer">&#x1F5D1; Loeschen</button>' : '') +
         '<div class="feat-img"' + (n.imageData ? ' style="padding:0;overflow:hidden">' + (n.images && n.images.length > 1 ? '<div style="display:grid;grid-template-columns:' + (n.images.length===2?'1fr 1fr':n.images.length===3?'1fr 1fr 1fr':'1fr 1fr') + ';height:110px;gap:2px">' + n.images.slice(0,4).map(function(img,ii){return '<img src="'+img+'" style="width:100%;height:100%;object-fit:cover"' + (ii===3&&n.images.length>4?'':'')+'>'; }).join('') + '</div>' : '<img src="' + n.imageData + '" style="width:100%;height:100%;object-fit:cover">') + '</div>' : '<div class="feat-img">' + em + '</div>') + '<div class="feat-body">' + brk +
         '<div class="cmeta"><div class="csrc"><div class="cdot" style="background:' + sc + '"></div><span class="cname">' + n.src + '</span></div><span class="ctime">' + n.time + '</span></div>' +
         '<div class="feat-title">' + n.title + '</div><div class="feat-desc">' + n.desc + '</div>' +
@@ -1912,7 +1912,7 @@ function renderBihbook() {
     '<div id="stories-dynamic"></div>' +
     '</div>' +
     '<div id="admin-pinned-area"></div>' +
-    '<div class="fb-live-badge"><div class="fb-live-dot"></div><span class="fb-live-txt">BIHBOOK · Firebase Live · Echte Posts</span></div>' +
+    '' +
     '<div id="admin-poll-area"></div>' +
     '<div id="admin-announce-area"></div>' +
     '<div class="compose">' +
@@ -2315,7 +2315,6 @@ function renderTransfers() {
 // ════════════════════════════════════════════════════════════
 // PROFILE
 // ════════════════════════════════════════════════════════════
-function isAdmin() { return ME && (ME.email==='admin@zmajevi.app'||ME.email==='Admin@zmajevi.app'); }
 function renderUserPill() {
   var ini = ME.name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
   var adminBtn = isAdmin() ? '<button class="admin-btn" onclick="openAdminPanel()">&#x1F6E1; ADMIN</button>' : '';
