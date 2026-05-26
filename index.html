@@ -898,7 +898,7 @@ function renderNewsFeed() {
       h += '<a class="comp-card' + (n.hot ? ' hot' : '') + ' fu" href="' + n.url + '" target="_blank" rel="noopener" style="' + delay + '">' +
         '<div class="comp-emoji">' + em + '</div><div class="comp-body">' +
         (n.hot ? '<div class="brk-row" style="margin-bottom:5px"><div class="brk-d"></div><span class="brk-t">BREAKING</span></div>' : '') +
-        '<div class="cmeta" style="margin-bottom:5px"><div class="csrc"><div class="cdot" style="background:' + sc + '"></div><span class="cname">' + n.src + '</span></div><span class="ctime"> · ' + n.time + '</span></div>' +
+        '<div class="cmeta" style="margin-bottom:5px"><div class="csrc"><div class="cdot" style="background:' + sc + '"></div><span class="cname">' + n.src + '</span></div><span class="ctime"> · ' + n.time + '</span></div>' +
         '<div class="comp-title">' + n.title + '</div>' +
         '<div class="comp-foot">' + tag + like + '<span class="comp-read">Citaj ↗</span></div></div></a>';
     }
@@ -1011,15 +1011,15 @@ function showPlayer(id) {
 // ════════════════════════════════════════════════════════════
 var STANDINGS = {
   wm: { title:'WM 2026 · Gruppe B', sub:'Los Angeles · Jun 2026', color:'#f5c518', badge:'🏆 WM 2026', note:'Tabelle startet am 12. Juni 2026',
-    teams:[{f:'🇨🇭',n:'Svicarska',p:1,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'🇧🇦',n:'Bosna',p:2,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:true},{f:'🇨🇦',n:'Kanada',p:3,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'🇶🇦',n:'Katar',p:4,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false}],
+    teams:[{f:'ch',n:'Svicarska',p:1,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'ba',n:'Bosna',p:2,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:true},{f:'ca',n:'Kanada',p:3,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'qa',n:'Katar',p:4,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false}],
     adv:2, advNote:'Top 2 → Runde der 32' },
   quali: { title:'WM-Qualifikation · Gruppe H', sub:'Abschlusstabelle 2025', color:'#2ed573', badge:'✅ Qualifiziert',
     note:'Bosna als 2. in die Playoffs → WM!',
-    teams:[{f:'🇦🇹',n:'Austrija',p:1,pld:8,w:6,d:1,l:1,gf:22,ga:4,pts:19,bih:false},{f:'🇧🇦',n:'Bosna',p:2,pld:8,w:5,d:2,l:1,gf:17,ga:7,pts:17,bih:true},{f:'🇷🇴',n:'Rumanija',p:3,pld:8,w:4,d:1,l:3,gf:19,ga:10,pts:13,bih:false},{f:'🇨🇾',n:'Kipar',p:4,pld:8,w:2,d:2,l:4,gf:11,ga:11,pts:8,bih:false},{f:'🇸🇲',n:'San Marino',p:5,pld:8,w:0,d:0,l:8,gf:2,ga:39,pts:0,bih:false}],
+    teams:[{f:'at',n:'Austrija',p:1,pld:8,w:6,d:1,l:1,gf:22,ga:4,pts:19,bih:false},{f:'ba',n:'Bosna',p:2,pld:8,w:5,d:2,l:1,gf:17,ga:7,pts:17,bih:true},{f:'ro',n:'Rumanija',p:3,pld:8,w:4,d:1,l:3,gf:19,ga:10,pts:13,bih:false},{f:'cy',n:'Kipar',p:4,pld:8,w:2,d:2,l:4,gf:11,ga:11,pts:8,bih:false},{f:'sm',n:'San Marino',p:5,pld:8,w:0,d:0,l:8,gf:2,ga:39,pts:0,bih:false}],
     adv:2, advNote:'1. direktno · 2. → Playoff' },
   nl: { title:'Nations League · Liga A', sub:'Ab September 2026', color:'#4facfe', badge:'🏴 Nations League',
     note:'Tabelle ab Sep 2026 verfugbar',
-    teams:[{f:'🇧🇦',n:'Bosna',p:1,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:true},{f:'🇵🇱',n:'Poljska',p:2,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'🇨🇭',n:'Svicarska',p:3,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'🇲🇰',n:'S. Makedonija',p:4,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false}],
+    teams:[{f:'ba',n:'Bosna',p:1,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:true},{f:'pl',n:'Poljska',p:2,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'ch',n:'Svicarska',p:3,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},{f:'mk',n:'S. Makedonija',p:4,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false}],
     adv:1, advNote:'1. → Nations League Finals' }
 };
 
@@ -1028,10 +1028,10 @@ function renderSpiele() {
   h += '<div style="height:1px;background:var(--border);margin:16px 0"></div>';
   h += '<div class="seclabel">PREDSTOJECCE UTAKMICE WM 2026</div>';
   var fixtures = [
-    { date:'29. Mai 2026', opp:'Sjeverna Makedonija', comp:'Prijateljska', flag:'🇲🇰', time:'20:30' },
-    { date:'12. Jun 2026', opp:'Svicarska', comp:'WM 2026 · Gruppe B', flag:'🇨🇭', time:'22:00' },
-    { date:'17. Jun 2026', opp:'Katar', comp:'WM 2026 · Gruppe B', flag:'🇶🇦', time:'02:00' },
-    { date:'22. Jun 2026', opp:'Kanada', comp:'WM 2026 · Gruppe B', flag:'🇨🇦', time:'22:00' }
+    { date:'29. Mai 2026', opp:'Sjeverna Makedonija', comp:'Prijateljska', flag:'mk', time:'20:30' },
+    { date:'12. Jun 2026', opp:'Svicarska', comp:'WM 2026 · Gruppe B', flag:'ch', time:'22:00' },
+    { date:'17. Jun 2026', opp:'Katar', comp:'WM 2026 · Gruppe B', flag:'qa', time:'02:00' },
+    { date:'22. Jun 2026', opp:'Kanada', comp:'WM 2026 · Gruppe B', flag:'ca', time:'22:00' }
   ];
   fixtures.forEach(function(f) {
     h += '<div style="background:linear-gradient(135deg,var(--bg2),var(--bg3));border-radius:16px;padding:16px;margin-bottom:10px;border:1px solid rgba(245,197,24,.18)">' +
@@ -1039,9 +1039,9 @@ function renderSpiele() {
       '<span style="color:var(--gray);font-size:11px;font-family:monospace">' + f.date + ' · ' + f.time + '</span>' +
       '<span style="background:#1a2f5e;color:#7eb8f7;font-size:10px;font-weight:700;padding:3px 8px;border-radius:9px">' + f.comp + '</span></div>' +
       '<div style="display:flex;align-items:center;justify-content:space-between">' +
-      '<div style="text-align:center;flex:1"><div style="font-size:30px">🇧🇦</div><div style="color:var(--white);font-weight:800;font-size:12px;margin-top:4px;font-family:Barlow Condensed,sans-serif">BOSNA</div></div>' +
+      '<div style="text-align:center;flex:1"><img src="https://flagcdn.com/w80/ba.png" width="52" height="34" style="border-radius:6px;object-fit:cover;display:block;margin:0 auto"><div style="color:var(--white);font-weight:800;font-size:12px;margin-top:4px;font-family:Barlow Condensed,sans-serif">BOSNA</div></div>' +
       '<div style="text-align:center;padding:0 12px"><div style="background:var(--bg);border-radius:9px;padding:9px 16px;border:1px solid var(--border2)"><div style="color:var(--gold);font-weight:900;font-size:22px;font-family:Barlow Condensed,sans-serif;letter-spacing:4px">VS</div></div><div style="color:var(--gray);font-size:10px;margin-top:3px">✈️ Auswarts</div></div>' +
-      '<div style="text-align:center;flex:1"><div style="font-size:30px">' + f.flag + '</div><div style="color:var(--white);font-weight:800;font-size:12px;margin-top:4px;font-family:Barlow Condensed,sans-serif">' + f.opp.toUpperCase().slice(0, 12) + '</div></div>' +
+      '<div style="text-align:center;flex:1"><img src="https://flagcdn.com/w80/'+f.flag+'.png" width="52" height="34" style="border-radius:6px;object-fit:cover;display:block;margin:0 auto"><div style="color:var(--white);font-weight:800;font-size:12px;margin-top:6px;font-family:Barlow Condensed,sans-serif">' + f.opp.toUpperCase() + '</div></div>' +
       '</div></div>';
   });
   h += '<div class="seclabel" style="margin-top:8px">NEDAVNI REZULTATI</div>';
@@ -1097,7 +1097,7 @@ function renderStandingsHTML() {
     h += '<div style="display:flex;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);background:' + (t.bih ? 'rgba(' + rgb + ',.06)' : 'transparent') + ';border-left:3px solid ' + (t.bih ? col : 'transparent') + '">' +
       '<div style="width:20px;color:' + (adv ? '#2ed573' : 'var(--gray2)') + ';font-size:13px;font-weight:800;font-family:Barlow Condensed,sans-serif">' + t.p + '</div>' +
       '<div style="flex:1;display:flex;align-items:center;gap:7px;padding-left:8px">' +
-      '<span style="font-size:18px">' + t.f + '</span>' +
+      '<img src="https://flagcdn.com/w40/"+t.f+".png" width="24" height="16" style="border-radius:3px;object-fit:cover;vertical-align:middle" onerror="this.style.display=\"none\"">' +
       '<div style="color:' + (t.bih ? col : 'var(--white)') + ';font-size:12px;font-weight:' + (t.bih ? 800 : 600) + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:85px">' + t.n + '</div></div>' +
       '<div style="width:22px;text-align:center;color:var(--gray);font-size:12px">' + t.pld + '</div>' +
       '<div style="width:20px;text-align:center;color:var(--green);font-size:12px">' + t.w + '</div>' +
@@ -1137,9 +1137,8 @@ function renderBihbook() {
   }).join('');
 
   document.getElementById('bihbook-inner').innerHTML =
-    '<div class="stories">' +
+    '<div class="stories" id="stories-row">' +
     '<div class="story-wrap" onclick="openStoryUpload()"><div class="story-ring add"><div class="story-av" style="font-size:20px">+</div></div><span class="story-lbl">Deine Story</span></div>' +
-    '<div id="stories-dynamic"></div>' +
     '</div>' +
     '<div class="fb-live-badge"><div class="fb-live-dot"></div><span class="fb-live-txt">BIHBOOK · Firebase Live · Echte Posts</span></div>' +
     '<div class="admin-pin">' +
@@ -1728,13 +1727,15 @@ function loadStories() {
     });
 }
 function renderStoryRings(stories) {
-  var container = document.getElementById('stories-dynamic');
-  if (!container) return;
+  // Insert story rings into the main stories row (after the + button)
+  var row = document.getElementById('stories-row');
+  if (!row) return;
 
-  if (!stories.length) {
-    container.innerHTML = '';
-    return;
-  }
+  // Remove old dynamic story items (keep the first child = "Deine Story")
+  var children = Array.from(row.children);
+  children.slice(1).forEach(function(c) { c.remove(); });
+
+  if (!stories.length) return;
 
   // Group by user, newest first
   var byUser = {};
@@ -1777,7 +1778,12 @@ function renderStoryRings(stories) {
       '<span class="story-lbl">' + name + '</span></div>';
   });
 
-  container.innerHTML = html;
+  // Append each story wrap directly into the row div
+  var temp = document.createElement('div');
+  temp.innerHTML = html;
+  while (temp.firstChild) {
+    row.appendChild(temp.firstChild);
+  }
 }
 function viewStoryEl(el) {
   var uid = el.getAttribute('data-uid');
