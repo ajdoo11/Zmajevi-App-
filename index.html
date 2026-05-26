@@ -1103,29 +1103,38 @@ function loadLiveNews() {
   if (upd) upd.textContent = 'Jetzt aktuell · ' + CURATED_NEWS.length + ' News';
   renderNewsFeed();
 
-  // Admin-News aus Firestore laden (dauerhaft gespeichert)
+  // Admin-News aus Firestore laden — kein orderBy (kein Index noetig), client-seitig sortieren
   if (fbDb) {
-    fbDb.collection('admin_content').where('type','==','news').orderBy('createdAt','desc').limit(20)
+    fbDb.collection('admin_content').where('type','==','news').limit(20)
       .get().then(function(snap) {
         if (snap.empty) { fetchLiveNewsBackground(adminNews); return; }
         var firestoreNews = [];
         snap.forEach(function(doc) {
           var d = doc.data();
+          var ts = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().getTime() : Date.now();
           firestoreNews.push({
-            id: doc.id, src: d.src||'Zmajevi App', time: 'Heute',
-            pubMs: Date.now(), tag: d.tag||'Nationalteam', hot: !!d.hot,
+            id: doc.id, docId: doc.id,
+            src: d.src||'Zmajevi App',
+            time: 'Heute', pubMs: ts,
+            tag: d.tag||'Nationalteam', hot: !!d.hot,
             likes: d.likes||0, title: d.title||'', desc: d.desc||'',
             url: d.url||'#', adminPost: true,
             imageData: d.imageData||null, images: d.images||[]
           });
         });
+        // Neueste zuerst (client-seitig)
+        firestoreNews.sort(function(a,b){ return b.pubMs - a.pubMs; });
         ADMIN_NEWS_LIST = firestoreNews;
         ALL_NEWS = ADMIN_NEWS_LIST.concat(CURATED_NEWS.map(function(n){ return Object.assign({}, n, {pubMs: Date.now()}); }));
+        newsLoadedAt = Date.now();
         var upd2 = document.getElementById('ai-upd');
         if (upd2) upd2.textContent = 'Aktuell · ' + ALL_NEWS.length + ' News';
         renderNewsFeed();
         fetchLiveNewsBackground(ADMIN_NEWS_LIST);
-      }).catch(function() { fetchLiveNewsBackground(adminNews); });
+      }).catch(function(e) {
+        console.log('Admin news load err:', e.message);
+        fetchLiveNewsBackground(adminNews);
+      });
   } else {
     fetchLiveNewsBackground(adminNews);
   }
@@ -1230,8 +1239,13 @@ function renderNewsFeed() {
     var tag = '<span class="ctag-badge" style="background:' + tc.bg + ';color:' + tc.c + '">' + n.tag + '</span>';
     var brk = n.hot ? '<div class="brk-row"><div class="brk-d"></div><span class="brk-t">BREAKING</span></div>' : '';
     var like = '<button class="n-like' + (lk ? ' liked' : '') + '" onclick="event.preventDefault();event.stopPropagation();doNLike(' + n.id + ',this)">' + (lk ? '⭐' : '☆') + ' ' + (n.likes + (lk ? 1 : 0)) + '</button>';
+    // Admin-Loeschbutton nur fuer eigene Admin-News (haben docId = Firestore-ID)
+    var adminDel = (isAdmin() && n.adminPost && n.docId)
+      ? '<button onclick="event.preventDefault();event.stopPropagation();deleteAdminNews(''+n.docId+'')" style="background:rgba(255,71,87,.15);border:1px solid rgba(255,71,87,.3);border-radius:8px;padding:4px 9px;color:var(--red);font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">&#x1F5D1;</button>'
+      : '';
     if (i === 0) {
-      h += '<div class="feat-card' + (n.hot ? ' hot' : '') + ' fu" style="' + delay + ';cursor:pointer" data-nid="' + n.id + '" onclick="openNewsById(this.dataset.nid)">' +
+      h += '<div class="feat-card' + (n.hot ? ' hot' : '') + ' fu" style="' + delay + ';cursor:pointer;position:relative" data-nid="' + n.id + '" onclick="openNewsById(this.dataset.nid)">' +
+        (isAdmin() && n.adminPost && n.docId ? '<button onclick="event.preventDefault();event.stopPropagation();deleteAdminNews(''+n.docId+'')" style="position:absolute;top:8px;right:8px;z-index:5;background:rgba(255,71,87,.85);border:none;border-radius:8px;padding:5px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer">&#x1F5D1; Loeschen</button>' : '') +
         '<div class="feat-img"' + (n.imageData ? ' style="padding:0;overflow:hidden">' + (n.images && n.images.length > 1 ? '<div style="display:grid;grid-template-columns:' + (n.images.length===2?'1fr 1fr':n.images.length===3?'1fr 1fr 1fr':'1fr 1fr') + ';height:110px;gap:2px">' + n.images.slice(0,4).map(function(img,ii){return '<img src="'+img+'" style="width:100%;height:100%;object-fit:cover"' + (ii===3&&n.images.length>4?'':'')+'>'; }).join('') + '</div>' : '<img src="' + n.imageData + '" style="width:100%;height:100%;object-fit:cover">') + '</div>' : '<div class="feat-img">' + em + '</div>') + '<div class="feat-body">' + brk +
         '<div class="cmeta"><div class="csrc"><div class="cdot" style="background:' + sc + '"></div><span class="cname">' + n.src + '</span></div><span class="ctime">' + n.time + '</span></div>' +
         '<div class="feat-title">' + n.title + '</div><div class="feat-desc">' + n.desc + '</div>' +
@@ -1242,7 +1256,7 @@ function renderNewsFeed() {
         (n.hot ? '<div class="brk-row" style="margin-bottom:5px"><div class="brk-d"></div><span class="brk-t">BREAKING</span></div>' : '') +
         '<div class="cmeta" style="margin-bottom:5px"><div class="csrc"><div class="cdot" style="background:' + sc + '"></div><span class="cname">' + n.src + '</span></div><span class="ctime"> · ' + n.time + '</span></div>' +
         '<div class="comp-title">' + n.title + '</div>' +
-        '<div class="comp-foot">' + tag + like + '<span class="comp-read">Otvori &#x2192;</span></div></div></div>';
+        '<div class="comp-foot">' + tag + like + adminDel + '<span class="comp-read">Otvori &#x2192;</span></div></div></div>';
     }
   });
   feed.innerHTML = h;
@@ -1310,6 +1324,7 @@ function openNewsDetail(n) {
     '<button class="n-like' + (lk?' liked':'') + '" onclick="ndLike(' + JSON.stringify(n.id).replace(/</g,'\u003c') + ',this)">' + (lk?'&#11088;':'&#9734;') + ' ' + (n.likes + (lk?1:0)) + '</button>' +
     '<span style="color:var(--gray);font-size:12px;margin-left:auto">&#x1F409; Zmajevi App</span>' +
     '</div>' +
+    (isAdmin() && n.adminPost && n.docId ? '<button onclick="deleteAdminNews(\'' + n.docId + '\')" style="width:100%;margin-top:10px;background:rgba(255,71,87,.15);border:1px solid rgba(255,71,87,.3);border-radius:12px;padding:13px;color:var(--red);font-size:14px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">&#x1F5D1; Admin: Diese News loeschen</button>' : '') +
     '</div>';
 
   showScreen('s-news-detail');
@@ -1327,6 +1342,21 @@ function ndLike(id, btn) {
     btn.className = 'n-like' + (likedNews[id] ? ' liked' : '');
     btn.innerHTML = (likedNews[id]?'&#11088;':'&#9734;') + ' ' + (n.likes + (likedNews[id]?1:0));
   }
+}
+
+function deleteAdminNews(docId) {
+  if (!docId || !fbDb) { showToast('Fehler!'); return; }
+  if (!confirm('Diese News wirklich loeschen?')) return;
+  fbDb.collection('admin_content').doc(docId).delete().then(function() {
+    // Lokal aus ADMIN_NEWS_LIST + ALL_NEWS entfernen
+    ADMIN_NEWS_LIST = ADMIN_NEWS_LIST.filter(function(n){ return n.docId !== docId && n.id !== docId; });
+    ALL_NEWS = ALL_NEWS.filter(function(n){ return n.docId !== docId && n.id !== docId; });
+    showToast('\u2705 News geloescht!');
+    // Wenn wir auf der Detail-Seite sind -> zurueck zur Liste
+    var detail = document.getElementById('s-news-detail');
+    if (detail && detail.classList.contains('active')) { closeNewsDetail(); }
+    renderNewsFeed();
+  }).catch(function(e){ showToast('Fehler: ' + e.message); });
 }
 
 function closeNewsDetail() {
@@ -2743,7 +2773,8 @@ function showStoryAt(idx) {
     delBtn.id = 'story-delete-btn';
     delBtn.innerHTML = '&#x1F5D1;';
     delBtn.title = 'Story loeschen';
-    delBtn.style.cssText = 'position:absolute;top:calc(env(safe-area-inset-top,0px)+60px);right:14px;z-index:15;background:rgba(255,71,87,.85);border:none;border-radius:50%;width:36px;height:36px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center';
+    delBtn.style.cssText = 'position:absolute;bottom:calc(env(safe-area-inset-bottom,0px)+100px);left:50%;transform:translateX(-50%);z-index:20;background:rgba(255,71,87,.9);border:none;border-radius:22px;padding:10px 22px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 4px 16px rgba(255,71,87,.5)';
+    delBtn.innerHTML = '&#x1F5D1; Story loeschen';
     delBtn.onclick = function(e) {
       e.stopPropagation();
       deleteStory(s.docId);
