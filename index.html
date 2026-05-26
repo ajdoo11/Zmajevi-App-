@@ -2670,12 +2670,16 @@ function renderStoryRings(stories) {
 function viewStoryEl(el) {
   var uid = el.getAttribute('data-uid');
   if (!uid) return;
-  // Mark as viewed
+  // Ring grau markieren (nur visuell) — Story bleibt IMMER anklickbar
   if (!window._viewedStories) window._viewedStories = {};
   window._viewedStories[uid] = true;
-  // Update ring to grey
   var ring = el.querySelector('div');
   if (ring) ring.style.background = 'var(--bg3)';
+
+  // Cache leeren damit Story frisch geladen wird (immer wieder öffenbar)
+  if (window._storiesByUser && window._storiesByUser[uid]) {
+    // Cache behalten aber trotzdem direkt öffnen
+  }
 
   // If stories already cached, open directly
   var byUser = window._storiesByUser || {};
@@ -2764,16 +2768,14 @@ function showStoryAt(idx) {
     tm.textContent = diffM < 1 ? 'Gerade' : diffH < 1 ? diffM + 'min' : diffH + 'h';
   }
 
-  // Delete button — only for own stories
+  // Delete button — fuer eigene Stories UND fuer Admin (alle Stories)
   var existingDel = document.getElementById('story-delete-btn');
   if (existingDel) existingDel.remove();
-  if (ME && s.uid === ME.uid) {
+  if (ME && (s.uid === ME.uid || isAdmin())) {
     var delBtn = document.createElement('button');
     delBtn.id = 'story-delete-btn';
-    delBtn.innerHTML = '&#x1F5D1;';
-    delBtn.title = 'Story loeschen';
     delBtn.style.cssText = 'position:absolute;bottom:calc(env(safe-area-inset-bottom,0px)+100px);left:50%;transform:translateX(-50%);z-index:20;background:rgba(255,71,87,.9);border:none;border-radius:22px;padding:10px 22px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 4px 16px rgba(255,71,87,.5)';
-    delBtn.innerHTML = '&#x1F5D1; Story loeschen';
+    delBtn.innerHTML = '&#x1F5D1; Story löschen';
     delBtn.onclick = function(e) {
       e.stopPropagation();
       deleteStory(s.docId);
