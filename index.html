@@ -371,11 +371,11 @@ a{text-decoration:none;color:inherit}
 
 
 /* ── NEWS DETAIL SCREEN ─────────────────────── */
-#s-news-detail{background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch}
+#s-news-detail{background:var(--bg);display:flex;flex-direction:column}
 .nd-hero{width:100%;max-height:240px;object-fit:cover;display:block}
 .nd-hero-placeholder{width:100%;height:160px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:60px}
-.nd-body{padding:18px 16px calc(env(safe-area-inset-bottom,0px)+80px)}
-.nd-back{position:fixed;top:calc(env(safe-area-inset-top,0px)+10px);left:12px;z-index:50;background:rgba(10,15,30,.85);backdrop-filter:blur(12px);border:1px solid var(--border2);border-radius:10px;padding:7px 13px;color:var(--white);cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;font-weight:600}
+.nd-body{padding:18px 16px 20px}
+.nd-back{position:absolute;top:calc(env(safe-area-inset-top,0px)+10px);left:12px;z-index:50;background:rgba(10,15,30,.85);backdrop-filter:blur(12px);border:1px solid var(--border2);border-radius:10px;padding:7px 13px;color:var(--white);cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;font-weight:600}
 .nd-src-row{display:flex;align-items:center;gap:7px;margin-bottom:10px}
 .nd-src-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .nd-src-name{color:var(--gray);font-size:12px;font-weight:600}
@@ -386,6 +386,11 @@ a{text-decoration:none;color:inherit}
 .nd-img-gallery{display:grid;gap:6px;margin-bottom:16px;border-radius:12px;overflow:hidden}
 .nd-open-btn{width:100%;background:var(--gold);border:none;border-radius:14px;padding:15px;color:#0a0f1e;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Inter',sans-serif}
 .nd-like-row{display:flex;align-items:center;gap:10px;padding:14px 0;border-top:1px solid var(--border);margin-top:10px}
+
+
+.nd-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative}
+.nd-footer{flex-shrink:0;padding:12px 16px calc(env(safe-area-inset-bottom,0px)+12px);border-top:1px solid var(--border);background:var(--bg2)}
+.nd-close-btn{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:13px;padding:14px;color:var(--white);font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
 
 </style>
 </head>
@@ -450,14 +455,14 @@ a{text-decoration:none;color:inherit}
     <div id="tp-spiele" class="tab-panel"><div class="spiele-pad" id="spiele-inner"></div></div>
     <div id="tp-bihbook" class="tab-panel"><div id="pull-indicator" style="display:none;align-items:center;justify-content:center;gap:8px;padding:12px;color:var(--gold);font-size:13px;font-weight:600">&#x21BB; Aktualisiere...</div>
       <div class="bihbook-pad" id="bihbook-inner"></div></div>
-    <div id="tp-transfers" class="tab-panel"><div class="tr-pad" id="transfers-inner"></div></div>
+
   </div>
   <nav class="bnav">
     <button class="nbtn on" onclick="goTab('news',this)"><span class="nicon">&#x1F4F0;</span><span class="nlabel">News</span><div class="ndot"></div></button>
     <button class="nbtn" onclick="goTab('spieler',this)"><span class="nicon">&#x1F464;</span><span class="nlabel">Spieler</span></button>
     <button class="nbtn" onclick="goTab('spiele',this)"><span class="nicon">&#x1F4C5;</span><span class="nlabel">Spiele</span></button>
     <button class="nbtn" onclick="goTab('bihbook',this)"><span class="nicon">&#x1F409;</span><span class="nlabel">BIHBOOK</span></button>
-    <button class="nbtn" onclick="goTab('transfers',this)"><span class="nicon">&#x26BD;</span><span class="nlabel">Transfers</span></button>
+
   </nav>
 </div>
 
@@ -465,8 +470,13 @@ a{text-decoration:none;color:inherit}
 <div id="s-profile" class="screen"><div id="prof-view"></div></div>
 <!-- NEWS DETAIL -->
 <div id="s-news-detail" class="screen">
-  <button class="nd-back" onclick="closeNewsDetail()">&#x2190; Zurück</button>
-  <div id="nd-content"></div>
+  <div class="nd-scroll">
+    <button class="nd-back" onclick="closeNewsDetail()">&#x2190; Zurück</button>
+    <div id="nd-content"></div>
+  </div>
+  <div class="nd-footer">
+    <button class="nd-close-btn" onclick="closeNewsDetail()">&#x2190; News schliessen</button>
+  </div>
 </div>
 
 
@@ -980,7 +990,7 @@ function resetBtn(btn, mode) {
 // ════════════════════════════════════════════════════════════
 // NAVIGATION
 // ════════════════════════════════════════════════════════════
-var T_TITLES = { news: 'ZMAJEVI NEWS', spieler: 'KADER WM 2026', spiele: 'SPIELPLAN', bihbook: 'BIHBOOK', transfers: 'TRANSFERS' };
+var T_TITLES = { news: 'ZMAJEVI NEWS', spieler: 'KADER WM 2026', spiele: 'SPIELPLAN', bihbook: 'BIHBOOK' };
 function goTab(tab, btn) {
   document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('on'); });
   document.querySelectorAll('.nbtn').forEach(function(b) { b.classList.remove('on'); var d = b.querySelector('.ndot'); if (d) d.remove(); });
@@ -995,7 +1005,7 @@ function goTab(tab, btn) {
 
 function renderAll() {
   renderNewsTab();
-  renderTransfers();
+
   renderSpiele();
 }
 
@@ -1021,6 +1031,7 @@ var ALL_NEWS = [];
 // ── NEWS ENGINE ────────────────────────────────────────────
 var THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 var newsLoadedAt = 0;
+var ADMIN_NEWS_LIST = []; // permanent admin-created news, never overwritten
 
 function detectTag(text) {
   var t = (text||'').toLowerCase();
@@ -1034,48 +1045,59 @@ function detectTag(text) {
 
 // ── Kuratierte aktuelle News (täglich manuell aktualisiert via Admin)
 // Diese werden immer angezeigt und sind real von Sportske.ba, Klix.ba etc.
+// CURATED_NEWS: Täglich aktualisiert — max. 48h alt
+// Zuletzt aktualisiert: 26. Mai 2026
 var CURATED_NEWS = [
-  { id:'c1', src:'SportSport.ba', time:'Heute', tag:'Nationalteam', hot:true, likes:0,
-    title:'Alajbegović: Logično da ćemo pobijediti Kanadu – Zmajevi pripreme u Sarajevu',
-    desc:'Kerim Alajbegović govori o predstojećem SP-u i uvjeren je u pobjedu nad Kanadom. Reprezentacija BiH počela je s pripremama u Sarajevu pred početak Mundijala.',
-    url:'https://sportsport.ba/tag/fudbalska_reprezentacija_bih', imageUrl:'' },
-  { id:'c2', src:'SportSport.ba', time:'Heute', tag:'Transfers', hot:true, likes:0,
-    title:'Alajbegović potvrđen u Bayer Leverkusenu – Zmajevi odmah reagirali likeom!',
-    desc:'Bayer Leverkusen potvrdio da se Kerim Alajbegović vraća u klub. Džeko i suigrači odmah lajkali objavu. Transfer od Red Bull Salzburga službeno potvrđen.',
-    url:'https://sportsport.ba/fudbal/kerim-alajbegovic-edin-dzeko-zmajevi-reakcije-leverkusen-transfer/518934', imageUrl:'' },
-  { id:'c3', src:'Sportske.ba', time:'Vor 3T', tag:'Ausruestung', hot:true, likes:0,
-    title:'Novi dres Zmajeva za SP 2026 – prva objava! Premijera protiv Sjeverne Makedonije 29. maja',
-    desc:'Fudbalski savez BiH najavio novi dres za Svjetsko prvenstvo. Sponzor Kelme, plavi efekti u kratkom videu. Prvijenac u novim dresovima očekuje se na prijateljskoj utakmici 29. maja.',
-    url:'https://sportske.ba/clanak/misteriozna-najava-stize-novi-dres-reprezentacije-bih-video/', imageUrl:'' },
-  { id:'c4', src:'Klix.ba', time:'Vor 5T', tag:'Spieler', hot:false, likes:0,
-    title:'Alajbegović izostavljen iz Panini albuma za SP – navijači revoltirani',
-    desc:'Kerim Alajbegović, igrač preokreta u plasману na SP, neće biti u Panini albumima za Mundijal 2026. Navijači BiH zgranuti jer je bio ključni igrač u baražu.',
-    url:'https://www.klix.ba/sport/nogomet/hoce-li-slicice-razocarati-navijace-bih-nema-alajbegovica-a-ovo-su-zmajevi-koji-nas-predstavljaju/260420014', imageUrl:'' },
+  { id:'c1', src:'Klix.ba', time:'Heute', tag:'Ausruestung', hot:true, likes:0,
+    title:'Predstavljeni novi dresovi Zmajeva za SP 2026! Plava i bijela Kelme garnitura',
+    desc:'N/FSBiH i Kelme zvanično su predstavili nove dresove BiH za Svjetsko prvenstvo. Plava domaća i bijela gostujuća garnitura. Vertikalne linije simbolizuju rijeke domovine, dizajner Haris Stambolić.',
+    url:'https://www.klix.ba/sport/nogomet/predstavljeni-dresovi-bosne-i-hercegovine-u-njima-ce-zmajevi-igrati-svjetsko-prvenstvo/260525011', imageUrl:'' },
+  { id:'c2', src:'SportSport.ba', time:'Heute', tag:'Ausruestung', hot:true, likes:0,
+    title:'Koliko koštaju novi dresovi Zmajeva? Cijena prave garniture je "paprena"',
+    desc:'Novi dresovi reprezentacije BiH za Mundijal su u prodaji. Kelme garnitura dostupna odmah. Debi u novim dresovima je u petak na Koševu protiv Sjeverne Makedonije (20:30).',
+    url:'https://sportsport.ba/fudbal/bosna-i-hercegovina-zmajevi-novi-dres-kelme-cijena/522724', imageUrl:'' },
+  { id:'c3', src:'SportSport.ba', time:'Heute', tag:'Nationalteam', hot:true, likes:0,
+    title:'Zmajevi u novim dresovima debituju 29. maja protiv Sjeverne Makedonije na Koševu',
+    desc:'Reprezentacija BiH premijernu utakmicu u novim dresovima igraće u petak na stadionu Koševo u Sarajevu. Start u 20:30h. Ovo je posljednja priprema pred odlazak u SAD.',
+    url:'https://sportsport.ba/fudbal/bosna-i-hercegovina-zmajevi-kelme-novi-dresovi-video/522716', imageUrl:'' },
+  { id:'c4', src:'Klix.ba', time:'Heute', tag:'Nationalteam', hot:false, likes:0,
+    title:'Tahirović i Gigović: "Umor je nestao čim smo došli u Sarajevo, s nestrpljenjem čekamo SP"',
+    desc:'Bh. reprezentativci Benjamin Tahirović i Armin Gigović izjavili su da se ne osjećaju umor uoči priprema za Mundijal i da jedva čekaju početek SP-a 2026.',
+    url:'https://www.klix.ba/sport/nogomet', imageUrl:'' },
   { id:'c5', src:'Reprezentacija.ba', time:'Heute', tag:'Nationalteam', hot:false, likes:0,
     title:'Alphonso Davies vjerovatno ne igra protiv Bosne i Hercegovine na SP-u',
-    desc:'Najveća zvijezda Kanade Alphonso Davies doveden je u pitanje za utakmicu grupe B Mundijala 2026. BiH igra protiv Kanade 12. juna u Los Angelesu.',
+    desc:'Najveća zvijezda Kanade Alphonso Davies upitan je za grupnu utakmicu protiv BiH na Mundijalu 2026. Zmajevi igraju protiv Kanade 12. juna u Los Angelesu.',
     url:'https://reprezentacija.ba/', imageUrl:'' },
-  { id:'c6', src:'SportSport.ba', time:'Vor 2T', tag:'Nationalteam', hot:false, likes:0,
-    title:'Zmajevi počeli ocupljanje u Sarajevu – Katić privukao pažnju majicom',
-    desc:'Reprezentativci BiH stigli na okupljanje pred SP 2026. Nikola Katić privukao pažnju navijača majicom koju je nosio pri dolasku. Amar Dedić primio poseban poklon od pjevača Mirze Selimovića.',
+  { id:'c6', src:'SportSport.ba', time:'vor 3T', tag:'Nationalteam', hot:false, likes:0,
+    title:'Alajbegović: "Logično je da ćemo pobijediti Kanadu" – Zmajevi krenuli s pripremama',
+    desc:'Kerim Alajbegović uvjeren u pobjedu nad Kanadom na otvaranju SP-a. Reprezentacija BiH počela je pripreme u Sarajevu, okupljanje u subotu 23. maja.',
     url:'https://sportsport.ba/tag/fudbalska_reprezentacija_bih', imageUrl:'' },
-  { id:'c7', src:'Klix.ba', time:'Vor 4T', tag:'Spieler', hot:false, likes:0,
-    title:'Alajbegović pokazao kolekciju dresova – Dedić, Demirovic i Doué u zbirci',
-    desc:'Kerim Alajbegović posjeduje dres Amara Dedića iz Benfice, Ermedina Demirovića iz Stuttgarta, ali i francuskog talenta Desiré Douéa kojeg je dobio na utakmici U21.',
-    url:'https://www.klix.ba/sport/nogomet/alajbegovic-pokazao-impresivnu-kolekciju-dresova-koje-posjeduje-dobio-je-dva-austrijska-za-jedan-zmajeva/260405044', imageUrl:'' },
-  { id:'c8', src:'Sportske.ba', time:'Vor 6T', tag:'Nationalteam', hot:false, likes:0,
-    title:'Promijenjen termin utakmice BiH – Sjeverna Makedonija: igra se 29. maja u Sarajevu',
-    desc:'Prijateljska utakmica BiH i Sjeverne Makedonije u Sarajevu igra se 29. maja u 20:30. Ovo je prva od dvije pripremne utakmice Zmajeva pred SP 2026.',
-    url:'https://sportske.ba/', imageUrl:'' },
+  { id:'c7', src:'SportSport.ba', time:'vor 2M', tag:'Spieler', hot:false, likes:0,
+    title:'Alajbegović se vraća u Bayer Leverkusen – Džeko i Zmajevi reagirali likeom',
+    desc:'Leverkusen aktivirao klauzulu i otkupio Alajbegovića od Red Bull Salzburga. Bh. igrač odličan u baražu, potpisuje ugovor na 5 godina.',
+    url:'https://sportsport.ba/fudbal/kerim-alajbegovic-edin-dzeko-zmajevi-reakcije-leverkusen-transfer/518934', imageUrl:'' },
 ];
 
 function loadLiveNews() {
-  var adminNews = ALL_NEWS.filter(function(n){ return n.adminPost; });
+  var adminNews = ADMIN_NEWS_LIST.slice(); // admin-created news always preserved
 
   // Zeige sofort kuratierte News → keine Wartezeit
-  ALL_NEWS = adminNews.concat(CURATED_NEWS.map(function(n){
-    return Object.assign({}, n, { pubMs: Date.now() - (n.time === 'Heute' ? 0 : n.time.includes('2') ? 2*86400000 : n.time.includes('3') ? 3*86400000 : n.time.includes('4') ? 4*86400000 : n.time.includes('5') ? 5*86400000 : 6*86400000) });
-  }));
+  var now48 = Date.now();
+  var TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
+  ALL_NEWS = adminNews.concat(CURATED_NEWS
+    .map(function(n) {
+      var ageMs = n.time === 'Heute' ? 0
+        : n.time.includes('1') ? 1*86400000
+        : n.time.includes('2') ? 2*86400000
+        : n.time.includes('3') ? 3*86400000
+        : n.time.includes('4') ? 4*86400000
+        : n.time.includes('5') ? 5*86400000
+        : n.time.includes('6') ? 6*86400000
+        : n.time.includes('M') ? 30*86400000 : 0;
+      return Object.assign({}, n, { pubMs: now48 - ageMs });
+    })
+    .filter(function(n) { return (now48 - n.pubMs) <= TWO_DAYS_MS || n.pubMs >= now48 - 86400000; })
+  );
   newsLoadedAt = Date.now();
   var upd = document.getElementById('ai-upd');
   if (upd) upd.textContent = 'Jetzt aktuell · ' + CURATED_NEWS.length + ' News';
@@ -1084,6 +1106,19 @@ function loadLiveNews() {
   // Im Hintergrund: Claude API für zusätzliche Live-News
   fetchLiveNewsBackground(adminNews);
 }
+
+// Auto-Refresh alle 3 Stunden
+(function startAutoRefresh() {
+  var THREE_HOURS_MS = 3 * 60 * 60 * 1000;
+  setInterval(function() {
+    // Nur wenn News-Tab aktiv
+    newsLoadedAt = 0; // Cache invalidieren
+    var newsPanel = document.getElementById('tp-news');
+    if (newsPanel && newsPanel.classList.contains('active')) {
+      loadLiveNews();
+    }
+  }, THREE_HOURS_MS);
+})();
 
 function fetchLiveNewsBackground(adminNews) {
   var today = new Date().toLocaleDateString('de-DE', {day:'2-digit', month:'long', year:'numeric'});
@@ -1122,7 +1157,7 @@ function fetchLiveNewsBackground(adminNews) {
       return !curatedTitles.some(function(t){ return m.title.toLowerCase().indexOf(t) > -1; });
     });
     if (!newOnly.length) return;
-    ALL_NEWS = adminNews.concat(newOnly).concat(CURATED_NEWS.map(function(n){
+    ALL_NEWS = ADMIN_NEWS_LIST.concat(newOnly).concat(CURATED_NEWS.map(function(n){
       return Object.assign({}, n, { pubMs: now });
     }));
     var upd = document.getElementById('ai-upd');
@@ -1172,13 +1207,13 @@ function renderNewsFeed() {
     var brk = n.hot ? '<div class="brk-row"><div class="brk-d"></div><span class="brk-t">BREAKING</span></div>' : '';
     var like = '<button class="n-like' + (lk ? ' liked' : '') + '" onclick="event.preventDefault();event.stopPropagation();doNLike(' + n.id + ',this)">' + (lk ? '⭐' : '☆') + ' ' + (n.likes + (lk ? 1 : 0)) + '</button>';
     if (i === 0) {
-      h += '<div class="feat-card' + (n.hot ? ' hot' : '') + ' fu" style="' + delay + ';cursor:pointer" onclick="openNewsDetail(' + JSON.stringify(n).replace(/</g,'\\u003c') + ')">' +
+      h += '<div class="feat-card' + (n.hot ? ' hot' : '') + ' fu" style="' + delay + ';cursor:pointer" data-nid="' + n.id + '" onclick="openNewsById(this.dataset.nid)">' +
         '<div class="feat-img"' + (n.imageData ? ' style="padding:0;overflow:hidden">' + (n.images && n.images.length > 1 ? '<div style="display:grid;grid-template-columns:' + (n.images.length===2?'1fr 1fr':n.images.length===3?'1fr 1fr 1fr':'1fr 1fr') + ';height:110px;gap:2px">' + n.images.slice(0,4).map(function(img,ii){return '<img src="'+img+'" style="width:100%;height:100%;object-fit:cover"' + (ii===3&&n.images.length>4?'':'')+'>'; }).join('') + '</div>' : '<img src="' + n.imageData + '" style="width:100%;height:100%;object-fit:cover">') + '</div>' : '<div class="feat-img">' + em + '</div>') + '<div class="feat-body">' + brk +
         '<div class="cmeta"><div class="csrc"><div class="cdot" style="background:' + sc + '"></div><span class="cname">' + n.src + '</span></div><span class="ctime">' + n.time + '</span></div>' +
         '<div class="feat-title">' + n.title + '</div><div class="feat-desc">' + n.desc + '</div>' +
         '<div class="feat-foot">' + like + tag + '<span class="n-open">Otvori &#x2192;</span></div></div></div>';
     } else {
-      h += '<div class="comp-card' + (n.hot ? ' hot' : '') + ' fu" style="' + delay + ';cursor:pointer" onclick="openNewsDetail(' + JSON.stringify(n).replace(/</g,'\\u003c') + ')">' +
+      h += '<div class="comp-card' + (n.hot ? ' hot' : '') + ' fu" style="' + delay + ';cursor:pointer" data-nid="' + n.id + '" onclick="openNewsById(this.dataset.nid)">' +
         '<div class="comp-emoji">' + em + '</div><div class="comp-body">' +
         (n.hot ? '<div class="brk-row" style="margin-bottom:5px"><div class="brk-d"></div><span class="brk-t">BREAKING</span></div>' : '') +
         '<div class="cmeta" style="margin-bottom:5px"><div class="csrc"><div class="cdot" style="background:' + sc + '"></div><span class="cname">' + n.src + '</span></div><span class="ctime"> · ' + n.time + '</span></div>' +
@@ -1195,6 +1230,13 @@ function doNLike(id, btn) {
   btn.className = 'n-like' + (likedNews[id] ? ' liked' : '');
   btn.innerHTML = (likedNews[id] ? '⭐' : '☆') + ' ' + (n.likes + (likedNews[id] ? 1 : 0));
 }
+function openNewsById(id) {
+  // Suche News in ALL_NEWS + CURATED_NEWS
+  var n = ALL_NEWS.find(function(x){ return String(x.id) === String(id); });
+  if (!n) n = CURATED_NEWS.find(function(x){ return String(x.id) === String(id); });
+  if (n) openNewsDetail(n);
+}
+
 function openNewsDetail(n) {
   if (!n) return;
   var sc = (window.SCOL && window.SCOL[n.src]) || '#7a8aaa';
@@ -2706,7 +2748,9 @@ function publishAdminNews() {
   } else if (anImageData) {
     entry.imageData = anImageData;
   }
-  ALL_NEWS.unshift(entry);
+  ADMIN_NEWS_LIST.unshift(entry);
+  // Rebuild ALL_NEWS so admin entries always appear first
+  ALL_NEWS = ADMIN_NEWS_LIST.concat(CURATED_NEWS.map(function(n){ return Object.assign({}, n, {pubMs: Date.now()}); }));
   if (toBihbook) {
     adminPinnedPosts.unshift({ text: title + (desc ? '\n\n' + desc : ''), imageUrl: anImageData||null, durLabel: 'News-Beitrag', expiresAt: null, postedAt: new Date() });
   }
@@ -2720,7 +2764,10 @@ function publishAdminNews() {
   renderNewsFeed();
   var bb = document.getElementById('tp-bihbook');
   if (bb && bb.classList.contains('on')) renderBihbook();
-  showToast('News veroeffentlicht!'); closeAdminPanel();
+  showToast('\u2705 News ver\u00f6ffentlicht! (nur in dieser Sitzung aktiv)');
+  // Note: In der App-Vorschau (Iframe) wird die News beim Neuladen zurückgesetzt.
+  // In der echten App (Firebase) wird sie dauerhaft gespeichert.
+  closeAdminPanel();
 }
 
 // ── Poll ──
