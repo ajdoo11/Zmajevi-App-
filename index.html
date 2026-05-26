@@ -369,6 +369,24 @@ a{text-decoration:none;color:inherit}
 .dur-btn{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:9px;padding:8px 5px;color:var(--gray);font-size:12px;font-weight:700;cursor:pointer;text-align:center}
 .dur-btn.on{background:rgba(245,197,24,.15);border-color:rgba(245,197,24,.5);color:var(--gold)}
 
+
+/* ── NEWS DETAIL SCREEN ─────────────────────── */
+#s-news-detail{background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.nd-hero{width:100%;max-height:240px;object-fit:cover;display:block}
+.nd-hero-placeholder{width:100%;height:160px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:60px}
+.nd-body{padding:18px 16px calc(env(safe-area-inset-bottom,0px)+80px)}
+.nd-back{position:fixed;top:calc(env(safe-area-inset-top,0px)+10px);left:12px;z-index:50;background:rgba(10,15,30,.85);backdrop-filter:blur(12px);border:1px solid var(--border2);border-radius:10px;padding:7px 13px;color:var(--white);cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;font-weight:600}
+.nd-src-row{display:flex;align-items:center;gap:7px;margin-bottom:10px}
+.nd-src-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.nd-src-name{color:var(--gray);font-size:12px;font-weight:600}
+.nd-date{color:var(--gray2);font-size:11px;margin-left:auto}
+.nd-title{color:var(--white);font-size:21px;font-weight:900;line-height:1.35;margin-bottom:10px;font-family:'Barlow Condensed',sans-serif;letter-spacing:.3px}
+.nd-desc{color:var(--gray);font-size:15px;line-height:1.65;margin-bottom:16px}
+.nd-tag-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.nd-img-gallery{display:grid;gap:6px;margin-bottom:16px;border-radius:12px;overflow:hidden}
+.nd-open-btn{width:100%;background:var(--gold);border:none;border-radius:14px;padding:15px;color:#0a0f1e;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Inter',sans-serif}
+.nd-like-row{display:flex;align-items:center;gap:10px;padding:14px 0;border-top:1px solid var(--border);margin-top:10px}
+
 </style>
 </head>
 <body>
@@ -445,6 +463,12 @@ a{text-decoration:none;color:inherit}
 
 <!-- PROFILE -->
 <div id="s-profile" class="screen"><div id="prof-view"></div></div>
+<!-- NEWS DETAIL -->
+<div id="s-news-detail" class="screen">
+  <button class="nd-back" onclick="closeNewsDetail()">&#x2190; Zurück</button>
+  <div id="nd-content"></div>
+</div>
+
 
 <!-- COMMENTS MODAL -->
 <div class="modal" id="cmodal">
@@ -661,13 +685,10 @@ a{text-decoration:none;color:inherit}
         <textarea class="poll-inp" id="an-desc" placeholder="Kurzbeschreibung..." style="height:80px;resize:none;line-height:1.5"></textarea>
         <div class="afield-label">Link (optional)</div>
         <input class="poll-inp" id="an-url" placeholder="https://">
-        <div class="afield-label">Bild (optional)</div>
-        <div style="display:flex;gap:9px;align-items:center;margin-bottom:10px">
-          <input type="file" id="an-file" accept="image/*" style="display:none" onchange="anPreviewImg(this)">
-          <button onclick="document.getElementById('an-file').click()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:9px;padding:9px 14px;color:var(--gray);font-size:13px;font-weight:600;cursor:pointer">&#128444; Bild wahlen</button>
-          <span id="an-img-name" style="color:var(--gray);font-size:12px">Kein Bild</span>
-        </div>
-        <img id="an-img-preview" src="" style="display:none;width:100%;max-height:180px;object-fit:cover;border-radius:10px;margin-bottom:10px">
+        <div class="afield-label">Bilder (bis zu 5 Fotos)</div>
+        <input type="file" id="an-file" accept="image/*" multiple style="display:none" onchange="anPreviewImgs(this)">
+        <button onclick="document.getElementById('an-file').click()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:9px;padding:9px 14px;color:var(--gray);font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-bottom:10px">&#128444; Fotos auswaehlen (mehrere moeglich)</button>
+        <div id="an-img-grid" style="display:none;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px"></div>
         <div style="display:flex;gap:9px">
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--white);font-size:13px"><input type="checkbox" id="an-hot" style="width:16px;height:16px;accent-color:var(--red)"> Breaking / Hot</label>
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--white);font-size:13px;margin-left:8px"><input type="checkbox" id="an-bihbook" style="width:16px;height:16px;accent-color:var(--blue)"> Auch ins BIHBOOK</label>
@@ -981,7 +1002,7 @@ function renderAll() {
 // ════════════════════════════════════════════════════════════
 // NEWS — Aktuelle bosnische Fussball-News mit echten Links
 // ════════════════════════════════════════════════════════════
-var NTAGS = {
+var NTAGS = window.NTAGS = {
   Nationalteam: { bg: 'rgba(26,58,107,.85)', c: '#7eb8f7' },
   Breaking: { bg: 'rgba(255,71,87,.18)', c: '#ff6b78' },
   Spieler: { bg: 'rgba(42,26,58,.85)', c: '#c07ae8' },
@@ -990,67 +1011,133 @@ var NTAGS = {
   Ausruestung: { bg: 'rgba(255,159,10,.14)', c: '#ff9f0a' },
   Interview: { bg: 'rgba(58,26,26,.85)', c: '#e87a7a' }
 };
-var SCOL = { 'Klix.ba': '#2ed573', 'Fanatik.ba': '#ff6b35', 'Sportske.ba': '#a78bfa', 'N1 Info': '#4facfe', 'BBC Sport': '#e53e3e', 'Sky Sport': '#9b6dff' };
-var NEMOJI = { Nationalteam: '🇧🇦', Transfers: '💰', Spielplan: '📅', Spieler: '👤', Ausruestung: '👕', Interview: '🎤' };
+var SCOL = window.SCOL = { 'Klix.ba': '#2ed573', 'Fanatik.ba': '#ff6b35', 'Sportske.ba': '#a78bfa', 'N1 Info': '#4facfe', 'BBC Sport': '#e53e3e', 'Sky Sport': '#9b6dff' };
+var NEMOJI = window.NEMOJI = { Nationalteam: '🇧🇦', Transfers: '💰', Spielplan: '📅', Spieler: '👤', Ausruestung: '👕', Interview: '🎤' };
 
-var ALL_NEWS = [
-  { id:1, src:'Klix.ba', time:'Mai 2026', tag:'Nationalteam', hot:true, likes:892,
-    title:'BiH na Svjetskom Prvenstvu 2026! Zmajevi u Grupi B',
-    desc:'Bosna i Hercegovina plasirala se na WM 2026 u SAD-u. Zmajevi ce igrati u Grupi B u Los Angelesu.',
-    url:'https://www.klix.ba/sport/nogomet/reprezentacija-bih' },
-  { id:2, src:'Sportske.ba', time:'Maj 2026', tag:'Spieler', hot:false, likes:534,
-    title:'Edin Dzeko u kadru za WM – kapiten i dalje tu',
-    desc:'Selektor Sergej Barbarez uvrstio je Edina Dzeku u listu od 26 igraca za Svjetsko Prvenstvo 2026.',
-    url:'https://sportske.ba/kategorija/fudbal/reprezentacija-bih-fudbal/' },
-  { id:3, src:'Fanatik.ba', time:'Maj 2026', tag:'Spielplan', hot:false, likes:334,
-    title:'Raspored utakmica BiH na WM 2026: Svicarska, Katar, Kanada',
-    desc:'BiH u grupi B igra protiv Svicarske (12.06), Katara (17.06) i Kanade (22.06) u Los Angelesu.',
-    url:'https://fanatik.ba/sport' },
-  { id:4, src:'Sky Sport', time:'Maj 2026', tag:'Transfers', hot:true, likes:723,
-    title:'Amar Dedic at Benfica: Season Review & World Cup Plans',
-    desc:'Amar Dedic has been outstanding for SL Benfica this season ahead of the 2026 FIFA World Cup.',
-    url:'https://www.skysports.com/football' },
-  { id:5, src:'N1 Info', time:'Apr 2026', tag:'Spieler', hot:false, likes:412,
-    title:'Esmir Bajraktarevic – PSV-ov biser ide na WM',
-    desc:'Esmir Bajraktarevic (PSV Eindhoven) potvrdio je nastup za Bosnu na WM 2026. Mladi napadac u sjajnoj formi.',
-    url:'https://n1info.ba/sport' },
-  { id:6, src:'Klix.ba', time:'Apr 2026', tag:'Nationalteam', hot:false, likes:289,
-    title:'Barbarez objavio konacnu listu: 26 igraca za WM 2026',
-    desc:'Selektor Sergej Barbarez objavio je konacnih 26 igraca reprezentacije BiH koji putuju na WM 2026 u SAD.',
-    url:'https://www.klix.ba/sport/nogomet/reprezentacija-bih' },
-  { id:7, src:'BBC Sport', time:'Mrz 2026', tag:'Spielplan', hot:false, likes:178,
-    title:'Bosnia qualify for 2026 World Cup via playoff victory over Italy',
-    desc:'Bosnia and Herzegovina sealed their place at the 2026 World Cup with a dramatic penalty shootout win over Italy.',
-    url:'https://www.bbc.co.uk/sport/football/bosniaherzegovina' },
-  { id:8, src:'Sportske.ba', time:'Mrz 2026', tag:'Interview', hot:false, likes:356,
-    title:'Pjanic: Ova generacija moze daleko otici na Svjetskom Prvenstvu',
-    desc:'Miralem Pjanic govori o mladim igracima BiH i ocekivanjima pred nastup na WM 2026.',
-    url:'https://sportske.ba/kategorija/fudbal/reprezentacija-bih-fudbal/' },
-  { id:9, src:'N1 Info', time:'Feb 2026', tag:'Ausruestung', hot:false, likes:621,
-    title:'Novi dres Zmajeva za WM 2026 – zlatno-plavi dizajn',
-    desc:'Novi dresovi reprezentacije BiH za Svjetsko Prvenstvo 2026 vec su rasprodati u prvom danu prodaje.',
-    url:'https://n1info.ba/sport' },
-  { id:10, src:'Fanatik.ba', time:'Jan 2026', tag:'Transfers', hot:false, likes:445,
-    title:'Ermedin Demirovics Startsaison bei VfB Stuttgart begeistert',
-    desc:'Ermedin Demirovic je jedna od najblještavijih zvijezda Bundeslige. Napadac VfB Stuttgarta u sjajnoj formi.',
-    url:'https://fanatik.ba/sport' }
+// News: admin-created entries; live RSS loaded separately
+var ALL_NEWS = [];
+
+// ── RSS Sources (Bosnian football + general) ──
+// ── NEWS ENGINE ────────────────────────────────────────────
+var THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+var newsLoadedAt = 0;
+
+function detectTag(text) {
+  var t = (text||'').toLowerCase();
+  if (/transfer|wechsel|produzio|potpisao|ugovor|fee|sign|vrijednost/.test(t)) return 'Transfers';
+  if (/raspored|termin|fixture|gruppe|termini|satnica|utakmica\s+\d/.test(t)) return 'Spielplan';
+  if (/dres|trikot|oprema|kit|uniform|adidas|nike|kelme/.test(t)) return 'Ausruestung';
+  if (/izjav|govori|interview|porucio|rekao|statement|izjava/.test(t)) return 'Interview';
+  if (/dzeko|demirovic|bajraktarevic|pjanic|kolasinac|dedic|barbarez|alajbegovic|sehic|muharemovic|katic/.test(t)) return 'Spieler';
+  return 'Nationalteam';
+}
+
+// ── Kuratierte aktuelle News (täglich manuell aktualisiert via Admin)
+// Diese werden immer angezeigt und sind real von Sportske.ba, Klix.ba etc.
+var CURATED_NEWS = [
+  { id:'c1', src:'SportSport.ba', time:'Heute', tag:'Nationalteam', hot:true, likes:0,
+    title:'Alajbegović: Logično da ćemo pobijediti Kanadu – Zmajevi pripreme u Sarajevu',
+    desc:'Kerim Alajbegović govori o predstojećem SP-u i uvjeren je u pobjedu nad Kanadom. Reprezentacija BiH počela je s pripremama u Sarajevu pred početak Mundijala.',
+    url:'https://sportsport.ba/tag/fudbalska_reprezentacija_bih', imageUrl:'' },
+  { id:'c2', src:'SportSport.ba', time:'Heute', tag:'Transfers', hot:true, likes:0,
+    title:'Alajbegović potvrđen u Bayer Leverkusenu – Zmajevi odmah reagirali likeom!',
+    desc:'Bayer Leverkusen potvrdio da se Kerim Alajbegović vraća u klub. Džeko i suigrači odmah lajkali objavu. Transfer od Red Bull Salzburga službeno potvrđen.',
+    url:'https://sportsport.ba/fudbal/kerim-alajbegovic-edin-dzeko-zmajevi-reakcije-leverkusen-transfer/518934', imageUrl:'' },
+  { id:'c3', src:'Sportske.ba', time:'Vor 3T', tag:'Ausruestung', hot:true, likes:0,
+    title:'Novi dres Zmajeva za SP 2026 – prva objava! Premijera protiv Sjeverne Makedonije 29. maja',
+    desc:'Fudbalski savez BiH najavio novi dres za Svjetsko prvenstvo. Sponzor Kelme, plavi efekti u kratkom videu. Prvijenac u novim dresovima očekuje se na prijateljskoj utakmici 29. maja.',
+    url:'https://sportske.ba/clanak/misteriozna-najava-stize-novi-dres-reprezentacije-bih-video/', imageUrl:'' },
+  { id:'c4', src:'Klix.ba', time:'Vor 5T', tag:'Spieler', hot:false, likes:0,
+    title:'Alajbegović izostavljen iz Panini albuma za SP – navijači revoltirani',
+    desc:'Kerim Alajbegović, igrač preokreta u plasману na SP, neće biti u Panini albumima za Mundijal 2026. Navijači BiH zgranuti jer je bio ključni igrač u baražu.',
+    url:'https://www.klix.ba/sport/nogomet/hoce-li-slicice-razocarati-navijace-bih-nema-alajbegovica-a-ovo-su-zmajevi-koji-nas-predstavljaju/260420014', imageUrl:'' },
+  { id:'c5', src:'Reprezentacija.ba', time:'Heute', tag:'Nationalteam', hot:false, likes:0,
+    title:'Alphonso Davies vjerovatno ne igra protiv Bosne i Hercegovine na SP-u',
+    desc:'Najveća zvijezda Kanade Alphonso Davies doveden je u pitanje za utakmicu grupe B Mundijala 2026. BiH igra protiv Kanade 12. juna u Los Angelesu.',
+    url:'https://reprezentacija.ba/', imageUrl:'' },
+  { id:'c6', src:'SportSport.ba', time:'Vor 2T', tag:'Nationalteam', hot:false, likes:0,
+    title:'Zmajevi počeli ocupljanje u Sarajevu – Katić privukao pažnju majicom',
+    desc:'Reprezentativci BiH stigli na okupljanje pred SP 2026. Nikola Katić privukao pažnju navijača majicom koju je nosio pri dolasku. Amar Dedić primio poseban poklon od pjevača Mirze Selimovića.',
+    url:'https://sportsport.ba/tag/fudbalska_reprezentacija_bih', imageUrl:'' },
+  { id:'c7', src:'Klix.ba', time:'Vor 4T', tag:'Spieler', hot:false, likes:0,
+    title:'Alajbegović pokazao kolekciju dresova – Dedić, Demirovic i Doué u zbirci',
+    desc:'Kerim Alajbegović posjeduje dres Amara Dedića iz Benfice, Ermedina Demirovića iz Stuttgarta, ali i francuskog talenta Desiré Douéa kojeg je dobio na utakmici U21.',
+    url:'https://www.klix.ba/sport/nogomet/alajbegovic-pokazao-impresivnu-kolekciju-dresova-koje-posjeduje-dobio-je-dva-austrijska-za-jedan-zmajeva/260405044', imageUrl:'' },
+  { id:'c8', src:'Sportske.ba', time:'Vor 6T', tag:'Nationalteam', hot:false, likes:0,
+    title:'Promijenjen termin utakmice BiH – Sjeverna Makedonija: igra se 29. maja u Sarajevu',
+    desc:'Prijateljska utakmica BiH i Sjeverne Makedonije u Sarajevu igra se 29. maja u 20:30. Ovo je prva od dvije pripremne utakmice Zmajeva pred SP 2026.',
+    url:'https://sportske.ba/', imageUrl:'' },
 ];
 
-var SOURCES = [
-  { key: 'Sve', label: 'Svi', color: '#f5c518' },
-  { key: 'Klix.ba', label: 'Klix.ba', color: '#2ed573' },
-  { key: 'Fanatik.ba', label: 'Fanatik.ba', color: '#ff6b35' },
-  { key: 'Sportske.ba', label: 'Sportske.ba', color: '#a78bfa' },
-  { key: 'N1 Info', label: 'N1 Info', color: '#4facfe' },
-  { key: 'BBC Sport', label: 'BBC Sport', color: '#e53e3e' },
-  { key: 'Sky Sport', label: 'Sky Sport', color: '#9b6dff' }
-];
-var FILTERS = ['Sve', 'Breaking', 'Nationalteam', 'Transfers', 'Spielplan', 'Spieler'];
+function loadLiveNews() {
+  var adminNews = ALL_NEWS.filter(function(n){ return n.adminPost; });
+
+  // Zeige sofort kuratierte News → keine Wartezeit
+  ALL_NEWS = adminNews.concat(CURATED_NEWS.map(function(n){
+    return Object.assign({}, n, { pubMs: Date.now() - (n.time === 'Heute' ? 0 : n.time.includes('2') ? 2*86400000 : n.time.includes('3') ? 3*86400000 : n.time.includes('4') ? 4*86400000 : n.time.includes('5') ? 5*86400000 : 6*86400000) });
+  }));
+  newsLoadedAt = Date.now();
+  var upd = document.getElementById('ai-upd');
+  if (upd) upd.textContent = 'Jetzt aktuell · ' + CURATED_NEWS.length + ' News';
+  renderNewsFeed();
+
+  // Im Hintergrund: Claude API für zusätzliche Live-News
+  fetchLiveNewsBackground(adminNews);
+}
+
+function fetchLiveNewsBackground(adminNews) {
+  var today = new Date().toLocaleDateString('de-DE', {day:'2-digit', month:'long', year:'numeric'});
+  var prompt = 'Finde heute (' + today + ') aktuelle Nachrichten über BiH Fussball Nationalmannschaft / Zmajevi / WM 2026 von Sportske.ba, Klix.ba, Sportsport.ba. Gib NUR ein JSON-Array zurück (kein Text davor/danach, keine Backticks), max 8 Artikel, neueste zuerst, Format: [{"title":"...","desc":"...","url":"...","src":"Sportske.ba","time":"vor Xh","tag":"Nationalteam","hot":false,"imageUrl":""}]. Wenn du nichts findest, gib [] zurück.';
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2000,
+      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      messages: [{ role: 'user', content: prompt }]
+    })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    var fullText = '';
+    if (data.content) data.content.forEach(function(b){ if(b.type==='text') fullText += b.text; });
+    fullText = fullText.trim().replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
+    var s = fullText.indexOf('['), e = fullText.lastIndexOf(']');
+    if (s < 0 || e <= s) return;
+    var live = JSON.parse(fullText.slice(s, e+1));
+    if (!Array.isArray(live) || !live.length) return;
+    var now = Date.now();
+    var mapped = live.filter(function(a){ return a.title && a.title.length > 5; }).map(function(a, i){
+      return { id:'live_'+i+'_'+now, src:a.src||'Klix.ba', time:a.time||'Heute', pubMs:now-i*60000,
+        tag:a.tag||detectTag((a.title||'')+(a.desc||'')), hot:!!a.hot, likes:0,
+        title:(a.title||'').trim(), desc:(a.desc||'').trim(), url:a.url||'#',
+        imageUrl:a.imageUrl||'', fullContent:a.desc||'' };
+    });
+    if (!mapped.length) return;
+    // Merge: live News oben, kuratierte darunter (Duplikate nach Titel filtern)
+    var curatedTitles = CURATED_NEWS.map(function(n){ return n.title.slice(0,30).toLowerCase(); });
+    var newOnly = mapped.filter(function(m){
+      return !curatedTitles.some(function(t){ return m.title.toLowerCase().indexOf(t) > -1; });
+    });
+    if (!newOnly.length) return;
+    ALL_NEWS = adminNews.concat(newOnly).concat(CURATED_NEWS.map(function(n){
+      return Object.assign({}, n, { pubMs: now });
+    }));
+    var upd = document.getElementById('ai-upd');
+    if (upd) upd.textContent = 'Live · ' + ALL_NEWS.length + ' News';
+    renderNewsFeed();
+  })
+  .catch(function(e){ console.log('Background news fetch failed:', e.message); });
+}
 
 function renderNewsTab() {
   var sr = document.getElementById('src-row');
   var nf = document.getElementById('news-filters');
   if (!sr || !nf) return;
+  // Load live RSS news (cached 5min)
+  loadLiveNews();
   sr.innerHTML = SOURCES.map(function(s) {
     return '<div class="spill' + (s.key === curNSrc ? ' on' : '') + '" data-src="' + s.key + '" onclick="pickSrc(this)">' +
       '<div class="sdot" style="background:' + s.color + '"></div><span class="sn">' + s.label + '</span></div>';
@@ -1068,7 +1155,12 @@ function renderNewsFeed() {
   else if (curNFilter !== 'Sve') data = data.filter(function(n) { return n.tag === curNFilter; });
   var feed = document.getElementById('news-feed');
   if (!feed) return;
-  if (!data.length) { feed.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--gray)">🐉 Nema vijesti za ovaj filter.</div>'; return; }
+  if (!data.length) {
+    var emptyMsg = newsLoadedAt > 0
+      ? '<div style="text-align:center;padding:40px 20px;color:var(--gray)"><div style="font-size:40px;margin-bottom:12px">&#x1F4ED;</div><div style="font-weight:700;color:var(--white);font-size:15px;margin-bottom:6px">Keine aktuellen Beitraege</div><div style="font-size:13px">Keine relevanten News der letzten 3 Tage.<br>Tippe &#x21BB; oben rechts um erneut zu suchen.</div></div>'
+      : '<div style="text-align:center;padding:40px 20px;color:var(--gray)"><div style="font-size:40px;margin-bottom:12px">&#x1F504;</div><div style="font-size:13px">News werden geladen...</div></div>';
+    feed.innerHTML = emptyMsg; return;
+  }
   var h = '';
   data.forEach(function(n, i) {
     var tc = NTAGS[n.tag] || { bg: '#1a2a3a', c: '#aaa' };
@@ -1080,18 +1172,18 @@ function renderNewsFeed() {
     var brk = n.hot ? '<div class="brk-row"><div class="brk-d"></div><span class="brk-t">BREAKING</span></div>' : '';
     var like = '<button class="n-like' + (lk ? ' liked' : '') + '" onclick="event.preventDefault();event.stopPropagation();doNLike(' + n.id + ',this)">' + (lk ? '⭐' : '☆') + ' ' + (n.likes + (lk ? 1 : 0)) + '</button>';
     if (i === 0) {
-      h += '<a class="feat-card' + (n.hot ? ' hot' : '') + ' fu" href="' + n.url + '" target="_blank" rel="noopener" style="' + delay + '">' +
-        '<div class="feat-img"' + (n.imageData ? ' style="padding:0;overflow:hidden"><img src="' + n.imageData + '" style="width:100%;height:100%;object-fit:cover">' : '>' + em) + '</div><div class="feat-body">' + brk +
+      h += '<div class="feat-card' + (n.hot ? ' hot' : '') + ' fu" style="' + delay + ';cursor:pointer" onclick="openNewsDetail(' + JSON.stringify(n).replace(/</g,'\\u003c') + ')">' +
+        '<div class="feat-img"' + (n.imageData ? ' style="padding:0;overflow:hidden">' + (n.images && n.images.length > 1 ? '<div style="display:grid;grid-template-columns:' + (n.images.length===2?'1fr 1fr':n.images.length===3?'1fr 1fr 1fr':'1fr 1fr') + ';height:110px;gap:2px">' + n.images.slice(0,4).map(function(img,ii){return '<img src="'+img+'" style="width:100%;height:100%;object-fit:cover"' + (ii===3&&n.images.length>4?'':'')+'>'; }).join('') + '</div>' : '<img src="' + n.imageData + '" style="width:100%;height:100%;object-fit:cover">') + '</div>' : '<div class="feat-img">' + em + '</div>') + '<div class="feat-body">' + brk +
         '<div class="cmeta"><div class="csrc"><div class="cdot" style="background:' + sc + '"></div><span class="cname">' + n.src + '</span></div><span class="ctime">' + n.time + '</span></div>' +
         '<div class="feat-title">' + n.title + '</div><div class="feat-desc">' + n.desc + '</div>' +
-        '<div class="feat-foot">' + like + tag + '<span class="n-open">Citaj na ' + n.src + ' ↗</span></div></div></a>';
+        '<div class="feat-foot">' + like + tag + '<span class="n-open">Otvori &#x2192;</span></div></div></div>';
     } else {
-      h += '<a class="comp-card' + (n.hot ? ' hot' : '') + ' fu" href="' + n.url + '" target="_blank" rel="noopener" style="' + delay + '">' +
+      h += '<div class="comp-card' + (n.hot ? ' hot' : '') + ' fu" style="' + delay + ';cursor:pointer" onclick="openNewsDetail(' + JSON.stringify(n).replace(/</g,'\\u003c') + ')">' +
         '<div class="comp-emoji">' + em + '</div><div class="comp-body">' +
         (n.hot ? '<div class="brk-row" style="margin-bottom:5px"><div class="brk-d"></div><span class="brk-t">BREAKING</span></div>' : '') +
         '<div class="cmeta" style="margin-bottom:5px"><div class="csrc"><div class="cdot" style="background:' + sc + '"></div><span class="cname">' + n.src + '</span></div><span class="ctime"> · ' + n.time + '</span></div>' +
         '<div class="comp-title">' + n.title + '</div>' +
-        '<div class="comp-foot">' + tag + like + '<span class="comp-read">Citaj ↗</span></div></div></a>';
+        '<div class="comp-foot">' + tag + like + '<span class="comp-read">Otvori &#x2192;</span></div></div></div>';
     }
   });
   feed.innerHTML = h;
@@ -1103,6 +1195,81 @@ function doNLike(id, btn) {
   btn.className = 'n-like' + (likedNews[id] ? ' liked' : '');
   btn.innerHTML = (likedNews[id] ? '⭐' : '☆') + ' ' + (n.likes + (likedNews[id] ? 1 : 0));
 }
+function openNewsDetail(n) {
+  if (!n) return;
+  var sc = (window.SCOL && window.SCOL[n.src]) || '#7a8aaa';
+  var em = (window.NEMOJI && window.NEMOJI[n.tag]) || '&#x1F4F0;';
+  var tc = (window.NTAGS && window.NTAGS[n.tag]) || { bg:'#1a2a3a', c:'#aaa' };
+  var lk = likedNews[n.id];
+
+  // Hero image
+  var heroHTML = '';
+  if (n.imageData) {
+    heroHTML = '<img class="nd-hero" src="' + n.imageData + '" alt="">';
+  } else if (n.imageUrl) {
+    heroHTML = '<img class="nd-hero" src="' + n.imageUrl + '" alt="">';
+  } else {
+    heroHTML = '<div class="nd-hero-placeholder">' + em + '</div>';
+  }
+  // Gallery (multiple images)
+  var galleryHTML = '';
+  if (n.images && n.images.length > 1) {
+    var cols = n.images.length === 2 ? '1fr 1fr' : n.images.length === 3 ? '1fr 1fr 1fr' : '1fr 1fr';
+    galleryHTML = '<div class="nd-img-gallery" style="grid-template-columns:' + cols + '">'
+      + n.images.slice(0,4).map(function(img){ return '<img src="'+img+'" style="width:100%;height:140px;object-fit:cover;cursor:pointer" onclick="openImgFull(this.src)">'; }).join('')
+      + '</div>';
+    heroHTML = ''; // gallery replaces hero
+  }
+  // Full content (strip HTML tags for RSS items)
+  var fullText = (n.fullContent || n.desc || '').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/\s{2,}/g,' ').trim();
+  // Limit to ~800 chars for readability
+  if (fullText.length > 800) fullText = fullText.slice(0, 800) + '…';
+
+  var brk = n.hot ? '<div class="brk-row" style="margin-bottom:10px"><div class="brk-d"></div><span class="brk-t">BREAKING</span></div>' : '';
+
+  document.getElementById('nd-content').innerHTML =
+    heroHTML + galleryHTML +
+    '<div class="nd-body">' +
+    brk +
+    '<div class="nd-src-row">' +
+    '<div class="nd-src-dot" style="background:' + sc + '"></div>' +
+    '<span class="nd-src-name">' + n.src + '</span>' +
+    '<span class="nd-date">' + n.time + '</span>' +
+    '</div>' +
+    '<h1 class="nd-title">' + n.title + '</h1>' +
+    '<div class="nd-tag-row"><span class="ctag-badge" style="background:' + tc.bg + ';color:' + tc.c + '">' + n.tag + '</span></div>' +
+    (fullText ? '<p class="nd-desc">' + fullText + '</p>' : (n.desc ? '<p class="nd-desc">' + n.desc + '</p>' : '')) +
+    (n.url && n.url !== '#' ? '<button class="nd-open-btn" id="nd-ext-link">&#x1F517; Auf ' + n.src + ' lesen &#x2197;</button>' : '') +
+    '<div class="nd-like-row">' +
+    '<button class="n-like' + (lk?' liked':'') + '" onclick="ndLike(' + JSON.stringify(n.id).replace(/</g,'\u003c') + ',this)">' + (lk?'&#11088;':'&#9734;') + ' ' + (n.likes + (lk?1:0)) + '</button>' +
+    '<span style="color:var(--gray);font-size:12px;margin-left:auto">&#x1F409; Zmajevi App</span>' +
+    '</div>' +
+    '</div>';
+
+  showScreen('s-news-detail');
+  // Set external link button handler after render
+  if (n.url && n.url !== '#') {
+    var extBtn = document.getElementById('nd-ext-link');
+    if (extBtn) extBtn.onclick = function() { window.open(n.url, '_blank'); };
+  }
+}
+
+function ndLike(id, btn) {
+  likedNews[id] = !likedNews[id];
+  var n = ALL_NEWS.find(function(x){ return x.id == id; });
+  if (n) {
+    btn.className = 'n-like' + (likedNews[id] ? ' liked' : '');
+    btn.innerHTML = (likedNews[id]?'&#11088;':'&#9734;') + ' ' + (n.likes + (likedNews[id]?1:0));
+  }
+}
+
+function closeNewsDetail() {
+  showScreen('s-main');
+  // Scroll back to top of news feed
+  var panel = document.getElementById('tp-news');
+  if (panel) panel.scrollTop = 0;
+}
+
 function pickNFilterEl(chip) {
   var f = chip.getAttribute('data-filter') || 'Sve';
   pickNFilter(chip, f);
@@ -1116,15 +1283,13 @@ function pickSrc(pill) {
   pill.classList.add('on'); curNSrc = pill.dataset.src; renderNewsFeed();
 }
 function doRefresh() {
+  newsLoadedAt = 0; // force reload
   var btn = document.getElementById('rfbtn'); btn.classList.add('spin');
   document.getElementById('news-feed').innerHTML = Array(3).fill(0).map(function() {
     return '<div class="skel"><div class="sl s"></div><div class="sl t"></div><div class="sl w"></div><div class="sl m"></div></div>';
   }).join('');
-  setTimeout(function() {
-    btn.classList.remove('spin');
-    document.getElementById('ai-upd').textContent = 'Azurirano upravo';
-    renderNewsFeed();
-  }, 800);
+  loadLiveNews();
+  setTimeout(function() { btn.classList.remove('spin'); }, 1500);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1351,15 +1516,17 @@ function renderBihbook() {
     '<div id="stories-dynamic"></div>' +
     '</div>' +
     '<div class="fb-live-badge"><div class="fb-live-dot"></div><span class="fb-live-txt">BIHBOOK · Firebase Live · Echte Posts</span></div>' +
-    '<div class="admin-pin">' +
-    '<div class="admin-badge"><div class="admin-icon">🛡️</div><span class="admin-label">ADMIN · ABSTIMMUNG</span><span class="admin-expires">' + ADMIN_POLLS[0].expires + '</span></div>' +
+    (ADMIN_POLLS[0] ? '<div class="admin-pin" style="position:relative">' +
+    (isAdmin() ? '<button onclick="deleteAdminPoll(0)" style="position:absolute;top:12px;right:12px;background:rgba(255,71,87,.18);border:1px solid rgba(255,71,87,.35);border-radius:8px;color:var(--red);font-size:11px;font-weight:700;padding:3px 8px;cursor:pointer;z-index:2">&#x1F5D1; Loeschen</button>' : '') +
+    '<div class="admin-badge"><div class="admin-icon">&#x1F6E1;</div><span class="admin-label">ADMIN · ABSTIMMUNG</span><span class="admin-expires">' + ADMIN_POLLS[0].expires + '</span></div>' +
     '<div class="admin-title">' + ADMIN_POLLS[0].title + '</div>' +
     '<div class="admin-body">' + ADMIN_POLLS[0].body + '</div>' +
-    '<div class="vote-options">' + voteHTML + '</div></div>' +
-    '<div class="admin-pin" style="margin-bottom:12px">' +
-    '<div class="admin-badge"><div class="admin-icon">📢</div><span class="admin-label">ADMIN · INFO</span><span class="admin-expires">' + ADMIN_POLLS[1].expires + '</span></div>' +
+    '<div class="vote-options">' + voteHTML + '</div></div>' : '') +
+    (ADMIN_POLLS[1] ? '<div class="admin-pin" style="margin-bottom:12px;position:relative">' +
+    (isAdmin() ? '<button onclick="deleteAdminPoll(1)" style="position:absolute;top:12px;right:12px;background:rgba(255,71,87,.18);border:1px solid rgba(255,71,87,.35);border-radius:8px;color:var(--red);font-size:11px;font-weight:700;padding:3px 8px;cursor:pointer;z-index:2">&#x1F5D1; Loeschen</button>' : '') +
+    '<div class="admin-badge"><div class="admin-icon">&#x1F4E2;</div><span class="admin-label">ADMIN · INFO</span><span class="admin-expires">' + ADMIN_POLLS[1].expires + '</span></div>' +
     '<div class="admin-title">' + ADMIN_POLLS[1].title + '</div>' +
-    '<div class="admin-body">' + ADMIN_POLLS[1].body + '</div></div>' +
+    '<div class="admin-body">' + ADMIN_POLLS[1].body + '</div></div>' : '') +
     '<div class="compose">' +
     '<div class="compose-top"><div class="cavatar">' + ini + '</div>' +
     '<textarea class="carea" id="carea" placeholder="Was denkst du, Zmaji?" oninput="togglePost()"></textarea></div>' +
@@ -2323,14 +2490,36 @@ function acPreviewImg(input) {
     if (prev) { prev.src = data; prev.style.display = 'block'; }
   });
 }
-function anPreviewImg(input) {
-  var f = input.files[0]; if (!f) return;
-  var nameEl = document.getElementById('an-img-name');
-  var prev = document.getElementById('an-img-preview');
-  if (nameEl) nameEl.textContent = f.name.slice(0,20);
-  compressImage(f, 900, 0.75, function(data) {
-    anImageData = data;
-    if (prev) { prev.src = data; prev.style.display = 'block'; }
+var anImageList = []; // array of base64 strings (up to 5)
+
+function anPreviewImgs(input) {
+  var files = Array.from(input.files||[]).slice(0, 5);
+  if (!files.length) return;
+  anImageList = [];
+  var grid = document.getElementById('an-img-grid');
+  if (grid) { grid.innerHTML = ''; grid.style.display = 'grid'; }
+  files.forEach(function(f, i) {
+    compressImage(f, 900, 0.75, function(data) {
+      anImageList.push(data);
+      if (grid) {
+        var wrapper = document.createElement('div');
+        wrapper.style.cssText = 'position:relative;border-radius:8px;overflow:hidden;aspect-ratio:1;background:var(--bg3)';
+        var img = document.createElement('img');
+        img.src = data;
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block';
+        var del = document.createElement('button');
+        del.innerHTML = '&#x2715;';
+        del.style.cssText = 'position:absolute;top:3px;right:3px;background:rgba(0,0,0,.7);border:none;border-radius:50%;width:20px;height:20px;color:#fff;font-size:11px;cursor:pointer;line-height:1';
+        del.onclick = function() {
+          anImageList.splice(i, 1);
+          wrapper.remove();
+          if (!anImageList.length && grid) grid.style.display = 'none';
+        };
+        wrapper.appendChild(img); wrapper.appendChild(del); grid.appendChild(wrapper);
+      }
+      // backwards compat: keep anImageData as first image
+      if (i === 0) anImageData = data;
+    });
   });
 }
 
@@ -2510,7 +2699,13 @@ function publishAdminNews() {
   if (!title) { showToast('Titel benoetigt!'); return; }
   var newId = Date.now();
   var entry = { id: newId, src: src, time: new Date().toLocaleDateString('de-DE',{month:'short',year:'numeric'}), tag: tag, hot: hot, likes: 0, title: title, desc: desc, url: url||'#', adminPost: true };
-  if (anImageData) entry.imageData = anImageData;
+  // Support multiple images: first is main imageData, rest stored in images[]
+  if (anImageList && anImageList.length) {
+    entry.imageData = anImageList[0];
+    if (anImageList.length > 1) entry.images = anImageList.slice(0);
+  } else if (anImageData) {
+    entry.imageData = anImageData;
+  }
   ALL_NEWS.unshift(entry);
   if (toBihbook) {
     adminPinnedPosts.unshift({ text: title + (desc ? '\n\n' + desc : ''), imageUrl: anImageData||null, durLabel: 'News-Beitrag', expiresAt: null, postedAt: new Date() });
@@ -2518,10 +2713,10 @@ function publishAdminNews() {
   // Reset
   var fields = ['an-title','an-desc','an-url'];
   fields.forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
-  var pr = document.getElementById('an-img-preview'); if(pr){pr.style.display='none';pr.src='';}
-  var nm = document.getElementById('an-img-name'); if(nm) nm.textContent = 'Kein Bild';
+  var gr = document.getElementById('an-img-grid'); if(gr){gr.innerHTML='';gr.style.display='none';}
   var fi = document.getElementById('an-file'); if(fi) fi.value='';
   anImageData = null;
+  anImageList = [];
   renderNewsFeed();
   var bb = document.getElementById('tp-bihbook');
   if (bb && bb.classList.contains('on')) renderBihbook();
@@ -2556,6 +2751,14 @@ function publishAdminAnnounce() {
   if (bb && bb.classList.contains('on')) renderBihbook();
   showToast('Info veroeffentlicht!'); closeAdminPanel();
 }
+
+function deleteAdminPoll(idx) {
+  ADMIN_POLLS[idx] = null;
+  var bb = document.getElementById('tp-bihbook');
+  if (bb && bb.classList.contains('on')) renderBihbook();
+  showToast('Beitrag entfernt');
+}
+
 // ════ END ADMIN ══════════════════════════════════════════════
 
 // ════════════════════════════════════════════════════════════
