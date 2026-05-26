@@ -998,7 +998,7 @@ function goTab(tab, btn) {
   btn.classList.add('on');
   var dot = document.createElement('div'); dot.className = 'ndot'; btn.appendChild(dot);
   document.getElementById('ttitle').textContent = T_TITLES[tab];
-  if (tab === 'spieler' && !playersLoaded) { playersLoaded = true; renderSpieler(); }
+  if (tab === 'spieler') { if (!playersLoaded) { playersLoaded = true; loadSpielerFromFirestore(loadSpielerFromAI); } else { renderSpieler(); } }
   if (tab === 'spiele' && !spieleLoaded) { spieleLoaded = true; renderSpiele(); }
   if (tab === 'bihbook') { renderBihbook(); loadStories(); }
 }
@@ -1103,8 +1103,32 @@ function loadLiveNews() {
   if (upd) upd.textContent = 'Jetzt aktuell · ' + CURATED_NEWS.length + ' News';
   renderNewsFeed();
 
-  // Im Hintergrund: Claude API für zusätzliche Live-News
-  fetchLiveNewsBackground(adminNews);
+  // Admin-News aus Firestore laden (dauerhaft gespeichert)
+  if (fbDb) {
+    fbDb.collection('admin_content').where('type','==','news').orderBy('createdAt','desc').limit(20)
+      .get().then(function(snap) {
+        if (snap.empty) { fetchLiveNewsBackground(adminNews); return; }
+        var firestoreNews = [];
+        snap.forEach(function(doc) {
+          var d = doc.data();
+          firestoreNews.push({
+            id: doc.id, src: d.src||'Zmajevi App', time: 'Heute',
+            pubMs: Date.now(), tag: d.tag||'Nationalteam', hot: !!d.hot,
+            likes: d.likes||0, title: d.title||'', desc: d.desc||'',
+            url: d.url||'#', adminPost: true,
+            imageData: d.imageData||null, images: d.images||[]
+          });
+        });
+        ADMIN_NEWS_LIST = firestoreNews;
+        ALL_NEWS = ADMIN_NEWS_LIST.concat(CURATED_NEWS.map(function(n){ return Object.assign({}, n, {pubMs: Date.now()}); }));
+        var upd2 = document.getElementById('ai-upd');
+        if (upd2) upd2.textContent = 'Aktuell · ' + ALL_NEWS.length + ' News';
+        renderNewsFeed();
+        fetchLiveNewsBackground(ADMIN_NEWS_LIST);
+      }).catch(function() { fetchLiveNewsBackground(adminNews); });
+  } else {
+    fetchLiveNewsBackground(adminNews);
+  }
 }
 
 // Auto-Refresh alle 3 Stunden
@@ -1335,73 +1359,400 @@ function doRefresh() {
 }
 
 // ════════════════════════════════════════════════════════════
-// SPIELER — Echter WM 2026 Kader BiH
+// SPIELER — Hybrid: Firebase (Admin) + Claude AI (Auto-Update)
 // ════════════════════════════════════════════════════════════
-var PLAYERS = [
-  { id:1,  grp:'Golmani',   name:'Nikola Vasilj',         pos:'GK', club:'FC St. Pauli',       caps:18,  goals:0,  flag:'🧤', form:[1,1,1,0,1]  },
-  { id:2,  grp:'Golmani',   name:'Osman Hadzikic',         pos:'GK', club:'NK Slaven Belupo',   caps:4,   goals:0,  flag:'🧤', form:[1,1,0,1,1]  },
-  { id:3,  grp:'Golmani',   name:'Martin Zlomislic',       pos:'GK', club:'HNK Rijeka',         caps:3,   goals:0,  flag:'🧤', form:[0,1,1,0,1]  },
-  { id:4,  grp:'Odbrana',   name:'Dennis Hadzikadunic',    pos:'CB', club:'UC Sampdoria',       caps:31,  goals:2,  flag:'🏔️', form:[1,0,1,1,1]  },
-  { id:5,  grp:'Odbrana',   name:'Nihad Mujakic',          pos:'RB', club:'Gaziantep FK',       caps:14,  goals:0,  flag:'🛡️', form:[1,1,0,1,0]  },
-  { id:6,  grp:'Odbrana',   name:'Nidal Celic',            pos:'LB', club:'RC Lens',            caps:22,  goals:1,  flag:'🛡️', form:[1,1,1,0,1]  },
-  { id:7,  grp:'Odbrana',   name:'Tarik Muharemovic',      pos:'CB', club:'US Sassuolo',        caps:19,  goals:1,  flag:'🏔️', form:[0,1,1,1,1]  },
-  { id:8,  grp:'Odbrana',   name:'Sead Kolasinac',         pos:'LB', club:'Atalanta BC',        caps:61,  goals:2,  flag:'🛡️', form:[1,0,1,1,1]  },
-  { id:9,  grp:'Odbrana',   name:'Amar Dedic',             pos:'RB', club:'SL Benfica',         caps:28,  goals:3,  flag:'⚡', form:[1,1,1,0,1]  },
-  { id:10, grp:'Odbrana',   name:'Nikola Katic',           pos:'CB', club:'Schalke 04',         caps:11,  goals:0,  flag:'🏔️', form:[1,1,0,0,1]  },
-  { id:11, grp:'Vezni red', name:'Benjamin Tahirovic',     pos:'CM', club:'Bronby IF',          caps:21,  goals:3,  flag:'⚡', form:[1,1,0,1,1]  },
-  { id:12, grp:'Vezni red', name:'Armin Gigovic',          pos:'OM', club:'BSC Young Boys',     caps:16,  goals:2,  flag:'⚡', form:[1,0,1,1,0]  },
-  { id:13, grp:'Vezni red', name:'Ivan Sunjic',            pos:'CM', club:'Pafos FC',           caps:38,  goals:1,  flag:'⚡', form:[0,1,0,1,1]  },
-  { id:14, grp:'Vezni red', name:'Miralem Pjanic',         pos:'OM', club:'Sharjah FC',         caps:115, goals:17, flag:'⭐', form:[0,1,1,1,0]  },
-  { id:15, grp:'Vezni red', name:'Amar Memic',             pos:'CM', club:'FK Viktoria Plzen',  caps:9,   goals:0,  flag:'⚡', form:[1,1,1,1,0]  },
-  { id:16, grp:'Vezni red', name:'Ivan Basic',             pos:'CM', club:'FC Astana',          caps:12,  goals:1,  flag:'⚡', form:[1,1,1,0,1]  },
-  { id:17, grp:'Napadaci',  name:'Edin Dzeko',             pos:'ST', club:'Schalke 04',         caps:148, goals:73, flag:'🐉', form:[1,1,0,1,1]  },
-  { id:18, grp:'Napadaci',  name:'Ermedin Demirovicc',     pos:'ST', club:'VfB Stuttgart',      caps:33,  goals:11, flag:'🎯', form:[1,1,1,0,1]  },
-  { id:19, grp:'Napadaci',  name:'Amer Gojak',             pos:'LW', club:'Trabzonspor',        caps:42,  goals:7,  flag:'🎯', form:[0,1,1,1,1]  },
-  { id:20, grp:'Napadaci',  name:'Esmir Bajraktarevic',    pos:'LW', club:'PSV Eindhoven',      caps:14,  goals:5,  flag:'🎯', form:[1,0,1,1,1]  },
-  { id:21, grp:'Napadaci',  name:'Ermin Bicakcic',         pos:'CF', club:'1. FC Heidenheim',   caps:27,  goals:6,  flag:'🎯', form:[1,1,1,0,0]  },
-  { id:22, grp:'Napadaci',  name:'Dario Samic',            pos:'RW', club:'HNK Hajduk Split',   caps:18,  goals:4,  flag:'🎯', form:[1,1,0,1,0]  },
-  { id:23, grp:'Napadaci',  name:'Anel Husic',             pos:'LW', club:'FC Toulouse',        caps:11,  goals:2,  flag:'🎯', form:[0,1,0,1,1]  }
+var PLAYERS = []; // wird aus Firestore oder AI geladen
+var _spielerAiLoading = false;
+var _spielerLastFetch = 0; // Timestamp letzte AI-Abfrage
+var SPIELER_CACHE_MS = 12 * 60 * 60 * 1000; // 12h Cache
+
+// Positionsflags
+function posFlag(pos) {
+  if (!pos) return '🐉';
+  var p = pos.toUpperCase();
+  if (p==='GK') return '🧤';
+  if (p==='CB'||p==='RB'||p==='LB'||p==='RWB'||p==='LWB') return '🛡️';
+  if (p==='CM'||p==='DM'||p==='CDM'||p==='CAM'||p==='OM') return '⚡';
+  if (p==='ST'||p==='CF') return '🎯';
+  if (p==='LW'||p==='RW'||p==='LM'||p==='RM') return '🏃';
+  return '🐉';
+}
+function posGrp(pos) {
+  if (!pos) return 'Napadaci';
+  var p = pos.toUpperCase();
+  if (p==='GK') return 'Golmani';
+  if (p==='CB'||p==='RB'||p==='LB'||p==='RWB'||p==='LWB') return 'Odbrana';
+  if (p==='CM'||p==='DM'||p==='CDM'||p==='CAM'||p==='OM') return 'Vezni red';
+  return 'Napadaci';
+}
+
+// ── Offizieller WM 2026 Kader BiH (26 Spieler, angekuendigt 11. Mai 2026) ──
+var FALLBACK_PLAYERS = [
+  {name:'Nikola Vasilj',       pos:'GK', club:'FC St. Pauli',          caps:25, goals:0},
+  {name:'Martin Zlomislic',    pos:'GK', club:'HNK Rijeka',             caps:2,  goals:0},
+  {name:'Osman Hadzikic',      pos:'GK', club:'NK Slaven Belupo',       caps:0,  goals:0},
+  {name:'Sead Kolasinac',      pos:'LB', club:'Atalanta BC',            caps:64, goals:0},
+  {name:'Dennis Hadzikadunic', pos:'CB', club:'UC Sampdoria',           caps:30, goals:0},
+  {name:'Amar Dedic',          pos:'RB', club:'SL Benfica',             caps:26, goals:1},
+  {name:'Nikola Katic',        pos:'CB', club:'Schalke 04',             caps:15, goals:1},
+  {name:'Tarik Muharemovic',   pos:'CB', club:'US Sassuolo',            caps:12, goals:1},
+  {name:'Nihad Mujakic',       pos:'RB', club:'Gaziantep FK',           caps:10, goals:1},
+  {name:'Stjepan Radeljic',    pos:'CB', club:'HNK Rijeka',             caps:4,  goals:0},
+  {name:'Nidal Celik',         pos:'LB', club:'RC Lens',                caps:0,  goals:0},
+  {name:'Amir Hadziahmetovic', pos:'CM', club:'Hull City',              caps:34, goals:0},
+  {name:'Benjamin Tahirovic',  pos:'CM', club:'Bronby IF',              caps:26, goals:2},
+  {name:'Armin Gigovic',       pos:'CAM',club:'BSC Young Boys',         caps:18, goals:1},
+  {name:'Dzenis Burnic',       pos:'CM', club:'Karlsruher SC',          caps:18, goals:0},
+  {name:'Ivan Basic',          pos:'CM', club:'FC Astana',              caps:15, goals:0},
+  {name:'Esmir Bajraktarevic', pos:'LW', club:'PSV Eindhoven',          caps:14, goals:1},
+  {name:'Amar Memic',          pos:'CM', club:'FK Viktoria Plzen',      caps:11, goals:1},
+  {name:'Ivan Sunjic',         pos:'DM', club:'Pafos FC',               caps:11, goals:0},
+  {name:'Kerim Alajbegovic',   pos:'CAM',club:'RB Salzburg',            caps:8,  goals:1},
+  {name:'Ermin Mahmic',        pos:'CM', club:'FC Slovan Liberec',      caps:0,  goals:0},
+  {name:'Edin Dzeko',          pos:'ST', club:'Schalke 04',             caps:148,goals:73},
+  {name:'Ermedin Demirovic',   pos:'ST', club:'VfB Stuttgart',          caps:35, goals:12},
+  {name:'Haris Tabakovic',     pos:'ST', club:'Borussia Monchengladbach',caps:8, goals:2},
+  {name:'Samed Bazdar',        pos:'LW', club:'Jagiellonia Bialystok',  caps:6,  goals:1},
+  {name:'Jovo Lukic',          pos:'CF', club:'FC Universitatea Cluj',  caps:5,  goals:0}
 ];
 
+// ── Schritt 1: Aus Firestore laden (Admin-Kader hat Vorrang) ──
+function loadSpielerFromFirestore(onEmpty) {
+  if (!fbDb) { onEmpty(); return; }
+  // Kein compound orderBy (braucht Index) -- client-seitig sortieren
+  fbDb.collection('kader').limit(60).get()
+    .then(function(snap) {
+      if (snap.empty) { onEmpty(); return; }
+      PLAYERS = [];
+      snap.forEach(function(doc) {
+        var d = doc.data();
+        PLAYERS.push(Object.assign({ docId: doc.id, id: doc.id }, d));
+      });
+      var grpPrio = {Golmani:0,Odbrana:1,'Vezni red':2,Napadaci:3};
+      PLAYERS.sort(function(a,b){
+        var ga=grpPrio[a.grp]||4, gb=grpPrio[b.grp]||4;
+        if(ga!==gb) return ga-gb;
+        return (a.name||'').localeCompare(b.name||'');
+      });
+      renderSpieler();
+    }).catch(function(e) { console.log('Firestore kader err:',e.message); onEmpty(); });
+}
+
+// ── Schritt 2: Claude AI mit Web-Search holt aktuellen Kader ──
+function loadSpielerFromAI() {
+  if (_spielerAiLoading) return;
+  var now = Date.now();
+  // Cache: wenn in letzten 12h geladen UND PLAYERS vorhanden -> direkt rendern
+  if (now - _spielerLastFetch < SPIELER_CACHE_MS && PLAYERS.length > 0) { renderSpieler(); return; }
+  _spielerAiLoading = true;
+  var inner = document.getElementById('spieler-inner');
+  if (inner) inner.innerHTML =
+    '<div style="text-align:center;padding:40px 20px;color:var(--gray)">' +
+    '<div style="font-size:36px;margin-bottom:12px">&#x1F916;</div>' +
+    '<div style="font-weight:700;color:var(--white);font-size:14px;margin-bottom:6px">Aktuellen Kader laden...</div>' +
+    '<div style="font-size:12px;color:var(--gray2)">Claude AI sucht den offiziellen BiH-Kader</div>' +
+    '<div style="margin-top:16px"><div class="load-bar" style="width:200px;margin:0 auto;opacity:.7"></div></div></div>';
+
+  var today = new Date().toLocaleDateString('de-DE',{day:'2-digit',month:'long',year:'numeric'});
+  var prompt = 'Suche heute (' + today + ') den AKTUELLEN offiziellen Kader der bosnisch-herzegowinischen Fussball-Nationalmannschaft (Zmajevi). ' +
+    'Nutze Quellen wie N/FSBiH offizielle Webseite, Transfermarkt, Soccerway oder aktuelle Nachrichtenartikel. ' +
+    'Gib NUR ein JSON-Array zurueck (kein Text, keine Backticks), Format: ' +
+    '[{"name":"Nikola Vasilj","pos":"GK","club":"FC St. Pauli","caps":20,"goals":0},...]. ' +
+    'Wichtig: Nur aktive Spieler die JETZT noch in der Nationalmannschaft sind! ' +
+    'Kein Pjanic (Karriereende), kein Kolasinac (Rücktritt), keine inaktiven Spieler. ' +
+    'Alle 23-26 Kader-Spieler auflisten, inklusive Verein und aktuellen Länderspiel-Caps.';
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 3000,
+      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      messages: [{ role: 'user', content: prompt }]
+    })
+  })
+  .then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
+  .then(function(data) {
+    _spielerAiLoading = false;
+    if (data.error) { console.log('AI err:', data.error.message||'?'); useFallbackPlayers(); return; }
+    var fullText = '';
+    if (data.content) data.content.forEach(function(b){ if(b.type==='text') fullText += b.text; });
+    fullText = fullText.trim().replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
+    var s = fullText.indexOf('['), e = fullText.lastIndexOf(']');
+    if (s < 0 || e <= s) { useFallbackPlayers(); return; }
+    var aiPlayers;
+    try { aiPlayers = JSON.parse(fullText.slice(s, e+1)); } catch(ex) { useFallbackPlayers(); return; }
+    if (!Array.isArray(aiPlayers) || aiPlayers.length < 5) { useFallbackPlayers(); return; }
+    _spielerLastFetch = Date.now();
+    // Sofort rendern
+    PLAYERS = aiPlayers.map(function(p,i){
+      var grp = posGrp(p.pos||'');
+      return { id:'ai_'+i, docId:'ai_'+i,
+        name:(p.name||'').trim(), pos:(p.pos||'GK').toUpperCase().trim(),
+        club:(p.club||'').trim(), caps:parseInt(p.caps)||0, goals:parseInt(p.goals)||0,
+        grp:grp, grpOrder:grp==='Golmani'?0:grp==='Odbrana'?1:grp==='Vezni red'?2:3,
+        flag:posFlag(p.pos||''), form:[1,1,1,1,1], source:'ai' };
+    });
+    PLAYERS.sort(function(a,b){ if(a.grpOrder!==b.grpOrder) return a.grpOrder-b.grpOrder; return a.name.localeCompare(b.name); });
+    renderSpieler();
+    // Im Hintergrund in Firestore cachen
+    if (fbDb) {
+      try {
+        fbDb.collection('kader').where('source','==','ai').get().then(function(snap){
+          var batch = fbDb.batch();
+          snap.forEach(function(doc){ batch.delete(doc.ref); });
+          PLAYERS.forEach(function(p,i){
+            batch.set(fbDb.collection('kader').doc('ai_'+i), {
+              name:p.name,pos:p.pos,club:p.club,caps:p.caps,goals:p.goals,
+              grp:p.grp,grpOrder:p.grpOrder,flag:p.flag,form:p.form,
+              source:'ai',updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+            });
+          });
+          return batch.commit();
+        }).catch(function(){});
+      } catch(ex){}
+    }
+  })
+  .catch(function(e) {
+    _spielerAiLoading = false;
+    console.log('AI Spieler Fehler:', e.message);
+    useFallbackPlayers();
+  });
+}
+
+// ── Fallback: Eingebauter Kader wird SOFORT angezeigt ──
+function useFallbackPlayers() {
+  if (PLAYERS.length > 0) { renderSpieler(); return; }
+  PLAYERS = FALLBACK_PLAYERS.map(function(p,i){
+    var grp = posGrp(p.pos);
+    return { id:'fb_'+i, docId:'fb_'+i, name:p.name, pos:p.pos, club:p.club,
+      caps:p.caps, goals:p.goals, grp:grp,
+      grpOrder:grp==='Golmani'?0:grp==='Odbrana'?1:grp==='Vezni red'?2:3,
+      flag:posFlag(p.pos), form:[1,1,1,1,1], source:'fallback' };
+  });
+  PLAYERS.sort(function(a,b){ if(a.grpOrder!==b.grpOrder) return a.grpOrder-b.grpOrder; return a.name.localeCompare(b.name); });
+  _spielerLastFetch = Date.now();
+  renderSpieler();
+}
+function renderSpielerFallback() { useFallbackPlayers(); }
+
+// ── Haupt-Einstiegspunkt ──
 function renderSpieler() {
+  if (!PLAYERS.length) {
+    // Versuche zuerst Firestore, dann AI
+    loadSpielerFromFirestore(loadSpielerFromAI);
+    return;
+  }
   var groups = ['Golmani', 'Odbrana', 'Vezni red', 'Napadaci'];
+  var aiSource = PLAYERS.length && PLAYERS[0].source === 'ai';
+  var lastUpd = _spielerLastFetch ? new Date(_spielerLastFetch).toLocaleDateString('de-DE',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
   var h = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
-    '<span style="color:var(--gray);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase">WM 2026 KADER · ' + PLAYERS.length + ' IGRACA</span>' +
-    '<span class="api-badge">🇧🇦 Bosna</span></div>';
+    '<div>' +
+    '<span style="color:var(--gray);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase">AKTUELLER KADER · ' + PLAYERS.length + ' IGRACA</span>' +
+    (lastUpd ? '<div style="color:var(--gray2);font-size:10px;margin-top:2px">&#x1F916; AI · ' + lastUpd + '</div>' : '') +
+    '</div>' +
+    '<div style="display:flex;gap:6px;align-items:center">' +
+    (isAdmin() ? '<button onclick="openAdminKader()" style="background:rgba(255,71,87,.15);border:1px solid rgba(255,71,87,.3);border-radius:8px;padding:4px 9px;color:var(--red);font-size:10px;font-weight:800;cursor:pointer">&#x270F; Kader bearbeiten</button>' : '') +
+    '<button onclick="refreshSpielerAI()" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px 9px;color:var(--gray);font-size:11px;cursor:pointer" title="Kader aktualisieren">&#x21BB;</button>' +
+    '</div></div>';
   groups.forEach(function(grp) {
     var gp = PLAYERS.filter(function(p) { return p.grp === grp; });
     if (!gp.length) return;
     h += '<div class="grp-label">' + grp + '</div>';
     gp.forEach(function(p) {
-      h += '<div class="pcard fu" onclick="showPlayer(' + p.id + ')">' +
-        '<div class="pemoji">' + p.flag + '</div>' +
-        '<div style="flex:1"><div class="pname">' + p.name + '</div><div class="pmeta">' + p.pos + ' · ' + p.club + '</div></div>' +
-        '<div class="pcaps"><div class="pcnum">' + p.caps + '</div><div class="pclabel">Caps</div></div>' +
+      h += '<div class="pcard fu" onclick="showPlayer(\'' + (p.docId||p.id) + '\')">' +
+        '<div class="pemoji">' + (p.flag || posFlag(p.pos||'')) + '</div>' +
+        '<div style="flex:1"><div class="pname">' + p.name + '</div>' +
+        '<div class="pmeta">' + (p.pos||'') + ' · ' + (p.club||'') + '</div></div>' +
+        '<div class="pcaps"><div class="pcnum">' + (p.caps||0) + '</div><div class="pclabel">Caps</div></div>' +
         '<span style="color:var(--gray);font-size:16px">›</span></div>';
     });
   });
   document.getElementById('spieler-inner').innerHTML = h;
 }
 
+function refreshSpielerAI() {
+  _spielerLastFetch = 0; // Cache zurücksetzen → zwingt neuen AI-Aufruf
+  PLAYERS = [];
+  loadSpielerFromAI();
+}
+
 function showPlayer(id) {
-  var p = PLAYERS.find(function(x) { return x.id === id; });
+  var p = PLAYERS.find(function(x) { return String(x.docId||x.id) === String(id); });
   if (!p) return;
-  var form = p.form.map(function(f) {
-    return '<div class="fdot ' + (f === 1 ? 'w' : f === 0 ? 'l' : 'd') + '">' + (f === 1 ? '✓' : f === 0 ? '✗' : '—') + '</div>';
+  var form = (p.form||[1,1,1,1,1]).map(function(f) {
+    return '<div class="fdot ' + (f===1?'w':f===0?'l':'d') + '">' + (f===1?'✓':f===0?'✗':'—') + '</div>';
   }).join('');
-  document.getElementById('spieler-inner').innerHTML =
-    '<button onclick="renderSpieler()" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);border-radius:10px;padding:8px 13px;cursor:pointer;margin-bottom:14px;font-family:Inter,sans-serif;font-size:13px">← Nazad na kader</button>' +
-    '<div class="phero"><div class="photo-big">' + p.flag + '</div>' +
+  var inner = document.getElementById('spieler-inner');
+  if (!inner) return;
+  inner.innerHTML =
+    '<button onclick="renderSpieler()" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);border-radius:10px;padding:8px 13px;cursor:pointer;margin-bottom:14px;font-family:Inter,sans-serif;font-size:13px">&#x2190; Nazad na kader</button>' +
+    '<div class="phero">' +
+    '<div class="photo-big">' + (p.flag||posFlag(p.pos||'')) + '</div>' +
     '<div class="phname">' + p.name + '</div>' +
-    '<div class="phsub">' + p.pos + ' · ' + p.club + '</div>' +
-    '<div style="margin-top:9px;display:flex;gap:7px;justify-content:center">' +
-    '<span class="api-badge">' + p.grp + '</span>' +
-    '<span class="api-badge">🇧🇦 BiH</span></div></div>' +
+    '<div class="phsub">' + (p.pos||'') + ' · ' + (p.club||'') + '</div>' +
+    '<div style="margin-top:9px;display:flex;gap:7px;justify-content:center;flex-wrap:wrap">' +
+    '<span class="api-badge">' + (p.grp||'') + '</span>' +
+    '<span class="api-badge">&#x1F1E7;&#x1F1E6; BiH</span>' +
+    (p.source==='ai' ? '<span style="background:rgba(167,139,250,.15);color:#a78bfa;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;border:1px solid rgba(167,139,250,.3)">&#x1F916; AI</span>' : '') +
+    (isAdmin() ? '<button onclick="openEditPlayer(\'' + (p.docId||p.id) + '\')" style="background:rgba(255,71,87,.15);border:1px solid rgba(255,71,87,.3);border-radius:8px;padding:3px 9px;color:var(--red);font-size:11px;font-weight:700;cursor:pointer">&#x270F; Bearbeiten</button>' : '') +
+    '</div></div>' +
     '<div class="sgrid">' +
-    '<div class="scard"><div class="snum">' + p.caps + '</div><div class="slabel">Caps</div></div>' +
-    '<div class="scard"><div class="snum">' + p.goals + '</div><div class="slabel">Golovi</div></div>' +
+    '<div class="scard"><div class="snum">' + (p.caps||0) + '</div><div class="slabel">Caps</div></div>' +
+    '<div class="scard"><div class="snum">' + (p.goals||0) + '</div><div class="slabel">Golovi</div></div>' +
     '</div>' +
-    '<div class="fbox"><div class="ftitle">Zadnjih 5 utakmica (forma)</div><div class="fdots">' + form + '</div></div>';
+    '<div class="fbox"><div class="ftitle">Forma (letzte 5)</div><div class="fdots">' + form + '</div></div>';
+}
+
+// ════════════════════════════════════════════════════════════
+// ADMIN KADER — Spieler hinzufügen / bearbeiten / löschen
+// ════════════════════════════════════════════════════════════
+function openAdminKader() {
+  var inner = document.getElementById('spieler-inner');
+  if (!inner) return;
+  inner.innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">' +
+    '<span style="color:var(--gold);font-size:14px;font-weight:800">&#x270F; Kader verwalten</span>' +
+    '<button onclick="renderSpieler()" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);border-radius:9px;padding:7px 12px;cursor:pointer;font-family:Inter,sans-serif;font-size:12px">&#x2715; Schliessen</button>' +
+    '</div>' +
+    // Neuen Spieler hinzufügen
+    '<div style="background:var(--bg2);border-radius:14px;border:1px solid rgba(245,197,24,.25);padding:14px;margin-bottom:14px">' +
+    '<div style="color:var(--gold);font-size:11px;font-weight:800;letter-spacing:1.5px;margin-bottom:10px">+ NEUEN SPIELER HINZUFUEGEN</div>' +
+    '<input class="poll-inp" id="ak-name" placeholder="Name *">' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+    '<select class="poll-inp" id="ak-pos" style="cursor:pointer;-webkit-appearance:none">' +
+    '<option value="GK">GK – Torwart</option><option value="CB">CB – Innenverteidiger</option>' +
+    '<option value="RB">RB – Rechtsverteidiger</option><option value="LB">LB – Linksverteidiger</option>' +
+    '<option value="CM">CM – Zentrales Mittelfeld</option><option value="DM">DM – Defensives MF</option>' +
+    '<option value="CAM">CAM – Offensives MF</option><option value="LW">LW – Linksaußen</option>' +
+    '<option value="RW">RW – Rechtsaußen</option><option value="ST">ST – Mittelstürmer</option>' +
+    '<option value="CF">CF – Hängende Spitze</option>' +
+    '</select>' +
+    '<input class="poll-inp" id="ak-club" placeholder="Verein *">' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+    '<input class="poll-inp" id="ak-caps" placeholder="Caps" type="number" min="0">' +
+    '<input class="poll-inp" id="ak-goals" placeholder="Tore" type="number" min="0">' +
+    '</div>' +
+    '<button onclick="saveNewPlayer()" style="background:var(--gold);border:none;border-radius:11px;padding:12px;width:100%;color:#0a0f1e;font-size:14px;font-weight:800;cursor:pointer;margin-top:4px">&#x2795; Spieler hinzufuegen</button>' +
+    '</div>' +
+    // Bestehende Spieler verwalten
+    '<div style="color:var(--gold);font-size:11px;font-weight:800;letter-spacing:1.5px;margin-bottom:10px">AKTUELLER KADER (' + PLAYERS.length + ')</div>' +
+    '<div id="ak-player-list">' +
+    PLAYERS.map(function(p) {
+      return '<div style="background:var(--bg2);border-radius:11px;border:1px solid var(--border);padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px">' +
+        '<div style="flex:1"><div style="color:var(--white);font-size:13px;font-weight:700">' + p.name + '</div>' +
+        '<div style="color:var(--gray);font-size:11px;margin-top:2px">' + (p.pos||'') + ' · ' + (p.club||'') + ' · ' + (p.caps||0) + ' Caps</div></div>' +
+        '<button onclick="openEditPlayer(\'' + (p.docId||p.id) + '\')" style="background:rgba(79,172,254,.15);border:1px solid rgba(79,172,254,.3);border-radius:8px;color:#4facfe;font-size:11px;font-weight:700;padding:5px 9px;cursor:pointer">&#x270F;</button>' +
+        '<button onclick="deletePlayerFromFirestore(\'' + (p.docId||p.id) + '\')" style="background:rgba(255,71,87,.15);border:1px solid rgba(255,71,87,.3);border-radius:8px;color:var(--red);font-size:11px;font-weight:700;padding:5px 9px;cursor:pointer">&#x1F5D1;</button>' +
+        '</div>';
+    }).join('') +
+    '</div>' +
+    '<button onclick="refreshSpielerAI()" style="width:100%;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);border-radius:11px;padding:12px;color:#a78bfa;font-size:13px;font-weight:700;cursor:pointer;margin-top:10px">&#x1F916; KI-Update: Kader automatisch neu laden</button>';
+}
+
+function saveNewPlayer() {
+  if (!fbDb) { showToast('Keine Firebase-Verbindung!'); return; }
+  var name = (document.getElementById('ak-name')||{}).value||'';
+  var pos  = (document.getElementById('ak-pos')||{}).value||'GK';
+  var club = (document.getElementById('ak-club')||{}).value||'';
+  var caps = parseInt((document.getElementById('ak-caps')||{}).value||'0');
+  var goals= parseInt((document.getElementById('ak-goals')||{}).value||'0');
+  if (!name||!club) { showToast('Name und Verein sind Pflicht!'); return; }
+  var grp = posGrp(pos);
+  var grpOrder = grp==='Golmani'?0:grp==='Odbrana'?1:grp==='Vezni red'?2:3;
+  fbDb.collection('kader').add({
+    name: name.trim(), pos: pos.toUpperCase(), club: club.trim(),
+    caps: caps||0, goals: goals||0,
+    grp: grp, grpOrder: grpOrder,
+    flag: posFlag(pos), form:[1,1,1,1,1],
+    source: 'admin', updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function() {
+    showToast('✅ ' + name + ' hinzugefügt!');
+    PLAYERS = []; playersLoaded = false;
+    loadSpielerFromFirestore(loadSpielerFromAI);
+  }).catch(function(e){ showToast('Fehler: '+e.message); });
+}
+
+function openEditPlayer(id) {
+  var p = PLAYERS.find(function(x){ return String(x.docId||x.id)===String(id); });
+  if (!p) return;
+  var inner = document.getElementById('spieler-inner');
+  if (!inner) return;
+  inner.innerHTML =
+    '<button onclick="openAdminKader()" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);border-radius:10px;padding:8px 13px;cursor:pointer;margin-bottom:14px;font-family:Inter,sans-serif;font-size:13px">&#x2190; Zurueck</button>' +
+    '<div style="background:var(--bg2);border-radius:14px;border:1px solid rgba(245,197,24,.25);padding:14px">' +
+    '<div style="color:var(--gold);font-size:11px;font-weight:800;letter-spacing:1.5px;margin-bottom:10px">SPIELER BEARBEITEN</div>' +
+    '<input class="poll-inp" id="ep-name" value="' + (p.name||'') + '" placeholder="Name">' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+    '<input class="poll-inp" id="ep-pos" value="' + (p.pos||'') + '" placeholder="Position (GK/CB/CM/ST...)">' +
+    '<input class="poll-inp" id="ep-club" value="' + (p.club||'') + '" placeholder="Verein">' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+    '<input class="poll-inp" id="ep-caps" value="' + (p.caps||0) + '" placeholder="Caps" type="number">' +
+    '<input class="poll-inp" id="ep-goals" value="' + (p.goals||0) + '" placeholder="Tore" type="number">' +
+    '</div>' +
+    '<button onclick="saveEditPlayer(\'' + id + '\')" style="background:var(--gold);border:none;border-radius:11px;padding:12px;width:100%;color:#0a0f1e;font-size:14px;font-weight:800;cursor:pointer;margin-top:4px">&#x2705; Speichern</button>' +
+    '</div>';
+}
+
+function saveEditPlayer(id) {
+  if (!fbDb) { showToast('Keine Firebase-Verbindung!'); return; }
+  var name = (document.getElementById('ep-name')||{}).value||'';
+  var pos  = ((document.getElementById('ep-pos')||{}).value||'').toUpperCase();
+  var club = (document.getElementById('ep-club')||{}).value||'';
+  var caps = parseInt((document.getElementById('ep-caps')||{}).value||'0');
+  var goals= parseInt((document.getElementById('ep-goals')||{}).value||'0');
+  if (!name) { showToast('Name ist Pflicht!'); return; }
+  var grp = posGrp(pos);
+  var grpOrder = grp==='Golmani'?0:grp==='Odbrana'?1:grp==='Vezni red'?2:3;
+
+  // Prüfe ob echte Firestore-ID oder AI-ID
+  var isFirestoreDoc = id && !id.startsWith('ai_');
+  var savePromise;
+  if (isFirestoreDoc) {
+    savePromise = fbDb.collection('kader').doc(id).update({
+      name:name.trim(), pos:pos, club:club.trim(), caps:caps||0, goals:goals||0,
+      grp:grp, grpOrder:grpOrder, flag:posFlag(pos), source:'admin',
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } else {
+    // AI-Eintrag → als neuer Admin-Eintrag speichern
+    savePromise = fbDb.collection('kader').add({
+      name:name.trim(), pos:pos, club:club.trim(), caps:caps||0, goals:goals||0,
+      grp:grp, grpOrder:grpOrder, flag:posFlag(pos), form:[1,1,1,1,1],
+      source:'admin', updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }
+  savePromise.then(function() {
+    showToast('✅ ' + name + ' gespeichert!');
+    PLAYERS = []; playersLoaded = false;
+    loadSpielerFromFirestore(loadSpielerFromAI);
+  }).catch(function(e){ showToast('Fehler: '+e.message); });
+}
+
+function deletePlayerFromFirestore(id) {
+  if (!id || !fbDb) { showToast('Fehler!'); return; }
+  if (!confirm('Spieler wirklich löschen?')) return;
+  var p = PLAYERS.find(function(x){ return String(x.docId||x.id)===String(id); });
+  var name = p ? p.name : 'Spieler';
+  // Prüfe ob echte Firestore-ID
+  if (id.startsWith('ai_')) {
+    // Nur lokal entfernen
+    PLAYERS = PLAYERS.filter(function(x){ return String(x.id)!==String(id); });
+    renderSpieler();
+    showToast('🗑 ' + name + ' entfernt');
+    return;
+  }
+  fbDb.collection('kader').doc(id).delete().then(function() {
+    showToast('🗑 ' + name + ' gelöscht!');
+    PLAYERS = []; playersLoaded = false;
+    loadSpielerFromFirestore(loadSpielerFromAI);
+  }).catch(function(e){ showToast('Fehler: '+e.message); });
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1515,60 +1866,25 @@ function switchLeague(k) { activeLeagueTab = k; renderSpiele(); }
 // ════════════════════════════════════════════════════════════
 // BIHBOOK — Firebase Realtime
 // ════════════════════════════════════════════════════════════
-var ADMIN_POLLS = [
-  { title:'🗳️ Abstimmung: Wer schiesst das WM-Tor?', body:'Wahle deinen Favoriten fur den WM-Helden 2026!', expires:'Endet am 15. Juli',
-    options:[{label:'Edin Dzeko 🐉',votes:512},{label:'Ermedin Demirovic 🎯',votes:287},{label:'Esmir Bajraktarevic 🎯',votes:163},{label:'Jemand anderes',votes:44}] },
-  { title:'📢 Zmajevi bei der WM 2026 – Gruppe B!', body:'Bosnien trifft auf Svicarska, Kanada und Katar. Los Angeles. Wir glauben an euch! 🐉🇧🇦', expires:'WM: 11. Jun – 19. Jul 2026' }
-];
+// ADMIN_POLLS: Fallback wenn Firebase noch laedt
+var ADMIN_POLLS = [null, null];
+// Unsub-Handle fuer Admin-Content Live-Listener
+var adminContentUnsub = null;
 
 function renderBihbook() {
   if (!ME) return;
   var ini = ME.name.split(' ').map(function(w) { return w[0]; }).join('').toUpperCase().slice(0, 2);
-  var tv = ADMIN_POLLS[0].options.reduce(function(a, o) { return a + o.votes; }, 0);
-  var voteHTML = ADMIN_POLLS[0].options.map(function(o, i) {
-    var pct = Math.round((o.votes / tv) * 100);
-    var iv = votedPoll === i;
-    return '<div class="vote-opt' + (iv ? ' voted' : '') + '" onclick="doVote(' + i + ')">' +
-      '<span class="vote-label">' + o.label + '</span>' +
-      '<span class="vote-pct">' + (votedPoll !== null ? pct + '%' : '') + '</span></div>' +
-      (votedPoll !== null ? '<div class="vote-bar-wrap"><div class="vote-bar" style="width:' + pct + '%"></div></div>' : '');
-  }).join('');
 
-  // Build pinned admin posts HTML
-  var pinnedHTML = '';
-  var nowAB = Date.now();
-  adminPinnedPosts = adminPinnedPosts.filter(function(p){ return !p.expiresAt || p.expiresAt.getTime() > nowAB; });
-  adminPinnedPosts.forEach(function(p, i) {
-    pinnedHTML += '<div class="admin-post-card" style="padding:14px;position:relative">' +
-      '<div style="display:flex;align-items:center;gap:7px;margin-bottom:9px">' +
-      '<div class="admin-icon" style="background:var(--gold);width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px">&#x1F6E1;</div>' +
-      '<span style="color:var(--gold);font-size:11px;font-weight:800;letter-spacing:1.5px">ADMIN · BEITRAG</span>' +
-      '<span style="color:var(--gray);font-size:10px;margin-left:auto">' + (p.durLabel||'') + '</span>' +
-      (isAdmin() ? '<button class="amod-del" style="margin-left:6px;padding:3px 7px;font-size:11px" data-idx="' + i + '" onclick="aDelPinnedEl(this)">&#x1F5D1;</button>' : '') +
-      '</div>' +
-      (p.text ? '<div style="color:var(--white);font-size:14px;line-height:1.55;margin-bottom:' + (p.imageUrl?'10px':'0') + '">' + p.text.replace(/\n/g,'<br>') + '</div>' : '') +
-      (p.imageUrl ? '<img src="' + p.imageUrl + '" style="width:100%;max-height:280px;object-fit:cover;border-radius:10px;display:block;cursor:pointer" onclick="openImgFull(this.src)">' : '') +
-      '</div>';
-  });
-
+  // Grundstruktur rendern — Admin-Inhalte werden async nachgeladen
   document.getElementById('bihbook-inner').innerHTML =
-    pinnedHTML +
     '<div class="stories">' +
     '<div class="story-wrap" onclick="openStoryUpload()"><div class="story-ring add"><div class="story-av" style="font-size:20px">+</div></div><span class="story-lbl">Deine Story</span></div>' +
     '<div id="stories-dynamic"></div>' +
     '</div>' +
+    '<div id="admin-pinned-area"></div>' +
     '<div class="fb-live-badge"><div class="fb-live-dot"></div><span class="fb-live-txt">BIHBOOK · Firebase Live · Echte Posts</span></div>' +
-    (ADMIN_POLLS[0] ? '<div class="admin-pin" style="position:relative">' +
-    (isAdmin() ? '<button onclick="deleteAdminPoll(0)" style="position:absolute;top:12px;right:12px;background:rgba(255,71,87,.18);border:1px solid rgba(255,71,87,.35);border-radius:8px;color:var(--red);font-size:11px;font-weight:700;padding:3px 8px;cursor:pointer;z-index:2">&#x1F5D1; Loeschen</button>' : '') +
-    '<div class="admin-badge"><div class="admin-icon">&#x1F6E1;</div><span class="admin-label">ADMIN · ABSTIMMUNG</span><span class="admin-expires">' + ADMIN_POLLS[0].expires + '</span></div>' +
-    '<div class="admin-title">' + ADMIN_POLLS[0].title + '</div>' +
-    '<div class="admin-body">' + ADMIN_POLLS[0].body + '</div>' +
-    '<div class="vote-options">' + voteHTML + '</div></div>' : '') +
-    (ADMIN_POLLS[1] ? '<div class="admin-pin" style="margin-bottom:12px;position:relative">' +
-    (isAdmin() ? '<button onclick="deleteAdminPoll(1)" style="position:absolute;top:12px;right:12px;background:rgba(255,71,87,.18);border:1px solid rgba(255,71,87,.35);border-radius:8px;color:var(--red);font-size:11px;font-weight:700;padding:3px 8px;cursor:pointer;z-index:2">&#x1F5D1; Loeschen</button>' : '') +
-    '<div class="admin-badge"><div class="admin-icon">&#x1F4E2;</div><span class="admin-label">ADMIN · INFO</span><span class="admin-expires">' + ADMIN_POLLS[1].expires + '</span></div>' +
-    '<div class="admin-title">' + ADMIN_POLLS[1].title + '</div>' +
-    '<div class="admin-body">' + ADMIN_POLLS[1].body + '</div></div>' : '') +
+    '<div id="admin-poll-area"></div>' +
+    '<div id="admin-announce-area"></div>' +
     '<div class="compose">' +
     '<div class="compose-top"><div class="cavatar">' + ini + '</div>' +
     '<textarea class="carea" id="carea" placeholder="Was denkst du, Zmaji?" oninput="togglePost()"></textarea></div>' +
@@ -1582,11 +1898,139 @@ function renderBihbook() {
     '<button class="ctool">&#128522;</button>' +
     '</div>' +
     '<button class="cpost" id="cpost-btn" onclick="submitPost()" disabled>Posten</button></div></div>' +
-'<div id="feedlist"><div style="text-align:center;padding:20px;color:var(--gray);font-size:13px">🔄 Ladt Posts...</div></div>';
+    '<div id="feedlist"><div style="text-align:center;padding:20px;color:var(--gray);font-size:13px">&#x1F504; Ladt Posts...</div></div>';
 
   loadLiveFeed();
   loadStories();
+  loadAdminContent(); // NEU: laedt alles aus Firestore
   setTimeout(initPullToRefresh, 200);
+}
+
+// ── Laedt Admin-Pinned-Posts, Polls, Announces aus Firestore ──
+function loadAdminContent() {
+  if (!fbDb) return;
+  if (adminContentUnsub) adminContentUnsub();
+  var now = new Date();
+
+  // Live-Listener auf admin_content Collection
+  adminContentUnsub = fbDb.collection('admin_content')
+    .orderBy('createdAt', 'desc')
+    .limit(20)
+    .onSnapshot(function(snap) {
+      var pinned = [], polls = [], announces = [];
+      snap.forEach(function(doc) {
+        var d = Object.assign({ docId: doc.id }, doc.data());
+        // Abgelaufen? Ignorieren (Admin kann auch selbst loeschen)
+        if (d.expiresAt && d.expiresAt.toDate && d.expiresAt.toDate() < now) return;
+        if (d.type === 'pinned') pinned.push(d);
+        else if (d.type === 'poll') polls.push(d);
+        else if (d.type === 'announce') announces.push(d);
+        // 'news' type wird im News-Feed angezeigt, nicht hier
+      });
+      renderAdminPinned(pinned);
+      renderAdminPoll(polls[0] || null);
+      renderAdminAnnounce(announces[0] || null);
+    }, function(err) {
+      console.log('Admin content load error:', err.message);
+    });
+}
+
+function renderAdminPinned(items) {
+  var area = document.getElementById('admin-pinned-area');
+  if (!area) return;
+  if (!items.length) { area.innerHTML = ''; return; }
+  area.innerHTML = items.map(function(p) {
+    return '<div class="admin-post-card" style="padding:14px;margin-bottom:11px;position:relative">' +
+      '<div style="display:flex;align-items:center;gap:7px;margin-bottom:9px">' +
+      '<div class="admin-icon" style="background:var(--gold);width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px">&#x1F6E1;</div>' +
+      '<span style="color:var(--gold);font-size:11px;font-weight:800;letter-spacing:1.5px">ADMIN · BEITRAG</span>' +
+      '<span style="color:var(--gray);font-size:10px;margin-left:auto">' + (p.durLabel||'') + '</span>' +
+      (isAdmin() ? '<button class="amod-del" style="margin-left:6px;padding:3px 7px;font-size:11px" data-docid="' + p.docId + '" onclick="aDelFirebaseDoc(this)">&#x1F5D1;</button>' : '') +
+      '</div>' +
+      (p.text ? '<div style="color:var(--white);font-size:14px;line-height:1.55;margin-bottom:' + (p.imageUrl?'10px':'0') + '">' + p.text.replace(/\n/g,'<br>') + '</div>' : '') +
+      (p.imageUrl ? '<img src="' + p.imageUrl + '" style="width:100%;max-height:280px;object-fit:cover;border-radius:10px;display:block;cursor:pointer" onclick="openImgFull(this.src)">' : '') +
+      '</div>';
+  }).join('');
+}
+
+function renderAdminPoll(p) {
+  var area = document.getElementById('admin-poll-area');
+  if (!area) return;
+  if (!p) { area.innerHTML = ''; return; }
+
+  // Voting-Status aus Firestore-Daten lesen
+  var myVote = p.votes && ME ? p.votes[ME.uid] : null;
+  var tv = 0;
+  var optsWithVotes = (p.options || []).map(function(o, i) {
+    var cnt = p.voteCounts ? (p.voteCounts[i] || 0) : 0;
+    tv += cnt;
+    return { label: o, count: cnt, idx: i };
+  });
+
+  var voteHTML = optsWithVotes.map(function(o) {
+    var pct = tv > 0 ? Math.round((o.count / tv) * 100) : 0;
+    var voted = myVote === o.idx;
+    return '<div class="vote-opt' + (voted ? ' voted' : '') + '" data-docid="' + p.docId + '" data-idx="' + o.idx + '" onclick="doVoteFirebase(this)">' +
+      '<span class="vote-label">' + o.label + '</span>' +
+      '<span class="vote-pct">' + (myVote !== null && myVote !== undefined ? pct + '%' : '') + '</span></div>' +
+      (myVote !== null && myVote !== undefined ? '<div class="vote-bar-wrap"><div class="vote-bar" style="width:' + pct + '%"></div></div>' : '');
+  }).join('');
+
+  area.innerHTML = '<div class="admin-pin" style="position:relative;margin-bottom:12px">' +
+    (isAdmin() ? '<button data-docid="' + p.docId + '" onclick="aDelFirebaseDoc(this)" style="position:absolute;top:12px;right:12px;background:rgba(255,71,87,.18);border:1px solid rgba(255,71,87,.35);border-radius:8px;color:var(--red);font-size:11px;font-weight:700;padding:3px 8px;cursor:pointer;z-index:2">&#x1F5D1; Loeschen</button>' : '') +
+    '<div class="admin-badge"><div class="admin-icon">&#x1F6E1;</div><span class="admin-label">ADMIN · ABSTIMMUNG</span><span class="admin-expires">' + (p.expires||'') + '</span></div>' +
+    '<div class="admin-title">' + (p.title||'') + '</div>' +
+    '<div class="admin-body">' + (p.body||'') + '</div>' +
+    '<div class="vote-options">' + voteHTML + '</div></div>';
+}
+
+function renderAdminAnnounce(p) {
+  var area = document.getElementById('admin-announce-area');
+  if (!area) return;
+  if (!p) { area.innerHTML = ''; return; }
+  area.innerHTML = '<div class="admin-pin" style="margin-bottom:12px;position:relative">' +
+    (isAdmin() ? '<button data-docid="' + p.docId + '" onclick="aDelFirebaseDoc(this)" style="position:absolute;top:12px;right:12px;background:rgba(255,71,87,.18);border:1px solid rgba(255,71,87,.35);border-radius:8px;color:var(--red);font-size:11px;font-weight:700;padding:3px 8px;cursor:pointer;z-index:2">&#x1F5D1; Loeschen</button>' : '') +
+    '<div class="admin-badge"><div class="admin-icon">&#x1F4E2;</div><span class="admin-label">ADMIN · INFO</span><span class="admin-expires">' + (p.expires||'') + '</span></div>' +
+    '<div class="admin-title">' + (p.title||'') + '</div>' +
+    '<div class="admin-body">' + (p.body||'') + '</div></div>';
+}
+
+// ── Voting via Firestore ──
+function doVoteFirebase(el) {
+  if (!ME || !fbDb) return;
+  var docId = el.getAttribute('data-docid');
+  var idx = parseInt(el.getAttribute('data-idx') || '0');
+  var ref = fbDb.collection('admin_content').doc(docId);
+  ref.get().then(function(doc) {
+    if (!doc.exists) return;
+    var d = doc.data();
+    if (d.votes && d.votes[ME.uid] !== undefined) {
+      showToast('Du hast bereits abgestimmt!'); return;
+    }
+    var update = {};
+    update['votes.' + ME.uid] = idx;
+    update['voteCounts.' + idx] = firebase.firestore.FieldValue.increment(1);
+    ref.update(update).catch(function(e) { showToast('Fehler: ' + e.message); });
+  });
+}
+
+// ── Loescht jeden Admin-Content-Eintrag per Firestore doc ID ──
+function aDelFirebaseDoc(btn) {
+  var docId = btn.getAttribute('data-docid');
+  if (!docId || !fbDb) { showToast('Kein Dokument gefunden!'); return; }
+  if (!confirm('Eintrag loeschen?')) return;
+  fbDb.collection('admin_content').doc(docId).delete().then(function() {
+    showToast('✅ Geloescht!');
+  }).catch(function(e) { showToast('Fehler: ' + e.message); });
+}
+
+// Compat: alter doVote() fuer lokale Polls (Fallback)
+function doVote(i) {
+  if (votedPoll !== null) return;
+  votedPoll = i;
+  if (ADMIN_POLLS[0] && ADMIN_POLLS[0].options) {
+    ADMIN_POLLS[0].options[i].votes += 1;
+  }
 }
 
 function loadLiveFeed() {
@@ -1738,13 +2182,6 @@ function likePost(docId, btn) {
 function deletePost(docId) {
   if (!confirm('Post loschen?')) return;
   fbDb.collection('posts').doc(docId).delete().then(function() { showToast('Geloscht.'); });
-}
-
-function doVote(i) {
-  if (votedPoll !== null) return;
-  votedPoll = i;
-  ADMIN_POLLS[0].options[i].votes += 1;
-  renderBihbook();
 }
 
 function sharePost(txt) {
@@ -2481,7 +2918,7 @@ var pollDurHours = 24;
 var annDurHours = 24;
 var acImageData = null;
 var anImageData = null;
-var adminPinnedPosts = []; // extra admin posts to show pinned in BIHBOOK
+var adminPinnedPosts = []; // Compat-Stub — wird nicht mehr benoetigt (jetzt Firestore)
 
 function openAdminPanel() {
   if (!isAdmin()) { showToast('Kein Zugriff!'); return; }
@@ -2689,48 +3126,66 @@ function aDelStoryEl(btn) {
   }).catch(function(e){showToast('Fehler: '+e.message);});
 }
 
-// ── Admin Compose (pinned blue post) ──
+// ── Admin Compose (pinned blue post) — gespeichert in Firestore ──
 function loadAdminComposeList() {
   var listEl = document.getElementById('admin-compose-list');
-  if (!listEl) return;
-  if (!adminPinnedPosts.length) { listEl.innerHTML = '<div style="color:var(--gray);font-size:12px;padding:8px 0">Noch keine gepinnten Beitraege</div>'; return; }
-  listEl.innerHTML = adminPinnedPosts.map(function(p, i) {
-    return '<div style="background:var(--bg2);border-radius:11px;border:1px solid rgba(79,172,254,.25);padding:11px 13px;margin-bottom:8px;display:flex;align-items:flex-start;gap:9px">'
-      + '<div style="flex:1"><div style="color:var(--white);font-size:13px;font-weight:600">' + (p.text||'').slice(0,50) + (p.imageUrl?'  &#128247;':'') + '</div>'
-      + '<div style="color:var(--gray);font-size:11px;margin-top:3px">' + (p.durLabel||'') + '</div></div>'
-      + '<button class="amod-del" data-idx="' + i + '" onclick="aDelPinnedEl(this)">&#x1F5D1;</button>'
-      + '</div>';
-  }).join('');
-}
-function aDelPinnedEl(btn) {
-  var idx = parseInt(btn.getAttribute('data-idx')||'0');
-  adminPinnedPosts.splice(idx, 1);
-  loadAdminComposeList();
-  var bb = document.getElementById('tp-bihbook');
-  if (bb && bb.classList.contains('on')) renderBihbook();
-  showToast('Beitrag entfernt');
+  if (!listEl || !fbDb) return;
+  listEl.innerHTML = '<div style="color:var(--gray);font-size:12px;padding:8px 0">&#x1F504; Lade...</div>';
+  fbDb.collection('admin_content').where('type','==','pinned').orderBy('createdAt','desc').limit(10).get()
+    .then(function(snap) {
+      if (!listEl) return;
+      if (snap.empty) { listEl.innerHTML = '<div style="color:var(--gray);font-size:12px;padding:8px 0">Noch keine gepinnten Beitraege</div>'; return; }
+      listEl.innerHTML = snap.docs.map(function(doc) {
+        var p = doc.data();
+        return '<div style="background:var(--bg2);border-radius:11px;border:1px solid rgba(79,172,254,.25);padding:11px 13px;margin-bottom:8px;display:flex;align-items:flex-start;gap:9px">'
+          + '<div style="flex:1"><div style="color:var(--white);font-size:13px;font-weight:600">' + (p.text||'').slice(0,50) + (p.imageUrl?'  &#128247;':'') + '</div>'
+          + '<div style="color:var(--gray);font-size:11px;margin-top:3px">' + (p.durLabel||'') + '</div></div>'
+          + '<button class="amod-del" data-docid="' + doc.id + '" onclick="aDelFirebaseDoc(this)">&#x1F5D1;</button>'
+          + '</div>';
+      }).join('');
+    }).catch(function(e) {
+      if (listEl) listEl.innerHTML = '<div style="color:var(--red);font-size:12px;padding:8px 0">Fehler: ' + e.message + '</div>';
+    });
 }
 
+// Compat-Stub — wird nicht mehr benoetigt
+function aDelPinnedEl(btn) { aDelFirebaseDoc(btn); }
+
 function publishAdminCompose() {
+  if (!fbDb) { showToast('Keine Firebase-Verbindung!'); return; }
   var txt = (document.getElementById('ac-text')||{}).value||'';
   if (!txt && !acImageData) { showToast('Text oder Bild benoetigt!'); return; }
   var durLabel = acDurHours === 0 ? 'Unbegrenzt' : 'Online fuer ' + (acDurHours < 24 ? acDurHours + 'h' : (acDurHours/24|0) + ' Tag(e)');
   var expiresAt = acDurHours === 0 ? null : new Date(Date.now() + acDurHours*3600000);
-  adminPinnedPosts.unshift({ text: txt, imageUrl: acImageData||null, durLabel: durLabel, expiresAt: expiresAt, postedAt: new Date() });
-  // Reset form
-  var ta = document.getElementById('ac-text'); if(ta) ta.value = '';
-  var pr = document.getElementById('ac-img-preview'); if(pr){pr.style.display='none';pr.src='';}
-  var nm = document.getElementById('ac-img-name'); if(nm) nm.textContent = 'Kein Bild';
-  var fi = document.getElementById('ac-file'); if(fi) fi.value='';
-  acImageData = null;
-  loadAdminComposeList();
-  var bb = document.getElementById('tp-bihbook');
-  if (bb && bb.classList.contains('on')) renderBihbook();
-  showToast('Beitrag gepinnt!'); closeAdminPanel();
+  var btn = document.querySelector('#atab-compose .apin-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '...'; }
+  var data = {
+    type: 'pinned',
+    text: txt, imageUrl: acImageData||null,
+    durLabel: durLabel,
+    expiresAt: expiresAt ? firebase.firestore.Timestamp.fromDate(expiresAt) : null,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: ME.uid
+  };
+  fbDb.collection('admin_content').add(data).then(function() {
+    if (btn) { btn.disabled = false; btn.textContent = '&#x1F4CC; Beitrag pinnen'; }
+    var ta = document.getElementById('ac-text'); if(ta) ta.value = '';
+    var pr = document.getElementById('ac-img-preview'); if(pr){pr.style.display='none';pr.src='';}
+    var nm = document.getElementById('ac-img-name'); if(nm) nm.textContent = 'Kein Bild';
+    var fi = document.getElementById('ac-file'); if(fi) fi.value='';
+    acImageData = null;
+    loadAdminComposeList();
+    showToast('&#x2705; Beitrag gepinnt! Fans sehen ihn sofort.');
+    closeAdminPanel();
+  }).catch(function(e) {
+    if (btn) { btn.disabled = false; btn.textContent = '&#x1F4CC; Beitrag pinnen'; }
+    showToast('Fehler: ' + e.message);
+  });
 }
 
-// ── Admin News ──
+// ── Admin News — gespeichert in Firestore ──
 function publishAdminNews() {
+  if (!fbDb) { showToast('Keine Firebase-Verbindung!'); return; }
   var src   = (document.getElementById('an-src')||{}).value||'Zmajevi App';
   var tag   = (document.getElementById('an-tag')||{}).value||'Nationalteam';
   var title = (document.getElementById('an-title')||{}).value||'';
@@ -2739,39 +3194,60 @@ function publishAdminNews() {
   var hot   = document.getElementById('an-hot') ? document.getElementById('an-hot').checked : false;
   var toBihbook = document.getElementById('an-bihbook') ? document.getElementById('an-bihbook').checked : false;
   if (!title) { showToast('Titel benoetigt!'); return; }
-  var newId = Date.now();
-  var entry = { id: newId, src: src, time: new Date().toLocaleDateString('de-DE',{month:'short',year:'numeric'}), tag: tag, hot: hot, likes: 0, title: title, desc: desc, url: url||'#', adminPost: true };
-  // Support multiple images: first is main imageData, rest stored in images[]
-  if (anImageList && anImageList.length) {
-    entry.imageData = anImageList[0];
-    if (anImageList.length > 1) entry.images = anImageList.slice(0);
-  } else if (anImageData) {
-    entry.imageData = anImageData;
-  }
-  ADMIN_NEWS_LIST.unshift(entry);
-  // Rebuild ALL_NEWS so admin entries always appear first
-  ALL_NEWS = ADMIN_NEWS_LIST.concat(CURATED_NEWS.map(function(n){ return Object.assign({}, n, {pubMs: Date.now()}); }));
-  if (toBihbook) {
-    adminPinnedPosts.unshift({ text: title + (desc ? '\n\n' + desc : ''), imageUrl: anImageData||null, durLabel: 'News-Beitrag', expiresAt: null, postedAt: new Date() });
-  }
-  // Reset
-  var fields = ['an-title','an-desc','an-url'];
-  fields.forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
-  var gr = document.getElementById('an-img-grid'); if(gr){gr.innerHTML='';gr.style.display='none';}
-  var fi = document.getElementById('an-file'); if(fi) fi.value='';
-  anImageData = null;
-  anImageList = [];
-  renderNewsFeed();
-  var bb = document.getElementById('tp-bihbook');
-  if (bb && bb.classList.contains('on')) renderBihbook();
-  showToast('\u2705 News ver\u00f6ffentlicht! (nur in dieser Sitzung aktiv)');
-  // Note: In der App-Vorschau (Iframe) wird die News beim Neuladen zurückgesetzt.
-  // In der echten App (Firebase) wird sie dauerhaft gespeichert.
-  closeAdminPanel();
+  var btn = document.querySelector('#atab-news .apin-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '...'; }
+
+  // News in Firestore speichern → wird von allen Nutzern live geladen
+  var newsData = {
+    type: 'news',
+    src: src, tag: tag, title: title, desc: desc, url: url||'#',
+    hot: hot, likes: 0, adminPost: true,
+    imageData: anImageList && anImageList.length ? anImageList[0] : (anImageData||null),
+    images: anImageList && anImageList.length > 1 ? anImageList.slice(0) : [],
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: ME.uid
+  };
+
+  fbDb.collection('admin_content').add(newsData).then(function(docRef) {
+    if (btn) { btn.disabled = false; btn.textContent = '&#x1F4F0; News veroeffentlichen'; }
+    // Lokal sofort anzeigen
+    var entry = Object.assign({}, newsData, {
+      id: docRef.id,
+      time: 'Heute', pubMs: Date.now()
+    });
+    ADMIN_NEWS_LIST.unshift(entry);
+    ALL_NEWS = ADMIN_NEWS_LIST.concat(CURATED_NEWS.map(function(n){ return Object.assign({}, n, {pubMs: Date.now()}); }));
+
+    // Auch als gepinnter BIHBOOK-Post wenn gewuenscht
+    if (toBihbook) {
+      fbDb.collection('admin_content').add({
+        type: 'pinned',
+        text: title + (desc ? '\n\n' + desc : ''),
+        imageUrl: newsData.imageData||null,
+        durLabel: 'News-Beitrag',
+        expiresAt: null,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy: ME.uid
+      }).catch(function(){});
+    }
+
+    // Reset
+    ['an-title','an-desc','an-url'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+    var gr = document.getElementById('an-img-grid'); if(gr){gr.innerHTML='';gr.style.display='none';}
+    var fi = document.getElementById('an-file'); if(fi) fi.value='';
+    anImageData = null; anImageList = [];
+    renderNewsFeed();
+    showToast('&#x2705; News veroeffentlicht! Alle Fans sehen sie sofort.');
+    closeAdminPanel();
+  }).catch(function(e) {
+    if (btn) { btn.disabled = false; btn.textContent = '&#x1F4F0; News veroeffentlichen'; }
+    showToast('Fehler: ' + e.message);
+  });
 }
 
-// ── Poll ──
+// ── Poll — gespeichert in Firestore ──
 function publishAdminPoll() {
+  if (!fbDb) { showToast('Keine Firebase-Verbindung!'); return; }
   var q = (document.getElementById('poll-question')||{}).value||'';
   var o1= (document.getElementById('poll-opt1')||{}).value||'';
   var o2= (document.getElementById('poll-opt2')||{}).value||'';
@@ -2780,30 +3256,76 @@ function publishAdminPoll() {
   if (!q||!o1||!o2) { showToast('Frage + mind. 2 Optionen!'); return; }
   var opts = [o1,o2]; if(o3)opts.push(o3); if(o4)opts.push(o4);
   var durLabel = pollDurHours === 0 ? 'Unbegrenzt' : 'Endet in ' + (pollDurHours<24?pollDurHours+'h':(pollDurHours/24|0)+' Tag(en)');
-  ADMIN_POLLS[0] = { title: q, body: 'Wahle deine Antwort!', expires: durLabel, options: opts.map(function(o){return{label:o,votes:0};}) };
-  votedPoll = null;
-  var bb = document.getElementById('tp-bihbook');
-  if (bb && bb.classList.contains('on')) renderBihbook();
-  showToast('Umfrage veroeffentlicht!'); closeAdminPanel();
+  var expiresAt = pollDurHours === 0 ? null : new Date(Date.now() + pollDurHours*3600000);
+  var btn = document.querySelector('#atab-poll .apin-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '...'; }
+
+  // Bestehende Polls loeschen (nur einer aktiv gleichzeitig)
+  fbDb.collection('admin_content').where('type','==','poll').get().then(function(snap) {
+    var batch = fbDb.batch();
+    snap.forEach(function(doc) { batch.delete(doc.ref); });
+    return batch.commit();
+  }).then(function() {
+    return fbDb.collection('admin_content').add({
+      type: 'poll',
+      title: q, body: 'Wahle deine Antwort!', expires: durLabel,
+      options: opts, votes: {}, voteCounts: opts.reduce(function(acc,_,i){acc[i]=0;return acc;},{}),
+      expiresAt: expiresAt ? firebase.firestore.Timestamp.fromDate(expiresAt) : null,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy: ME.uid
+    });
+  }).then(function() {
+    if (btn) { btn.disabled = false; btn.textContent = '&#x1F5F3; Umfrage veroeffentlichen'; }
+    ['poll-question','poll-opt1','poll-opt2','poll-opt3','poll-opt4'].forEach(function(id){
+      var el=document.getElementById(id); if(el) el.value='';
+    });
+    showToast('&#x2705; Umfrage veroeffentlicht! Alle Fans sehen sie sofort.');
+    closeAdminPanel();
+  }).catch(function(e) {
+    if (btn) { btn.disabled = false; btn.textContent = '&#x1F5F3; Umfrage veroeffentlichen'; }
+    showToast('Fehler: ' + e.message);
+  });
 }
 
-// ── Announce ──
+// ── Announce — gespeichert in Firestore ──
 function publishAdminAnnounce() {
+  if (!fbDb) { showToast('Keine Firebase-Verbindung!'); return; }
   var title= (document.getElementById('ann-title')||{}).value||'';
   var body = (document.getElementById('ann-body')||{}).value||'';
   var exp  = (document.getElementById('ann-expires')||{}).value||'';
   if (!title||!body) { showToast('Titel + Text erforderlich!'); return; }
-  ADMIN_POLLS[1] = { title: title, body: body, expires: exp };
-  var bb = document.getElementById('tp-bihbook');
-  if (bb && bb.classList.contains('on')) renderBihbook();
-  showToast('Info veroeffentlicht!'); closeAdminPanel();
+  var btn = document.querySelector('#atab-announce .apin-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '...'; }
+
+  // Bestehende Announces ersetzen
+  fbDb.collection('admin_content').where('type','==','announce').get().then(function(snap) {
+    var batch = fbDb.batch();
+    snap.forEach(function(doc) { batch.delete(doc.ref); });
+    return batch.commit();
+  }).then(function() {
+    return fbDb.collection('admin_content').add({
+      type: 'announce',
+      title: title, body: body, expires: exp,
+      expiresAt: annDurHours === 0 ? null : firebase.firestore.Timestamp.fromDate(new Date(Date.now() + annDurHours*3600000)),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy: ME.uid
+    });
+  }).then(function() {
+    if (btn) { btn.disabled = false; btn.textContent = '&#x1F4E2; Info veroeffentlichen'; }
+    ['ann-title','ann-body','ann-expires'].forEach(function(id){
+      var el=document.getElementById(id); if(el) el.value='';
+    });
+    showToast('&#x2705; Info veroeffentlicht! Alle Fans sehen sie sofort.');
+    closeAdminPanel();
+  }).catch(function(e) {
+    if (btn) { btn.disabled = false; btn.textContent = '&#x1F4E2; Info veroeffentlichen'; }
+    showToast('Fehler: ' + e.message);
+  });
 }
 
+// Compat-Stub
 function deleteAdminPoll(idx) {
-  ADMIN_POLLS[idx] = null;
-  var bb = document.getElementById('tp-bihbook');
-  if (bb && bb.classList.contains('on')) renderBihbook();
-  showToast('Beitrag entfernt');
+  showToast('Bitte den Loeschen-Button direkt am Beitrag verwenden.');
 }
 
 // ════ END ADMIN ══════════════════════════════════════════════
