@@ -2774,7 +2774,7 @@ function showStoryAt(idx) {
   if (ME && (s.uid === ME.uid || isAdmin())) {
     var delBtn = document.createElement('button');
     delBtn.id = 'story-delete-btn';
-    delBtn.style.cssText = 'position:absolute;bottom:calc(env(safe-area-inset-bottom,0px)+100px);left:50%;transform:translateX(-50%);z-index:20;background:rgba(255,71,87,.9);border:none;border-radius:22px;padding:10px 22px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 4px 16px rgba(255,71,87,.5)';
+    delBtn.style.cssText = 'position:absolute;bottom:calc(env(safe-area-inset-bottom,0px)+6px);left:50%;transform:translateX(-50%);z-index:30;background:rgba(255,71,87,.92);border:none;border-radius:18px;padding:11px 28px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 2px 12px rgba(255,71,87,.5)';
     delBtn.innerHTML = '&#x1F5D1; Story löschen';
     delBtn.onclick = function(e) {
       e.stopPropagation();
