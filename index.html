@@ -501,24 +501,28 @@ a{text-decoration:none;color:inherit}
 
 <!-- STORY VIEWER -->
 <div id="story-modal" class="modal" style="align-items:stretch;z-index:500">
-  <div id="story-progress" style="display:flex;gap:3px;padding:12px 12px 6px;position:absolute;top:0;left:0;right:0;z-index:2"></div>
-  <div style="position:absolute;top:22px;left:0;right:0;display:flex;align-items:center;padding:8px 14px;z-index:2">
+  <!-- Progress bars oben -->
+  <div id="story-progress" style="display:flex;gap:3px;padding:12px 12px 6px;position:absolute;top:0;left:0;right:0;z-index:10"></div>
+  <!-- Header: Avatar, Name, Zeit, Schliessen -->
+  <div style="position:absolute;top:22px;left:0;right:0;display:flex;align-items:center;padding:8px 14px;z-index:10">
     <div id="story-av" style="width:36px;height:36px;border-radius:50%;border:2px solid #fff;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#0a0f1e;flex-shrink:0"></div>
     <span id="story-uname" style="color:#fff;font-size:13px;font-weight:700;margin-left:9px;flex:1"></span>
     <span id="story-time" style="color:rgba(255,255,255,.7);font-size:11px;margin-right:8px"></span>
-    <button onclick="closeStory()" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:4px;line-height:1">&#x2715;</button>
+    <button onclick="closeStory()" style="background:rgba(0,0,0,.3);border:none;color:#fff;font-size:20px;cursor:pointer;padding:4px 8px;line-height:1;border-radius:8px">&#x2715;</button>
   </div>
+  <!-- Story Content -->
   <div id="story-content" style="width:100%;height:100%;position:relative;background:#111;display:flex;align-items:center;justify-content:center">
     <img id="story-img" style="width:100%;height:100%;object-fit:contain;display:none" src="" alt="">
-    <div style="position:absolute;bottom:90px;left:0;right:0;padding:16px;text-align:center">
+    <div style="position:absolute;bottom:130px;left:0;right:0;padding:16px;text-align:center">
       <div id="story-txt" style="color:#fff;font-size:18px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,.8);line-height:1.5"></div>
     </div>
   </div>
-  <!-- Reply Row + kleiner Delete-Button unten -->
-  <div style="position:absolute;bottom:calc(env(safe-area-inset-bottom,0px)+12px);left:0;right:0;padding:0 14px;display:flex;gap:8px;align-items:center">
-    <input id="story-reply-inp" placeholder="Antworten..." style="flex:1;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:24px;padding:10px 16px;color:#fff;font-size:16px;outline:none;font-family:'Inter',sans-serif">
+  <!-- Unten: Antwort-Feld + Senden + Loeschen (NUR wenn eigene Story) -->
+  <div style="position:absolute;bottom:calc(env(safe-area-inset-bottom,0px)+14px);left:0;right:0;padding:0 14px;display:flex;gap:8px;align-items:center;z-index:10">
+    <input id="story-reply-inp" placeholder="Antworten..." style="flex:1;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:24px;padding:10px 16px;color:#fff;font-size:16px;outline:none;font-family:Inter,sans-serif">
     <button onclick="sendStoryReply()" style="background:var(--gold);border:none;border-radius:50%;width:40px;height:40px;color:#0a0f1e;font-size:17px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">&#x2191;</button>
-    <button id="story-delete-btn" onclick="storyDeleteCurrent()" style="display:none;background:rgba(255,71,87,.8);border:none;border-radius:50%;width:40px;height:40px;color:#fff;font-size:15px;cursor:pointer;flex-shrink:0;align-items:center;justify-content:center;z-index:30">&#x1F5D1;</button>
+    <!-- Loeschen-Button: klein, rund, nur wenn eigene Story -->
+    <button id="story-delete-btn" onclick="storyDeleteCurrent()" style="display:none;background:rgba(255,71,87,.85);border:none;border-radius:50%;width:40px;height:40px;color:#fff;font-size:15px;cursor:pointer;flex-shrink:0;align-items:center;justify-content:center">&#x1F5D1;</button>
   </div>
 </div>
 <!-- STORY UPLOAD -->
