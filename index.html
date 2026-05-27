@@ -3913,6 +3913,13 @@ window.addEventListener('DOMContentLoaded', function() {
   fbAuth = firebase.auth();
   fbDb = firebase.firestore();
 
+  // Angemeldet bleiben — auch nach App-Neustart (LOCAL = dauerhaft gespeichert)
+  fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(function() {
+    // Persistence gesetzt — jetzt Auth-Status prüfen
+  }).catch(function(e) {
+    console.log('Persistence error:', e);
+  });
+
   fbAuth.onAuthStateChanged(function(user) {
     if (user) {
       fbDb.collection('users').doc(user.uid).get().then(function(doc) {
