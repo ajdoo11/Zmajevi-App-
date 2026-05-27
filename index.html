@@ -1103,7 +1103,7 @@ function loadLiveNews() {
   );
   newsLoadedAt = Date.now();
   var upd = document.getElementById('ai-upd');
-  if (upd) upd.textContent = 'Jetzt aktuell · ' + CURATED_NEWS.length + ' News';
+  if (upd) upd.textContent = 'Jetzt aktuell  -  ' + CURATED_NEWS.length + ' News';
   renderNewsFeed();
 
   // Admin-News aus Firestore laden — kein orderBy (kein Index noetig), client-seitig sortieren
@@ -1131,7 +1131,7 @@ function loadLiveNews() {
         ALL_NEWS = ADMIN_NEWS_LIST.concat(CURATED_NEWS.map(function(n){ return Object.assign({}, n, {pubMs: Date.now()}); }));
         newsLoadedAt = Date.now();
         var upd2 = document.getElementById('ai-upd');
-        if (upd2) upd2.textContent = 'Aktuell · ' + ALL_NEWS.length + ' News';
+        if (upd2) upd2.textContent = 'Aktuell  -  ' + ALL_NEWS.length + ' News';
         renderNewsFeed();
         fetchLiveNewsBackground(ADMIN_NEWS_LIST);
       }).catch(function(e) {
@@ -1197,7 +1197,7 @@ function fetchLiveNewsBackground(adminNews) {
       return Object.assign({}, n, { pubMs: now });
     }));
     var upd = document.getElementById('ai-upd');
-    if (upd) upd.textContent = 'Live · ' + ALL_NEWS.length + ' News';
+    if (upd) upd.textContent = 'Live  -  ' + ALL_NEWS.length + ' News';
     renderNewsFeed();
   })
   .catch(function(e){ console.log('Background news fetch failed:', e.message); });
@@ -1257,7 +1257,7 @@ function renderNewsFeed() {
       h += '<div class="comp-card' + (n.hot ? ' hot' : '') + ' fu" style="' + delay + ';cursor:pointer" data-nid="' + n.id + '" onclick="openNewsById(this.dataset.nid)">' +
         '<div class="comp-emoji">' + em + '</div><div class="comp-body">' +
         (n.hot ? '<div class="brk-row" style="margin-bottom:5px"><div class="brk-d"></div><span class="brk-t">BREAKING</span></div>' : '') +
-        '<div class="cmeta" style="margin-bottom:5px"><div class="csrc"><div class="cdot" style="background:' + sc + '"></div><span class="cname">' + n.src + '</span></div><span class="ctime"> · ' + n.time + '</span></div>' +
+        '<div class="cmeta" style="margin-bottom:5px"><div class="csrc"><div class="cdot" style="background:' + sc + '"></div><span class="cname">' + n.src + '</span></div><span class="ctime">  -  ' + n.time + '</span></div>' +
         '<div class="comp-title">' + n.title + '</div>' +
         '<div class="comp-foot">' + tag + like + adminDel + '<span class="comp-read">Otvori &#x2192;</span></div></div></div>';
     }
@@ -1585,8 +1585,8 @@ function renderSpieler() {
   var lastUpd = _spielerLastFetch ? new Date(_spielerLastFetch).toLocaleDateString('de-DE',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
   var h = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
     '<div>' +
-    '<span style="color:var(--gray);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase">AKTUELLER KADER · ' + PLAYERS.length + ' IGRACA</span>' +
-    (lastUpd ? '<div style="color:var(--gray2);font-size:10px;margin-top:2px">&#x1F916; AI · ' + lastUpd + '</div>' : '') +
+    '<span style="color:var(--gray);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase">AKTUELLER KADER  -  ' + PLAYERS.length + ' IGRACA</span>' +
+    (lastUpd ? '<div style="color:var(--gray2);font-size:10px;margin-top:2px">&#x1F916; AI  -  ' + lastUpd + '</div>' : '') +
     '</div>' +
     '<div style="display:flex;gap:6px;align-items:center">' +
     (isAdmin() ? '<button onclick="openAdminKader()" style="background:rgba(255,71,87,.15);border:1px solid rgba(255,71,87,.3);border-radius:8px;padding:4px 9px;color:var(--red);font-size:10px;font-weight:800;cursor:pointer">&#x270F; Kader bearbeiten</button>' : '') +
@@ -1600,7 +1600,7 @@ function renderSpieler() {
       h += '<div class="pcard fu" onclick="showPlayer(\'' + (p.docId||p.id) + '\')">' +
         '<div class="pemoji">' + (p.flag || posFlag(p.pos||'')) + '</div>' +
         '<div style="flex:1"><div class="pname">' + p.name + '</div>' +
-        '<div class="pmeta">' + (p.pos||'') + ' · ' + (p.club||'') + '</div></div>' +
+        '<div class="pmeta">' + (p.pos||'') + '  -  ' + (p.club||'') + '</div></div>' +
         '<div class="pcaps"><div class="pcnum">' + (p.caps||0) + '</div><div class="pclabel">Caps</div></div>' +
         '<span style="color:var(--gray);font-size:16px">›</span></div>';
     });
@@ -1627,7 +1627,7 @@ function showPlayer(id) {
     '<div class="phero">' +
     '<div class="photo-big">' + (p.flag||posFlag(p.pos||'')) + '</div>' +
     '<div class="phname">' + p.name + '</div>' +
-    '<div class="phsub">' + (p.pos||'') + ' · ' + (p.club||'') + '</div>' +
+    '<div class="phsub">' + (p.pos||'') + '  -  ' + (p.club||'') + '</div>' +
     '<div style="margin-top:9px;display:flex;gap:7px;justify-content:center;flex-wrap:wrap">' +
     '<span class="api-badge">' + (p.grp||'') + '</span>' +
     '<span class="api-badge">&#x1F1E7;&#x1F1E6; BiH</span>' +
@@ -1679,7 +1679,7 @@ function openAdminKader() {
     PLAYERS.map(function(p) {
       return '<div style="background:var(--bg2);border-radius:11px;border:1px solid var(--border);padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px">' +
         '<div style="flex:1"><div style="color:var(--white);font-size:13px;font-weight:700">' + p.name + '</div>' +
-        '<div style="color:var(--gray);font-size:11px;margin-top:2px">' + (p.pos||'') + ' · ' + (p.club||'') + ' · ' + (p.caps||0) + ' Caps</div></div>' +
+        '<div style="color:var(--gray);font-size:11px;margin-top:2px">' + (p.pos||'') + '  -  ' + (p.club||'') + '  -  ' + (p.caps||0) + ' Caps</div></div>' +
         '<button onclick="openEditPlayer(\'' + (p.docId||p.id) + '\')" style="background:rgba(79,172,254,.15);border:1px solid rgba(79,172,254,.3);border-radius:8px;color:#4facfe;font-size:11px;font-weight:700;padding:5px 9px;cursor:pointer">&#x270F;</button>' +
         '<button onclick="deletePlayerFromFirestore(\'' + (p.docId||p.id) + '\')" style="background:rgba(255,71,87,.15);border:1px solid rgba(255,71,87,.3);border-radius:8px;color:var(--red);font-size:11px;font-weight:700;padding:5px 9px;cursor:pointer">&#x1F5D1;</button>' +
         '</div>';
@@ -1791,10 +1791,80 @@ function deletePlayerFromFirestore(id) {
 // ════════════════════════════════════════════════════════════
 // SPIELE + TABELLEN
 // ════════════════════════════════════════════════════════════
+// ════ MISSING VARIABLES (must be defined before use) ══════════════
+var SOURCES = [
+  { key:'Sve', label:'Sve', color:'#f5c518' },
+  { key:'Klix.ba', label:'Klix.ba', color:'#2ed573' },
+  { key:'SportSport.ba', label:'SportSport.ba', color:'#ff6b35' },
+  { key:'Sportske.ba', label:'Sportske.ba', color:'#a78bfa' },
+  { key:'N1 Info', label:'N1 Info', color:'#4facfe' },
+  { key:'Representacija.ba', label:'Representacija.ba', color:'#e53e3e' },
+  { key:'Zmajevi App', label:'Zmajevi App', color:'#f5c518' }
+];
+var FILTERS = ['Sve','Nationalteam','Transfers','Spielplan','Spieler','Breaking','Ausruestung','Interview'];
+var TRANSFERS = [];
+
+// ════ renderStandingsHTML (was missing - caused blank Spiele tab) ═══
+function renderStandingsHTML() {
+  var g = STANDINGS[activeLeagueTab] || STANDINGS.wm;
+  var tabs = '<div class="league-tabs" style="margin-bottom:12px">' +
+    '<div class="ltab' + (activeLeagueTab==='wm'?' on':'') + '" data-key="wm" onclick="switchLeagueEl(this)">WM 2026 Gruppe</div>' +
+    '<div class="ltab' + (activeLeagueTab==='nl'?' on':'') + '" data-key="nl" onclick="switchLeagueEl(this)">NL 2026/27</div>' +
+    '<div class="ltab' + (activeLeagueTab==='quali'?' on':'') + '" data-key="quali" onclick="switchLeagueEl(this)">Playoff</div>' +
+    '</div>';
+
+  var header = '<div style="background:linear-gradient(135deg,var(--bg2),var(--bg3));border-radius:16px;padding:14px;margin-bottom:10px;border:1px solid rgba(245,197,24,.25)">' +
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">' +
+    '<span style="background:rgba(245,197,24,.15);color:var(--gold);font-size:11px;font-weight:800;padding:3px 9px;border-radius:20px;border:1px solid rgba(245,197,24,.3)">' + (g.badge||'') + '</span>' +
+    '</div>' +
+    '<div style="color:var(--white);font-size:13px;font-weight:700;margin-bottom:2px">' + (g.title||'') + '</div>' +
+    '<div style="color:var(--gray);font-size:11px;margin-bottom:8px">' + (g.sub||'') + '</div>' +
+    '<div style="color:var(--gray2);font-size:10px;padding:6px 10px;background:var(--bg);border-radius:8px;border-left:3px solid var(--gold);">' + (g.note||'') + '</div>' +
+    '</div>';
+
+  var tableHead = '<div style="background:var(--bg2);border-radius:14px;overflow:hidden;margin-bottom:12px;border:1px solid var(--border)">' +
+    '<div style="display:grid;grid-template-columns:28px 1fr 28px 28px 28px 28px 28px 32px;gap:0;padding:8px 12px;border-bottom:1px solid var(--border)">' +
+    '<span style="color:var(--gray2);font-size:10px;text-align:center">#</span>' +
+    '<span style="color:var(--gray2);font-size:10px">Team</span>' +
+    '<span style="color:var(--gray2);font-size:10px;text-align:center">Sp</span>' +
+    '<span style="color:var(--gray2);font-size:10px;text-align:center">S</span>' +
+    '<span style="color:var(--gray2);font-size:10px;text-align:center">U</span>' +
+    '<span style="color:var(--gray2);font-size:10px;text-align:center">N</span>' +
+    '<span style="color:var(--gray2);font-size:10px;text-align:center">T</span>' +
+    '<span style="color:var(--gray2);font-size:10px;text-align:center;font-weight:800">Pkt</span>' +
+    '</div>';
+
+  var rows = (g.teams||[]).map(function(t) {
+    var bg = t.bih ? 'background:rgba(245,197,24,.06)' : '';
+    var nc = t.bih ? 'color:var(--gold);font-weight:900' : 'color:var(--white);font-weight:700';
+    var adv = t.p <= (g.adv||0) ? 'border-left:3px solid var(--green)' : 'border-left:3px solid transparent';
+    var teamName = t.bih ? ('BOSNA ' + (t.f||'')) : ((t.f||'') + ' ' + (t.n||''));
+    return '<div style="display:grid;grid-template-columns:28px 1fr 28px 28px 28px 28px 28px 32px;gap:0;padding:9px 12px;border-bottom:1px solid var(--border);' + bg + ';' + adv + '">' +
+      '<span style="color:var(--gray);font-size:12px;text-align:center;line-height:1.8">' + (t.p||'') + '</span>' +
+      '<span style="' + nc + ';font-size:12px;line-height:1.8">' + teamName + '</span>' +
+      '<span style="color:var(--gray);font-size:12px;text-align:center;line-height:1.8">' + (t.pld||0) + '</span>' +
+      '<span style="color:var(--green);font-size:12px;text-align:center;line-height:1.8">' + (t.w||0) + '</span>' +
+      '<span style="color:var(--gray);font-size:12px;text-align:center;line-height:1.8">' + (t.d||0) + '</span>' +
+      '<span style="color:var(--red);font-size:12px;text-align:center;line-height:1.8">' + (t.l||0) + '</span>' +
+      '<span style="color:var(--gray);font-size:12px;text-align:center;line-height:1.8">' + (t.gf||0) + ':' + (t.ga||0) + '</span>' +
+      '<span style="' + (t.bih?'color:var(--gold)':'color:var(--white)') + ';font-weight:900;font-size:13px;text-align:center;line-height:1.8">' + (t.pts||0) + '</span>' +
+      '</div>';
+  }).join('');
+
+  var advNote = g.advNote ? '<div style="padding:7px 12px;color:var(--green);font-size:10px;font-weight:600">&#9654; ' + g.advNote + '</div>' : '';
+
+  return tabs + header + tableHead + rows + advNote + '</div>';
+}
+
+function switchLeagueEl(el) {
+  activeLeagueTab = el.getAttribute('data-key') || 'wm';
+  renderSpiele();
+}
+
 var STANDINGS = {
   wm: {
-    title:'WM 2026 · Gruppe B', sub:'Toronto · Los Angeles · Seattle · Jun 2026',
-    color:'#f5c518', badge:'🏆 WM 2026', note:'WM startet am 12. Juni 2026 · Alle Zeiten MESZ',
+    title:'WM 2026  -  Gruppe B', sub:'Toronto  -  Los Angeles  -  Seattle  -  Jun 2026',
+    color:'#f5c518', badge:'🏆 WM 2026', note:'WM startet am 12. Juni 2026  -  Alle Zeiten MESZ',
     teams:[
       {f:'🇨🇭',n:'Svicarska',  p:1,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},
       {f:'🇨🇦',n:'Kanada',     p:2,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},
@@ -1804,7 +1874,7 @@ var STANDINGS = {
     adv:2, advNote:'Top 2 → Runde der 32'
   },
   quali: {
-    title:'WM-Playoff · Liga A Finale', sub:'Abschlusstabelle 2026', color:'#2ed573', badge:'✅ WM-Qualifiziert',
+    title:'WM-Playoff  -  Liga A Finale', sub:'Abschlusstabelle 2026', color:'#2ed573', badge:'✅ WM-Qualifiziert',
     note:'Bosna schlug Italien im Elfmeterschiessen 4:1 → WM!',
     teams:[
       {f:'🇧🇦',n:'Bosna',   p:1,pld:2,w:1,d:1,l:0,gf:3,ga:2,pts:4,bih:true},
@@ -1815,9 +1885,9 @@ var STANDINGS = {
     adv:1, advNote:'Playoff-Sieger → WM 2026'
   },
   nl: {
-    title:'Nations League 2026/27 · Liga B · Gruppe B4', sub:'Ab September 2026',
+    title:'Nations League 2026/27  -  Liga B  -  Gruppe B4', sub:'Ab September 2026',
     color:'#4facfe', badge:'🏴 NL Liga B Gruppe 4',
-    note:'Spieltage 1-4: Sept/Okt 2026 · Spieltage 5-6: Nov 2026',
+    note:'Spieltage 1-4: Sept/Okt 2026  -  Spieltage 5-6: Nov 2026',
     teams:[
       {f:'🇵🇱',n:'Poljska',   p:1,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:false},
       {f:'🇧🇦',n:'Bosna',     p:2,pld:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,bih:true},
@@ -1829,91 +1899,120 @@ var STANDINGS = {
 };
 
 function renderSpiele() {
+  var inner = document.getElementById('spiele-inner');
+  if (!inner) return;
+
   var h = renderStandingsHTML();
   h += '<div style="height:1px;background:var(--border);margin:16px 0"></div>';
   h += '<div class="seclabel">PREDSTOJECCE UTAKMICE WM 2026</div>';
 
-  // Korrekte WM-Spiele: ALLE AUSWÄRTS (WM in USA/Kanada)
+  // WM 2026 Gruppe B - ALLE AUSWAERTS (WM in USA/Kanada)
   var fixtures = [
     {
-      date:'12. Jun 2026', time:'21:00 MESZ', flag:'🇨🇦',
-      opp:'Kanada', comp:'WM 2026 · Gruppe B',
-      stadium:'BMO Field, Toronto 🇨🇦',
-      away:true, // Bosna spielt auswärts
+      date:'12. Jun 2026', time:'21:00 MESZ', flagHost:'CA',
+      flagHostEmoji:'&#127464;&#127462;',
+      opp:'Kanada', comp:'WM 2026 - Gruppe B',
+      stadium:'BMO Field, Toronto, Kanada',
+      isHome: false,
       highlight:true
     },
     {
-      date:'16. Jun 2026', time:'21:00 MESZ', flag:'🇨🇭',
-      opp:'Svicarska', comp:'WM 2026 · Gruppe B',
-      stadium:'SoFi Stadium, Los Angeles 🇺🇸',
-      away:true
+      date:'16. Jun 2026', time:'21:00 MESZ', flagHost:'CH',
+      flagHostEmoji:'&#127464;&#127469;',
+      opp:'Svicarska', comp:'WM 2026 - Gruppe B',
+      stadium:'SoFi Stadium, Los Angeles, USA',
+      isHome: false,
+      highlight: false
     },
     {
-      date:'25. Jun 2026', time:'TBD', flag:'🇶🇦',
-      opp:'Katar', comp:'WM 2026 · Gruppe B',
-      stadium:'Lumen Field, Seattle 🇺🇸',
-      away:true
+      date:'20. Jun 2026', time:'TBD', flagHost:'QA',
+      flagHostEmoji:'&#127478;&#127462;',
+      opp:'Katar', comp:'WM 2026 - Gruppe B',
+      stadium:'Lumen Field, Seattle, USA',
+      isHome: false,
+      highlight: false
     }
   ];
 
   fixtures.forEach(function(f) {
-    var borderColor = f.highlight ? 'rgba(245,197,24,.4)' : 'rgba(245,197,24,.18)';
-    h += '<div style="background:linear-gradient(135deg,var(--bg2),var(--bg3));border-radius:16px;padding:16px;margin-bottom:10px;border:1px solid ' + borderColor + '">';
-    // Header row
+    var borderColor = f.highlight ? 'rgba(245,197,24,.5)' : 'rgba(245,197,24,.18)';
+    var bgGrad = f.highlight
+      ? 'linear-gradient(135deg,#1a2f5e,#0f1f3d)'
+      : 'linear-gradient(135deg,var(--bg2),var(--bg3))';
+
+    h += '<div style="background:' + bgGrad + ';border-radius:16px;padding:16px;margin-bottom:10px;border:1px solid ' + borderColor + '">';
     h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
-    h += '<span style="color:var(--gray);font-size:11px;font-family:monospace">📅 ' + f.date + ' · ⏰ ' + f.time + '</span>';
+    h += '<span style="color:var(--gray);font-size:11px">&#128197; ' + f.date + ' - &#9200; ' + f.time + '</span>';
     h += '<span style="background:#1a2f5e;color:#7eb8f7;font-size:10px;font-weight:700;padding:3px 8px;border-radius:9px">' + f.comp + '</span>';
     h += '</div>';
-    h += '<div style="color:var(--gray2);font-size:10px;margin-bottom:11px">🏟️ ' + f.stadium + '</div>';
-    // Teams
+    h += '<div style="color:var(--gray2);font-size:10px;margin-bottom:11px">&#127967; ' + f.stadium + '</div>';
     h += '<div style="display:flex;align-items:center;justify-content:space-between">';
-    // BOSNA (immer links)
-    h += '<div style="text-align:center;flex:1"><div style="font-size:32px">🇧🇦</div><div style="color:var(--gold);font-weight:900;font-size:13px;margin-top:4px;font-family:Barlow Condensed,sans-serif;letter-spacing:1px">BOSNA</div></div>';
-    // VS
-    h += '<div style="text-align:center;padding:0 10px">';
-    h += '<div style="background:var(--bg);border-radius:9px;padding:8px 14px;border:1px solid var(--border2)"><div style="color:var(--gold);font-weight:900;font-size:20px;font-family:Barlow Condensed,sans-serif;letter-spacing:4px">VS</div></div>';
-    h += '<div style="color:var(--gray);font-size:10px;margin-top:4px">✈️ Auswarts</div>';
+    // Gegner links (Gastgeber), Bosna rechts (Gast = Auswaerts)
+    h += '<div style="text-align:center;flex:1">';
+    h += '<div style="font-size:32px">' + f.flagHostEmoji + '</div>';
+    h += '<div style="color:var(--white);font-weight:800;font-size:13px;margin-top:4px;font-family:Barlow Condensed,sans-serif">' + f.opp.toUpperCase() + '</div>';
     h += '</div>';
-    // Gegner
-    h += '<div style="text-align:center;flex:1"><div style="font-size:32px">' + f.flag + '</div><div style="color:var(--white);font-weight:800;font-size:13px;margin-top:4px;font-family:Barlow Condensed,sans-serif">' + f.opp.toUpperCase() + '</div></div>';
+    h += '<div style="text-align:center;padding:0 10px">';
+    h += '<div style="background:var(--bg);border-radius:9px;padding:8px 14px;border:1px solid var(--border2)">';
+    h += '<div style="color:var(--gold);font-weight:900;font-size:20px;font-family:Barlow Condensed,sans-serif;letter-spacing:4px">VS</div>';
+    h += '</div>';
+    h += '<div style="color:var(--gray);font-size:10px;margin-top:4px">&#9992;&#65039; Auswaerts</div>';
+    h += '</div>';
+    h += '<div style="text-align:center;flex:1">';
+    h += '<div style="font-size:32px">&#127463;&#127462;</div>';
+    h += '<div style="color:var(--gold);font-weight:900;font-size:13px;margin-top:4px;font-family:Barlow Condensed,sans-serif;letter-spacing:1px">BOSNA</div>';
+    h += '</div>';
     h += '</div></div>';
   });
 
-  // Vorbereitungsspiel 29. Mai
-  h += '<div style="background:var(--bg2);border-radius:14px;padding:14px;margin-bottom:10px;border:1px solid var(--border)">';
-  h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
-  h += '<span style="color:var(--gray);font-size:11px;font-family:monospace">📅 29. Mai 2026 · ⏰ 20:30</span>';
-  h += '<span style="background:rgba(122,138,170,.15);color:var(--gray);font-size:10px;font-weight:700;padding:3px 8px;border-radius:9px">Prijateljska / Heim</span>';
+  // Vorbereitungsspiel 29. Mai - HEIMSPIEL
+  h += '<div style="background:var(--bg2);border-radius:14px;padding:14px;margin-bottom:10px;border:1px solid rgba(46,213,115,.25)">';
+  h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
+  h += '<span style="color:var(--gray);font-size:11px">&#128197; 29. Mai 2026 - &#9200; 20:30 MESZ</span>';
+  h += '<span style="background:rgba(46,213,115,.15);color:var(--green);font-size:10px;font-weight:700;padding:3px 8px;border-radius:9px">Prijateljska / Priprema</span>';
   h += '</div>';
-  h += '<div style="color:var(--gray2);font-size:10px;margin-bottom:10px">🏟️ Stadion Kosevo, Sarajevo 🇧🇦</div>';
+  h += '<div style="color:var(--gray2);font-size:10px;margin-bottom:11px">&#127967; Stadion Kosevo, Sarajevo, BiH</div>';
   h += '<div style="display:flex;align-items:center;justify-content:space-between">';
-  h += '<div style="text-align:center;flex:1"><div style="font-size:32px">🇧🇦</div><div style="color:var(--gold);font-weight:900;font-size:13px;margin-top:4px;font-family:Barlow Condensed,sans-serif">BOSNA</div></div>';
-  h += '<div style="text-align:center;padding:0 10px"><div style="background:var(--bg);border-radius:9px;padding:8px 14px;border:1px solid var(--border2)"><div style="color:var(--gold);font-weight:900;font-size:20px;font-family:Barlow Condensed,sans-serif;letter-spacing:4px">VS</div></div><div style="color:var(--green);font-size:10px;margin-top:4px">🏠 Heimspiel</div></div>';
-  h += '<div style="text-align:center;flex:1"><div style="font-size:32px">🇲🇰</div><div style="color:var(--white);font-weight:800;font-size:13px;margin-top:4px;font-family:Barlow Condensed,sans-serif">S. MAKEDONIJA</div></div>';
+  // Bosna links (Heimteam), MK rechts (Gast)
+  h += '<div style="text-align:center;flex:1">';
+  h += '<div style="font-size:32px">&#127463;&#127462;</div>';
+  h += '<div style="color:var(--gold);font-weight:900;font-size:13px;margin-top:4px;font-family:Barlow Condensed,sans-serif;letter-spacing:1px">BOSNA</div>';
+  h += '</div>';
+  h += '<div style="text-align:center;padding:0 10px">';
+  h += '<div style="background:var(--bg);border-radius:9px;padding:8px 14px;border:1px solid var(--border2)">';
+  h += '<div style="color:var(--gold);font-weight:900;font-size:20px;font-family:Barlow Condensed,sans-serif;letter-spacing:4px">VS</div>';
+  h += '</div>';
+  h += '<div style="color:var(--green);font-size:10px;margin-top:4px">&#127968; Heimspiel</div>';
+  h += '</div>';
+  h += '<div style="text-align:center;flex:1">';
+  h += '<div style="font-size:32px">&#127474;&#127472;</div>';
+  h += '<div style="color:var(--white);font-weight:800;font-size:13px;margin-top:4px;font-family:Barlow Condensed,sans-serif">S. MAKEDONIJA</div>';
+  h += '</div>';
   h += '</div></div>';
 
   h += '<div class="seclabel" style="margin-top:8px">NEDAVNI REZULTATI</div>';
   var results = [
-    { opp:'Italija (WM-Playoff Finale)',   date:'31. Mrz 2026', score:'1:1 (4:1 pen.)', win:true,  detail:'Qualifikation für WM 2026! 🐉' },
-    { opp:'Wales (WM-Playoff Halbfinale)', date:'26. Mrz 2026', score:'1:1 (3:2 pen.)', win:true,  detail:'Cardiff City Stadium' },
-    { opp:'Italija (WM-Playoff Finale)',   date:'24. Mrz 2026', score:'1:1',             win:null,  detail:'Hinspiel · Zenica' },
-    { opp:'S. Irska (WM-Playoff Halbfinale)', date:'20. Mrz 2026', score:'2:1',          win:true,  detail:'Hinspiel' },
-    { opp:'Austrija',                      date:'18. Nov 2025',  score:'1:1',             win:null,  detail:'Nations League' },
-    { opp:'Rumanija',                      date:'15. Nov 2025',  score:'3:1',             win:true,  detail:'Nations League' }
+    { opp:'Italija (WM-Playoff Finale)',        date:'31. Mrz 2026', score:'1:1 (4:1 pen.)', win:true,  detail:'WM-Qualifikation! &#127001;' },
+    { opp:'Wales (WM-Playoff Halbfinale)',       date:'26. Mrz 2026', score:'1:1 (3:2 pen.)', win:true,  detail:'Cardiff City Stadium' },
+    { opp:'Italija (WM-Playoff Hinspiel)',       date:'24. Mrz 2026', score:'1:1',             win:null,  detail:'Zenica' },
+    { opp:'S. Irska (WM-Playoff Hinspiel)',      date:'20. Mrz 2026', score:'2:1',             win:true,  detail:'' },
+    { opp:'Austrija',                            date:'18. Nov 2025',  score:'1:1',             win:null,  detail:'Nations League' },
+    { opp:'Rumanija',                            date:'15. Nov 2025',  score:'3:1',             win:true,  detail:'Nations League' }
   ];
   results.forEach(function(r) {
-    var bc = r.win === true ? 'rgba(46,213,115,.25)' : r.win === false ? 'rgba(255,71,87,.2)' : 'rgba(122,138,170,.15)';
+    var bc = r.win === true ? 'rgba(46,213,115,.2)' : r.win === false ? 'rgba(255,71,87,.18)' : 'rgba(122,138,170,.12)';
     var sc = r.win === true ? 'var(--green)' : r.win === false ? 'var(--red)' : 'var(--white)';
     var label = r.win === true ? 'POBJEDA' : r.win === false ? 'PORAZ' : 'NERIJESENO';
     h += '<div style="background:var(--bg2);border-radius:13px;padding:11px 13px;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;border:1px solid ' + bc + '">' +
       '<div><div style="color:var(--white);font-weight:700;font-size:13px">BiH vs. ' + r.opp + '</div>' +
-      '<div style="color:var(--gray);font-size:10px;margin-top:2px">' + r.date + ' · ' + r.detail + '</div></div>' +
-      '<div style="padding:6px 11px;border-radius:9px;text-align:center;background:' + bc + ';border:1px solid ' + bc + ';min-width:60px">' +
+      (r.detail ? '<div style="color:var(--gray);font-size:10px;margin-top:2px">' + r.date + ' - ' + r.detail + '</div>' : '<div style="color:var(--gray);font-size:10px;margin-top:2px">' + r.date + '</div>') +
+      '</div>' +
+      '<div style="padding:6px 11px;border-radius:9px;text-align:center;background:' + bc + ';min-width:65px">' +
       '<div style="font-weight:900;font-size:18px;font-family:Barlow Condensed,sans-serif;color:' + sc + '">' + r.score + '</div>' +
       '<div style="font-size:9px;color:var(--gray);margin-top:1px">' + label + '</div></div></div>';
   });
 
-  document.getElementById('spiele-inner').innerHTML = h;
+  inner.innerHTML = h;
 }
 
 function switchLeague(k) { activeLeagueTab = k; renderSpiele(); }
@@ -1998,7 +2097,7 @@ function renderAdminPinned(items) {
     return '<div class="admin-post-card" style="padding:14px;margin-bottom:11px;position:relative">' +
       '<div style="display:flex;align-items:center;gap:7px;margin-bottom:9px">' +
       '<div class="admin-icon" style="background:var(--gold);width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px">&#x1F6E1;</div>' +
-      '<span style="color:var(--gold);font-size:11px;font-weight:800;letter-spacing:1.5px">ADMIN · BEITRAG</span>' +
+      '<span style="color:var(--gold);font-size:11px;font-weight:800;letter-spacing:1.5px">ADMIN  -  BEITRAG</span>' +
       '<span style="color:var(--gray);font-size:10px;margin-left:auto">' + (p.durLabel||'') + '</span>' +
       (isAdmin() ? '<button class="amod-del" style="margin-left:6px;padding:3px 7px;font-size:11px" data-docid="' + p.docId + '" onclick="aDelFirebaseDoc(this)">&#x1F5D1;</button>' : '') +
       '</div>' +
@@ -2033,7 +2132,7 @@ function renderAdminPoll(p) {
 
   area.innerHTML = '<div class="admin-pin" style="position:relative;margin-bottom:12px">' +
     (isAdmin() ? '<button data-docid="' + p.docId + '" onclick="aDelFirebaseDoc(this)" style="position:absolute;top:12px;right:12px;background:rgba(255,71,87,.18);border:1px solid rgba(255,71,87,.35);border-radius:8px;color:var(--red);font-size:11px;font-weight:700;padding:3px 8px;cursor:pointer;z-index:2">&#x1F5D1; Loeschen</button>' : '') +
-    '<div class="admin-badge"><div class="admin-icon">&#x1F6E1;</div><span class="admin-label">ADMIN · ABSTIMMUNG</span><span class="admin-expires">' + (p.expires||'') + '</span></div>' +
+    '<div class="admin-badge"><div class="admin-icon">&#x1F6E1;</div><span class="admin-label">ADMIN  -  ABSTIMMUNG</span><span class="admin-expires">' + (p.expires||'') + '</span></div>' +
     '<div class="admin-title">' + (p.title||'') + '</div>' +
     '<div class="admin-body">' + (p.body||'') + '</div>' +
     '<div class="vote-options">' + voteHTML + '</div></div>';
@@ -2045,7 +2144,7 @@ function renderAdminAnnounce(p) {
   if (!p) { area.innerHTML = ''; return; }
   area.innerHTML = '<div class="admin-pin" style="margin-bottom:12px;position:relative">' +
     (isAdmin() ? '<button data-docid="' + p.docId + '" onclick="aDelFirebaseDoc(this)" style="position:absolute;top:12px;right:12px;background:rgba(255,71,87,.18);border:1px solid rgba(255,71,87,.35);border-radius:8px;color:var(--red);font-size:11px;font-weight:700;padding:3px 8px;cursor:pointer;z-index:2">&#x1F5D1; Loeschen</button>' : '') +
-    '<div class="admin-badge"><div class="admin-icon">&#x1F4E2;</div><span class="admin-label">ADMIN · INFO</span><span class="admin-expires">' + (p.expires||'') + '</span></div>' +
+    '<div class="admin-badge"><div class="admin-icon">&#x1F4E2;</div><span class="admin-label">ADMIN  -  INFO</span><span class="admin-expires">' + (p.expires||'') + '</span></div>' +
     '<div class="admin-title">' + (p.title||'') + '</div>' +
     '<div class="admin-body">' + (p.body||'') + '</div></div>';
 }
@@ -2325,7 +2424,7 @@ function previewCommentImage(input) {
   reader.readAsDataURL(file);
 }
 function renderTransfers() {
-  var h = '<div class="seclabel">TRANSFER-NEWS · UNSERE SPIELER</div>';
+  var h = '<div class="seclabel">TRANSFER-NEWS  -  UNSERE SPIELER</div>';
   TRANSFERS.forEach(function(t) {
     h += '<div class="trcard fu">' +
       '<div class="trplayer"><span class="tremoji">' + t.flag + '</span>' +
@@ -2365,7 +2464,7 @@ function renderProfile() {
     '<div class="edit-form">' +
     '<div class="ef-label">Anzeigename</div><input class="ef-input" id="ef-name" value="' + ME.name + '">' +
     '<div class="ef-label">Benutzername</div><input class="ef-input" id="ef-uname" value="' + ME.username + '">' +
-    '<div class="ef-hint">@' + ME.username + ' · wird fur Login genutzt</div>' +
+    '<div class="ef-hint">@' + ME.username + '  -  wird fur Login genutzt</div>' +
     '<div class="ef-label">Bio</div><input class="ef-input" id="ef-bio" value="' + (ME.bio || '') + '" placeholder="Erzahl etwas uber dich 🐉">' +
     '<div class="ef-label">E-Mail</div><input class="ef-input" value="' + ME.email + '" disabled style="opacity:.5">' +
     '<button class="ef-save" onclick="saveProfile()">ÄNDERUNGEN SPEICHERN</button>' +
@@ -3440,7 +3539,6 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 
 
-function switchLeagueEl(el) { switchLeague(el.getAttribute('data-key')); }
 function deletePostEl(el) { deletePost(el.getAttribute('data-id')); }
 function likePostEl(el) { likePost(el.getAttribute('data-id'), el); }
 function sharePostEl(el) { sharePost(el.getAttribute('data-txt') || ''); }
