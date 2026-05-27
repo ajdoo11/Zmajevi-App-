@@ -64,6 +64,9 @@ a{text-decoration:none;color:inherit}
 .aerr{color:var(--red);font-size:13px;margin-top:10px;display:none;padding:10px 13px;background:rgba(255,71,87,.1);border-radius:10px;border:1px solid rgba(255,71,87,.2);line-height:1.5}
 .abtn{width:100%;margin-top:18px;background:var(--gold);border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:800;color:#0a0f1e;cursor:pointer;box-shadow:0 8px 24px rgba(245,197,24,.4);-webkit-appearance:none}
 .abtn:active{transform:scale(.97)}
+.lang-btn{transition:all .2s}
+.lang-btn.on{border-color:var(--gold) !important;background:rgba(245,197,24,.12) !important}
+.lang-btn.on span:last-child{color:var(--gold) !important}
 .afooter{color:var(--gray2);font-size:11px;text-align:center;margin-top:18px;line-height:1.7}
 
 /* TOPBAR */
@@ -425,7 +428,17 @@ a{text-decoration:none;color:inherit}
            style="width:100%;height:100%;object-fit:cover;display:block">
     </div>
     <div class="auth-appname">ZMAJEVI</div>
-    <div class="auth-tagline">Die App für Zmajevi-Fans &#x1F1E7;&#x1F1E6;</div>
+    <div class="auth-tagline" id="auth-tagline">Die App für Zmajevi-Fans &#x1F1E7;&#x1F1E6;</div>
+    <div style="display:flex;justify-content:center;gap:10px;margin:16px 0 4px">
+      <button class="lang-btn on" data-lang="de" onclick="setLang('de')" style="display:flex;align-items:center;gap:7px;background:var(--bg3);border:2px solid var(--gold);border-radius:14px;padding:9px 20px;cursor:pointer;transition:all .2s">
+        <span style="font-size:20px">&#x1F1E9;&#x1F1EA;</span>
+        <span style="color:var(--gold);font-weight:800;font-size:13px;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px">DEUTSCH</span>
+      </button>
+      <button class="lang-btn" data-lang="bs" onclick="setLang('bs')" style="display:flex;align-items:center;gap:7px;background:var(--bg3);border:2px solid var(--border2);border-radius:14px;padding:9px 20px;cursor:pointer;transition:all .2s">
+        <span style="font-size:20px">&#x1F1E7;&#x1F1E6;</span>
+        <span style="color:var(--gray);font-weight:800;font-size:13px;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px">BOSANSKI</span>
+      </button>
+    </div>
     <div class="auth-tabs">
       <button class="atab on" onclick="switchAuth('login')">Anmelden</button>
       <button class="atab" onclick="switchAuth('reg')">Registrieren</button>
@@ -925,6 +938,88 @@ function openImgFull(src) {
 // ════════════════════════════════════════════════════════════
 // Firebase initialized below
 
+
+// ════════════════════════════════════════════════════════════
+// SPRACHE / JEZIK
+// ════════════════════════════════════════════════════════════
+var APP_LANG = localStorage.getItem('zmajevi_lang') || 'de';
+
+var LANG = {
+  de: {
+    tagline: 'Die App für Zmajevi-Fans',
+    login: 'Anmelden', register: 'Registrieren',
+    fullname: 'Vollständiger Name', username: 'Benutzername',
+    email: 'E-Mail', password: 'Passwort', confirmPass: 'Passwort bestätigen',
+    namePlaceholder: 'z.B. Kemal Mustafic', usernamePlaceholder: 'dein_name',
+    passPlaceholder: 'mindestens 6 Zeichen', confirmPlaceholder: 'Passwort wiederholen',
+    btnLogin: 'ANMELDEN', btnRegister: 'KONTO ERSTELLEN', loading: '...',
+    fillAll: 'Bitte alle Felder ausfüllen.',
+    nameRequired: 'Name und Benutzername sind Pflichtfelder.',
+    passNoMatch: 'Passwörter stimmen nicht überein.',
+    passShort: 'Passwort mindestens 6 Zeichen.',
+    connErr: 'Verbindungsfehler. Seite neu laden.',
+    emailInUse: 'Diese E-Mail wird bereits verwendet.',
+    invalidEmail: 'Ungültige E-Mail-Adresse.',
+    weakPass: 'Passwort zu schwach. Mind. 6 Zeichen.',
+    wrongCreds: 'E-Mail oder Passwort falsch.',
+    errPrefix: 'Fehler: ',
+    welcome: 'Willkommen ', welcomeBack: 'Willkommen zurück!',
+    news: 'NEWS', spieler: 'SPIELER', spiele: 'SPIELE', bihbook: 'BIHBOOK',
+    newsTitle: 'ZMAJEVI NEWS', kaderTitle: 'KADER WM 2026', spieleTitle: 'SPIELPLAN', bihbookTitle: 'BIHBOOK',
+    whatThink: 'Was denkst du, Zmaji?', post: 'Posten', reply: 'Antworten...',
+    footer: 'Made for Zmajevi-Fans weltweit'
+  },
+  bs: {
+    tagline: 'Aplikacija za Zmajevi-fanove',
+    login: 'Prijava', register: 'Registracija',
+    fullname: 'Puno ime', username: 'Korisničko ime',
+    email: 'E-Mail', password: 'Lozinka', confirmPass: 'Potvrdi lozinku',
+    namePlaceholder: 'npr. Kemal Mustafić', usernamePlaceholder: 'tvoje_ime',
+    passPlaceholder: 'najmanje 6 znakova', confirmPlaceholder: 'Ponovi lozinku',
+    btnLogin: 'PRIJAVA', btnRegister: 'KREIRAJ RAČUN', loading: '...',
+    fillAll: 'Molimo popunite sva polja.',
+    nameRequired: 'Ime i korisničko ime su obavezni.',
+    passNoMatch: 'Lozinke se ne podudaraju.',
+    passShort: 'Lozinka mora imati najmanje 6 znakova.',
+    connErr: 'Greška veze. Osvježi stranicu.',
+    emailInUse: 'Ova e-mail adresa je već registrovana.',
+    invalidEmail: 'Neispravna e-mail adresa.',
+    weakPass: 'Lozinka je preslaba. Min. 6 znakova.',
+    wrongCreds: 'Pogrešan e-mail ili lozinka.',
+    errPrefix: 'Greška: ',
+    welcome: 'Dobrodošao ', welcomeBack: 'Dobrodošao nazad!',
+    news: 'NOVOSTI', spieler: 'IGRAČI', spiele: 'UTAKMICE', bihbook: 'BIHBOOK',
+    newsTitle: 'ZMAJEVI NOVOSTI', kaderTitle: 'KADAR SP 2026', spieleTitle: 'RASPORED', bihbookTitle: 'BIHBOOK',
+    whatThink: 'Šta misliš, Zmaju?', post: 'Objavi', reply: 'Odgovori...',
+    footer: 'Napravljeno za Zmajevi-fanove širom svijeta'
+  }
+};
+
+function t(key) {
+  return (LANG[APP_LANG] && LANG[APP_LANG][key]) || (LANG.de[key]) || key;
+}
+
+function setLang(lang) {
+  APP_LANG = lang;
+  localStorage.setItem('zmajevi_lang', lang);
+  var tagline = document.querySelector('.auth-tagline');
+  if (tagline) tagline.innerHTML = t('tagline') + ' &#x1F1E7;&#x1F1E6;';
+  var footer = document.querySelector('.afooter');
+  if (footer) footer.innerHTML = t('footer') + ' &#x1F409;&#x1F1E7;&#x1F1E6;';
+  var tabs = document.querySelectorAll('.atab');
+  if (tabs[0]) tabs[0].textContent = t('login');
+  if (tabs[1]) tabs[1].textContent = t('register');
+  var navLabels = document.querySelectorAll('.nlabel');
+  var navKeys = ['news','spieler','spiele','bihbook'];
+  navLabels.forEach(function(el,i){ if(navKeys[i]) el.textContent = t(navKeys[i]); });
+  T_TITLES = { news:t('newsTitle'), spieler:t('kaderTitle'), spiele:t('spieleTitle'), bihbook:t('bihbookTitle') };
+  var curMode = document.querySelectorAll('.atab')[1] && document.querySelectorAll('.atab')[1].classList.contains('on') ? 'reg' : 'login';
+  renderAuthForm(curMode);
+  document.querySelectorAll('.lang-btn').forEach(function(b){
+    b.classList.toggle('on', b.getAttribute('data-lang') === APP_LANG);
+  });
+}
+
 // ════════════════════════════════════════════════════════════
 // STATE
 // ════════════════════════════════════════════════════════════
@@ -972,15 +1067,14 @@ function switchAuth(mode) {
 function renderAuthForm(mode) {
   var h = '';
   if (mode === 'reg') {
-    h += '<div class="alabel">Vollstaendiger Name</div><input class="ainput" type="text" id="f-name" placeholder="z.B. Kemal Mustafic" autocomplete="name">';
-    h += '<div class="alabel">Benutzername</div><input class="ainput" type="text" id="f-uname" placeholder="dein_name" autocomplete="username">';
+    h += '<div class="alabel">' + t('fullname') + '</div><input class="ainput" type="text" id="f-name" placeholder="' + t('namePlaceholder') + '" autocomplete="name">';
+    h += '<div class="alabel">' + t('username') + '</div><input class="ainput" type="text" id="f-uname" placeholder="' + t('usernamePlaceholder') + '" autocomplete="username">';
   }
-  h += '<div class="alabel">E-Mail</div><input class="ainput" type="email" id="f-email" placeholder="email@example.com" autocomplete="email">';
-  h += '<div class="alabel">Passwort</div><input class="ainput" type="password" id="f-pass" placeholder="mindestens 6 Zeichen" autocomplete="' + (mode === 'login' ? 'current-password' : 'new-password') + '">';
-  if (mode === 'reg') h += '<div class="alabel">Passwort bestaetigen</div><input class="ainput" type="password" id="f-pass2" placeholder="Passwort wiederholen" autocomplete="new-password">';
+  h += '<div class="alabel">' + t('email') + '</div><input class="ainput" type="email" id="f-email" placeholder="email@example.com" autocomplete="email">';
+  h += '<div class="alabel">' + t('password') + '</div><input class="ainput" type="password" id="f-pass" placeholder="' + t('passPlaceholder') + '" autocomplete="' + (mode === 'login' ? 'current-password' : 'new-password') + '">';
+  if (mode === 'reg') h += '<div class="alabel">' + t('confirmPass') + '</div><input class="ainput" type="password" id="f-pass2" placeholder="' + t('confirmPlaceholder') + '" autocomplete="new-password">';
   h += '<div class="aerr" id="aerr"></div>';
-
-  h += '<button class="abtn" id="auth-btn" data-mode="' + mode + '" onclick="doAuth(this)">' + (mode === 'login' ? 'ANMELDEN' : 'KONTO ERSTELLEN') + '</button>';
+  h += '<button class="abtn" id="auth-btn" data-mode="' + mode + '" onclick="doAuth(this)">' + (mode === 'login' ? t('btnLogin') : t('btnRegister')) + '</button>';
   document.getElementById('aform').innerHTML = h;
 }
 
@@ -994,7 +1088,7 @@ function doAuth(btnOrMode) {
   var email = (document.getElementById('f-email') || {}).value || '';
   var pass = (document.getElementById('f-pass') || {}).value || '';
   email = email.trim();
-  if (!email || !pass) { showErr('Bitte alle Felder ausfullen.'); return; }
+  if (!email || !pass) { showErr(t('fillAll')); return; }
   var btn = document.getElementById('auth-btn');
   if (btn) { btn.textContent = '...'; btn.disabled = true; }
 
@@ -1002,9 +1096,9 @@ function doAuth(btnOrMode) {
     var name = ((document.getElementById('f-name') || {}).value || '').trim();
     var uname = ((document.getElementById('f-uname') || {}).value || '').trim().replace('@', '').replace(/\s/g, '_');
     var pass2 = (document.getElementById('f-pass2') || {}).value || '';
-    if (!name || !uname) { showErr('Name und Benutzername sind Pflichtfelder.'); resetBtn(btn, mode); return; }
-    if (pass !== pass2) { showErr('Passworter stimmen nicht uberein.'); resetBtn(btn, mode); return; }
-    if (pass.length < 6) { showErr('Passwort mindestens 6 Zeichen.'); resetBtn(btn, mode); return; }
+    if (!name || !uname) { showErr(t('nameRequired')); resetBtn(btn, mode); return; }
+    if (pass !== pass2) { showErr(t('passNoMatch')); resetBtn(btn, mode); return; }
+    if (pass.length < 6) { showErr(t('passShort')); resetBtn(btn, mode); return; }
     if (!fbAuth) { showErr('Verbindungsfehler. Seite neu laden.'); resetBtn(btn, mode); return; }
     fbAuth.createUserWithEmailAndPassword(email, pass).then(function(cred) {
       var ud = { uid: cred.user.uid, name: name, username: uname, email: email, bio: 'Zmajevi-Fan', posts: 0, joinedAt: new Date().getFullYear().toString() };
@@ -1013,14 +1107,14 @@ function doAuth(btnOrMode) {
         showScreen('s-main');
         renderUserPill();
         renderAll();
-        showToast('Willkommen ' + name + '!');
+        showToast(t('welcome') + name + '!');
       });
     }).catch(function(err) {
       resetBtn(btn, mode);
-      if (err.code === 'auth/email-already-in-use') showErr('Diese E-Mail wird bereits verwendet.');
-      else if (err.code === 'auth/invalid-email') showErr('Ungultige E-Mail-Adresse.');
-      else if (err.code === 'auth/weak-password') showErr('Passwort zu schwach. Mind. 6 Zeichen.');
-      else showErr('Fehler: ' + err.message);
+      if (err.code === 'auth/email-already-in-use') showErr(t('emailInUse'));
+      else if (err.code === 'auth/invalid-email') showErr(t('invalidEmail'));
+      else if (err.code === 'auth/weak-password') showErr(t('weakPass'));
+      else showErr(t('errPrefix') + err.message);
     });
   } else {
     if (!fbAuth) { showErr('Verbindungsfehler. Seite neu laden.'); resetBtn(btn, mode); return; }
@@ -1031,20 +1125,20 @@ function doAuth(btnOrMode) {
         showScreen('s-main');
         renderUserPill();
         renderAll();
-        showToast('Willkommen zuruck!');
+        showToast(t('welcomeBack'));
         setTimeout(runAutoCleanup, 3000);
         setTimeout(loadNotifications, 1000);
       });
     }).catch(function(err) {
       resetBtn(btn, mode);
-      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') showErr('E-Mail oder Passwort falsch.');
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') showErr(t('wrongCreds'));
       else showErr('Fehler: ' + err.message);
     });
   }
 }
 
 function resetBtn(btn, mode) {
-  if (btn) { btn.textContent = mode === 'login' ? 'ANMELDEN' : 'KONTO ERSTELLEN'; btn.disabled = false; }
+  if (btn) { btn.textContent = mode === 'login' ? t('btnLogin') : t('btnRegister'); btn.disabled = false; }
 }
 
 // ════════════════════════════════════════════════════════════
@@ -3834,6 +3928,7 @@ window.addEventListener('DOMContentLoaded', function() {
     } else {
       showScreen('s-auth');
       renderAuthForm('login');
+  setLang(APP_LANG);
     }
   });
 });
