@@ -538,7 +538,7 @@ a{text-decoration:none;color:inherit}
     </div>
   </div>
   <!-- Unten: Antwort-Feld + Senden + Loeschen (NUR wenn eigene Story) -->
-  <div style="position:absolute;bottom:calc(env(safe-area-inset-bottom,0px)+20px);left:0;right:0;padding:0 14px;display:flex;gap:8px;align-items:center;z-index:10">
+  <div id="story-reply-row" style="display:none;position:fixed;bottom:0;left:0;right:0;padding:0 14px 20px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 20px);display:flex;gap:8px;align-items:center;z-index:600;background:linear-gradient(to top,rgba(0,0,0,.7) 0%,transparent 100%)">
     <input id="story-reply-inp" placeholder="Antworten..." style="flex:1;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:24px;padding:10px 16px;color:#fff;font-size:16px;outline:none;font-family:Inter,sans-serif">
     <button onclick="sendStoryReply()" style="background:var(--gold);border:none;border-radius:50%;width:40px;height:40px;color:#0a0f1e;font-size:17px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">&#x2191;</button>
     <!-- Loeschen-Button: klein, rund, nur wenn eigene Story -->
@@ -3108,6 +3108,9 @@ function viewStory(uid) {
   currentStoryIndex = 0;
   var modal = document.getElementById('story-modal');
   if (modal) modal.classList.add('open');
+  // Show reply row at bottom
+  var rr = document.getElementById('story-reply-row');
+  if (rr) rr.style.display = 'flex';
   showStoryAt(0);
 }
 
@@ -3199,11 +3202,13 @@ function closeStory() {
   if (storyProgressTimer) clearInterval(storyProgressTimer);
   var modal = document.getElementById('story-modal');
   if (modal) { modal.classList.remove('open'); }
-  // Button nicht entfernen (ist fest im HTML) — nur verstecken
   var delBtn = document.getElementById('story-delete-btn');
   if (delBtn) delBtn.style.display = 'none';
   var viewsEl = document.getElementById('story-views');
   if (viewsEl) viewsEl.remove();
+  // Hide reply row when story closes
+  var rr = document.getElementById('story-reply-row');
+  if (rr) rr.style.display = 'none';
 }
 
 // Wird vom HTML-Button aufgerufen
