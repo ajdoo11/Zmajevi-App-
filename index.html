@@ -514,10 +514,13 @@ a{text-decoration:none;color:inherit}
       <div id="story-txt" style="color:#fff;font-size:18px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,.8);line-height:1.5"></div>
     </div>
   </div>
-  <div style="position:absolute;bottom:20px;left:0;right:0;padding:0 14px;display:flex;gap:9px">
+  <!-- Reply Row — etwas hoeher damit Platz fuer Delete-Button -->
+  <div style="position:absolute;bottom:68px;left:0;right:0;padding:0 14px;display:flex;gap:9px">
     <input id="story-reply-inp" placeholder="Antworten..." style="flex:1;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:24px;padding:10px 16px;color:#fff;font-size:16px;outline:none;font-family:'Inter',sans-serif">
     <button onclick="sendStoryReply()" style="background:var(--gold);border:none;border-radius:50%;width:42px;height:42px;color:#0a0f1e;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">&#x2191;</button>
   </div>
+  <!-- Delete Button — fest im HTML, per JS show/hide -->
+  <button id="story-delete-btn" onclick="storyDeleteCurrent()" style="display:none;position:absolute;bottom:calc(env(safe-area-inset-bottom,0px)+14px);left:50%;transform:translateX(-50%);z-index:30;background:rgba(255,71,87,.92);border:none;border-radius:18px;padding:11px 28px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;box-shadow:0 2px 12px rgba(255,71,87,.5)">&#x1F5D1; Story l&#xF6;schen</button>
 </div>
 <!-- STORY UPLOAD -->
 <div class="modal" id="story-upload-modal" style="align-items:stretch">
@@ -2768,20 +2771,11 @@ function showStoryAt(idx) {
     tm.textContent = diffM < 1 ? 'Gerade' : diffH < 1 ? diffM + 'min' : diffH + 'h';
   }
 
-  // Delete button — fuer eigene Stories UND fuer Admin (alle Stories)
-  var existingDel = document.getElementById('story-delete-btn');
-  if (existingDel) existingDel.remove();
-  if (ME && (s.uid === ME.uid || isAdmin())) {
-    var delBtn = document.createElement('button');
-    delBtn.id = 'story-delete-btn';
-    delBtn.style.cssText = 'position:absolute;bottom:calc(env(safe-area-inset-bottom,0px)+6px);left:50%;transform:translateX(-50%);z-index:30;background:rgba(255,71,87,.92);border:none;border-radius:18px;padding:11px 28px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 2px 12px rgba(255,71,87,.5)';
-    delBtn.innerHTML = '&#x1F5D1; Story löschen';
-    delBtn.onclick = function(e) {
-      e.stopPropagation();
-      deleteStory(s.docId);
-    };
-    var modal = document.getElementById('story-modal');
-    if (modal) modal.appendChild(delBtn);
+  // Delete button — per show/hide steuern (fest im HTML)
+  window._currentStoryDocId = s.docId || null;
+  var delBtn = document.getElementById('story-delete-btn');
+  if (delBtn) {
+    delBtn.style.display = (ME && (s.uid === ME.uid || isAdmin())) ? 'block' : 'none';
   }
 
   // Views count
@@ -2822,10 +2816,18 @@ function closeStory() {
   if (storyProgressTimer) clearInterval(storyProgressTimer);
   var modal = document.getElementById('story-modal');
   if (modal) { modal.classList.remove('open'); }
+  // Button nicht entfernen (ist fest im HTML) — nur verstecken
   var delBtn = document.getElementById('story-delete-btn');
-  if (delBtn) delBtn.remove();
+  if (delBtn) delBtn.style.display = 'none';
   var viewsEl = document.getElementById('story-views');
   if (viewsEl) viewsEl.remove();
+}
+
+// Wird vom HTML-Button aufgerufen
+function storyDeleteCurrent() {
+  var docId = window._currentStoryDocId;
+  if (!docId) return;
+  deleteStory(docId);
 }
 function sendStoryReply() {
   var inp = document.getElementById('story-reply-inp');
