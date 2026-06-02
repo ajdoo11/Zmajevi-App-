@@ -666,6 +666,8 @@ a{text-decoration:none;color:inherit}
       <div class="atab-pill" onclick="adminTab('poll',this)">&#x1F5F3; Umfrage</div>
       <div class="atab-pill" onclick="adminTab('announce',this)">&#x1F4E2; Info</div>
       <div class="atab-pill" onclick="adminTab('ergebnisse',this)">&#x26BD; Ergebnisse</div>
+      <div class="atab-pill" onclick="adminTab('tabelle',this)">&#x1F4CA; Tabelle</div>
+      <div class="atab-pill" onclick="adminTab('spiele-admin',this)">&#x1F4C5; Spiele</div>
     </div>
 
     <!-- Posts tab -->
@@ -822,6 +824,81 @@ a{text-decoration:none;color:inherit}
       </div>
       <div class="amod-title">Gespeicherte Ergebnisse</div>
       <div id="admin-results-list"><div style="color:var(--gray);font-size:12px;padding:8px 0">Lade...</div></div>
+    </div>
+
+    <!-- ═══ TABELLE ADMIN ═══ -->
+    <div id="atab-tabelle" style="display:none">
+      <div class="amod-title">&#x1F4CA; Tabelle bearbeiten</div>
+      <div style="display:flex;gap:6px;margin-bottom:12px">
+        <div class="dur-btn on" id="tbl-wm-btn" onclick="adminTblLeague('wm',this)" style="flex:1">WM 2026</div>
+        <div class="dur-btn" id="tbl-nl-btn" onclick="adminTblLeague('nl',this)" style="flex:1">NL 2026/27</div>
+      </div>
+      <div id="admin-table-editor">
+        <div style="color:var(--gray);font-size:12px;padding:8px 0">Lade...</div>
+      </div>
+      <button onclick="adminSaveTable()" style="background:var(--gold);border:none;border-radius:12px;padding:14px;width:100%;color:#0a0f1e;font-size:14px;font-weight:800;cursor:pointer;margin-top:8px">&#x2705; Tabelle speichern</button>
+    </div>
+
+    <!-- ═══ SPIELE ADMIN ═══ -->
+    <div id="atab-spiele-admin" style="display:none">
+      <div class="amod-title">&#x1F4C5; Spiele verwalten</div>
+
+      <!-- Team wählen -->
+      <div style="background:var(--bg2);border-radius:14px;border:1px solid var(--border);padding:14px;margin-bottom:12px">
+        <div class="afield-label">Team / Wettbewerb auswählen</div>
+        <select class="poll-inp" id="sg-team" onchange="adminLoadTeamGames()" style="cursor:pointer;-webkit-appearance:none">
+          <option value="">-- Team wählen --</option>
+          <optgroup label="WM 2026 Gruppe B">
+            <option value="wm_Bosna">🇧🇦 Bosna i Hercegovina (BiH)</option>
+            <option value="wm_Kanada">🇨🇦 Kanada</option>
+            <option value="wm_Svicarska">🇨🇭 Švicarska</option>
+            <option value="wm_Katar">🇶🇦 Katar</option>
+          </optgroup>
+          <optgroup label="Nations League B4">
+            <option value="nl_Bosna">🇧🇦 Bosna i Hercegovina (BiH)</option>
+            <option value="nl_Poljska">🇵🇱 Poljska</option>
+            <option value="nl_Rumanija">🇷🇴 Rumanija</option>
+            <option value="nl_Svedska">🇸🇪 Svedska</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <!-- Spiele-Liste des Teams -->
+      <div id="admin-team-games-list"></div>
+
+      <!-- Neues Spiel hinzufügen -->
+      <div id="admin-add-game-form" style="display:none">
+        <div class="amod-title" style="margin-top:4px">&#x2795; Spiel hinzufügen / bearbeiten</div>
+        <div style="background:var(--bg2);border-radius:14px;border:1px solid var(--border);padding:14px;margin-bottom:10px">
+          <input type="hidden" id="sg-edit-id">
+          <div class="afield-label">Heimteam</div>
+          <input class="poll-inp" id="sg-home" placeholder="z.B. Bosna">
+          <div class="afield-label">Auswärtsteam</div>
+          <input class="poll-inp" id="sg-away" placeholder="z.B. Kanada">
+          <div class="afield-label">Datum</div>
+          <input class="poll-inp" id="sg-date" type="date">
+          <div class="afield-label">Uhrzeit (optional)</div>
+          <input class="poll-inp" id="sg-time" placeholder="z.B. 21:00 MESZ">
+          <div class="afield-label">Wettbewerb</div>
+          <input class="poll-inp" id="sg-comp" placeholder="z.B. WM 2026 Gruppe B">
+          <div class="afield-label">Stadion</div>
+          <input class="poll-inp" id="sg-stadium" placeholder="z.B. BMO Field, Toronto">
+          <div class="afield-label">Ergebnis (leer = noch nicht gespielt)</div>
+          <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:10px">
+            <input class="poll-inp" id="sg-home-score" type="number" min="0" placeholder="0" style="text-align:center;font-size:20px;font-weight:900">
+            <span style="color:var(--gold);font-weight:900;font-size:18px">:</span>
+            <input class="poll-inp" id="sg-away-score" type="number" min="0" placeholder="0" style="text-align:center;font-size:20px;font-weight:900">
+          </div>
+          <div class="afield-label">Notiz (optional, z.B. "n.E. 4:2")</div>
+          <input class="poll-inp" id="sg-note" placeholder="z.B. nach Elfmeterschiessen 4:2">
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button onclick="adminSaveGame()" style="flex:1;background:var(--gold);border:none;border-radius:10px;padding:12px;color:#0a0f1e;font-size:14px;font-weight:800;cursor:pointer">&#x2705; Spiel speichern</button>
+            <button onclick="adminCancelGame()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;color:var(--gray);font-size:14px;cursor:pointer">&#x2715;</button>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="adminShowAddGame()" id="btn-add-game" style="display:none;width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:13px;color:var(--gold);font-size:14px;font-weight:700;cursor:pointer;margin-top:4px">&#x2795; Neues Spiel eintragen</button>
     </div>
 
   </div><!-- end apanel-body -->
@@ -1158,8 +1235,8 @@ function goTab(tab, btn) {
 }
 
 function renderAll() {
+  loadStandingsFromFirestore();
   renderNewsTab();
-
   renderSpiele();
 }
 
@@ -1197,96 +1274,68 @@ function detectTag(text) {
   return 'Nationalteam';
 }
 
-// ── Kuratierte aktuelle News (täglich manuell aktualisiert via Admin)
-// Diese werden immer angezeigt und sind real von Sportske.ba, Klix.ba etc.
-// CURATED_NEWS: Täglich aktualisiert — max. 48h alt
-// Zuletzt aktualisiert: 26. Mai 2026
+// CURATED_NEWS: Statischer Fallback (wird von Admin über Admin-Panel gepflegt)
+// Die API versucht Live-News zu laden und ersetzt diese wenn erfolgreich.
+// ADMIN: Bitte diese Liste über Admin → News aktuell halten!
 var CURATED_NEWS = [
-  { id:'c1', src:'Klix.ba', time:'Heute', tag:'Ausruestung', hot:true, likes:0,
-    title:'Predstavljeni novi dresovi Zmajeva za SP 2026! Plava i bijela Kelme garnitura',
-    desc:'N/FSBiH i Kelme zvanično su predstavili nove dresove BiH za Svjetsko prvenstvo. Plava domaća i bijela gostujuća garnitura. Vertikalne linije simbolizuju rijeke domovine, dizajner Haris Stambolić.',
-    url:'https://www.klix.ba/sport/nogomet/predstavljeni-dresovi-bosne-i-hercegovine-u-njima-ce-zmajevi-igrati-svjetsko-prvenstvo/260525011', imageUrl:'' },
-  { id:'c2', src:'SportSport.ba', time:'Heute', tag:'Ausruestung', hot:true, likes:0,
-    title:'Koliko koštaju novi dresovi Zmajeva? Cijena prave garniture je "paprena"',
-    desc:'Novi dresovi reprezentacije BiH za Mundijal su u prodaji. Kelme garnitura dostupna odmah. Debi u novim dresovima je u petak na Koševu protiv Sjeverne Makedonije (20:30).',
-    url:'https://sportsport.ba/fudbal/bosna-i-hercegovina-zmajevi-novi-dres-kelme-cijena/522724', imageUrl:'' },
-  { id:'c3', src:'SportSport.ba', time:'Heute', tag:'Nationalteam', hot:true, likes:0,
-    title:'Zmajevi u novim dresovima debituju 29. maja protiv Sjeverne Makedonije na Koševu',
-    desc:'Reprezentacija BiH premijernu utakmicu u novim dresovima igraće u petak na stadionu Koševo u Sarajevu. Start u 20:30h. Ovo je posljednja priprema pred odlazak u SAD.',
-    url:'https://sportsport.ba/fudbal/bosna-i-hercegovina-zmajevi-kelme-novi-dresovi-video/522716', imageUrl:'' },
-  { id:'c4', src:'Klix.ba', time:'Heute', tag:'Nationalteam', hot:false, likes:0,
-    title:'Tahirović i Gigović: "Umor je nestao čim smo došli u Sarajevo, s nestrpljenjem čekamo SP"',
-    desc:'Bh. reprezentativci Benjamin Tahirović i Armin Gigović izjavili su da se ne osjećaju umor uoči priprema za Mundijal i da jedva čekaju početek SP-a 2026.',
+  { id:'c1', src:'Klix.ba', time:'vor 3T', tag:'Nationalteam', hot:false, likes:0,
+    title:'Zmajevi odradili zadnji trening u Sarajevu pred odlazak na SP 2026',
+    desc:'Reprezentacija BiH završila je pripreme u Sarajevu i priprema se za odlazak u SAD na SP 2026.',
     url:'https://www.klix.ba/sport/nogomet', imageUrl:'' },
-  { id:'c5', src:'Reprezentacija.ba', time:'Heute', tag:'Nationalteam', hot:false, likes:0,
-    title:'Alphonso Davies vjerovatno ne igra protiv Bosne i Hercegovine na SP-u',
-    desc:'Najveća zvijezda Kanade Alphonso Davies upitan je za grupnu utakmicu protiv BiH na Mundijalu 2026. Zmajevi igraju protiv Kanade 12. juna u Los Angelesu.',
-    url:'https://reprezentacija.ba/', imageUrl:'' },
-  { id:'c6', src:'SportSport.ba', time:'vor 3T', tag:'Nationalteam', hot:false, likes:0,
-    title:'Alajbegović: "Logično je da ćemo pobijediti Kanadu" – Zmajevi krenuli s pripremama',
-    desc:'Kerim Alajbegović uvjeren u pobjedu nad Kanadom na otvaranju SP-a. Reprezentacija BiH počela je pripreme u Sarajevu, okupljanje u subotu 23. maja.',
+  { id:'c2', src:'SportSport.ba', time:'vor 4T', tag:'Nationalteam', hot:false, likes:0,
+    title:'BiH vs S. Makedonija 0:0 - Zmajevi bez golova u pripremi pred SP',
+    desc:'Bosna i Hercegovina odigrala je 0:0 protiv Sjeverne Makedonije na Koševu. Pripremna utakmica završena bez golova pred Mundijal.',
     url:'https://sportsport.ba/tag/fudbalska_reprezentacija_bih', imageUrl:'' },
-  { id:'c7', src:'SportSport.ba', time:'vor 2M', tag:'Spieler', hot:false, likes:0,
-    title:'Alajbegović se vraća u Bayer Leverkusen – Džeko i Zmajevi reagirali likeom',
-    desc:'Leverkusen aktivirao klauzulu i otkupio Alajbegovića od Red Bull Salzburga. Bh. igrač odličan u baražu, potpisuje ugovor na 5 godina.',
-    url:'https://sportsport.ba/fudbal/kerim-alajbegovic-edin-dzeko-zmajevi-reakcije-leverkusen-transfer/518934', imageUrl:'' },
+  { id:'c3', src:'Reprezentacija.ba', time:'vor 5T', tag:'Nationalteam', hot:false, likes:0,
+    title:'Zmajevi putuju u SAD - WM 2026 pocinje 12. juna protiv Kanade u Torontu',
+    desc:'Fudbalska reprezentacija BiH krece prema Sjevernoj Americi na SP 2026. Zmajevi su u Grupi B sa Kanadom, Svicarskom i Katarom.',
+    url:'https://reprezentacija.ba/', imageUrl:'' },
+  { id:'c4', src:'SportSport.ba', time:'vor 6T', tag:'Spieler', hot:false, likes:0,
+    title:'Alajbegovic o SP-u: Vjerujem u nas tim, svi smo zdravi i motivisani',
+    desc:'Kerim Alajbegovic (Bayer Leverkusen) govorio je o ocekivanjima pred Mundijal. Cijeli tim je zdrav i spreman za grupnu fazu SP-a 2026.',
+    url:'https://sportsport.ba/tag/fudbalska_reprezentacija_bih', imageUrl:'' },
+  { id:'c5', src:'Klix.ba', time:'vor 7T', tag:'Ausruestung', hot:false, likes:0,
+    title:'Novi dresovi Zmajeva - Kelme garnitura za SP 2026 u prodaji',
+    desc:'N/FSBiH i Kelme predstavili su nove dresove BiH za Svjetsko prvenstvo. Plava domaca i bijela gostujuca garnitura dostupna je u prodaji.',
+    url:'https://www.klix.ba/sport/nogomet', imageUrl:'' },
 ];
 
 function loadLiveNews() {
-  var adminNews = ADMIN_NEWS_LIST.slice(); // admin-created news always preserved
+  var adminNews = ADMIN_NEWS_LIST.slice();
 
-  // Zeige sofort kuratierte News → keine Wartezeit
-  var now48 = Date.now();
-  var TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
-  ALL_NEWS = adminNews.concat(CURATED_NEWS
-    .map(function(n) {
-      var ageMs = n.time === 'Heute' ? 0
-        : n.time.includes('1') ? 1*86400000
-        : n.time.includes('2') ? 2*86400000
-        : n.time.includes('3') ? 3*86400000
-        : n.time.includes('4') ? 4*86400000
-        : n.time.includes('5') ? 5*86400000
-        : n.time.includes('6') ? 6*86400000
-        : n.time.includes('M') ? 30*86400000 : 0;
-      return Object.assign({}, n, { pubMs: now48 - ageMs });
-    })
-    .filter(function(n) { return (now48 - n.pubMs) <= TWO_DAYS_MS || n.pubMs >= now48 - 86400000; })
-  );
+  // Sofort CURATED_NEWS als Fallback zeigen — nie leere Seite
+  var now = Date.now();
+  ALL_NEWS = adminNews.concat(CURATED_NEWS.map(function(n){
+    return Object.assign({}, n, { pubMs: now });
+  }));
   newsLoadedAt = Date.now();
   var upd = document.getElementById('ai-upd');
-  if (upd) upd.textContent = 'Jetzt aktuell  -  ' + CURATED_NEWS.length + ' News';
+  if (upd) upd.textContent = '⏳ Live-News werden geladen...';
   renderNewsFeed();
 
-  // Admin-News aus Firestore laden — kein orderBy (kein Index noetig), client-seitig sortieren
+  // Firestore Admin-News laden
   if (fbDb) {
     fbDb.collection('admin_content').where('type','==','news').limit(20)
       .get().then(function(snap) {
-        if (snap.empty) { fetchLiveNewsBackground(adminNews); return; }
         var firestoreNews = [];
         snap.forEach(function(doc) {
           var d = doc.data();
           var ts = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().getTime() : Date.now();
-          firestoreNews.push({
-            id: doc.id, docId: doc.id,
-            src: d.src||'Zmajevi App',
-            time: 'Heute', pubMs: ts,
-            tag: d.tag||'Nationalteam', hot: !!d.hot,
-            likes: d.likes||0, title: d.title||'', desc: d.desc||'',
-            url: d.url||'#', adminPost: true,
-            imageData: d.imageData||null, images: d.images||[]
-          });
+          firestoreNews.push({ id:doc.id, docId:doc.id, src:d.src||'Zmajevi App', time:'Heute', pubMs:ts,
+            tag:d.tag||'Nationalteam', hot:!!d.hot, likes:d.likes||0, title:d.title||'', desc:d.desc||'',
+            url:d.url||'#', adminPost:true, imageData:d.imageData||null, images:d.images||[] });
         });
-        // Neueste zuerst (client-seitig)
         firestoreNews.sort(function(a,b){ return b.pubMs - a.pubMs; });
         ADMIN_NEWS_LIST = firestoreNews;
-        ALL_NEWS = ADMIN_NEWS_LIST.concat(CURATED_NEWS.map(function(n){ return Object.assign({}, n, {pubMs: Date.now()}); }));
-        newsLoadedAt = Date.now();
-        var upd2 = document.getElementById('ai-upd');
-        if (upd2) upd2.textContent = 'Aktuell  -  ' + ALL_NEWS.length + ' News';
+        // Admin-News oben anzeigen, Fallback darunter
+        ALL_NEWS = ADMIN_NEWS_LIST.concat(CURATED_NEWS.map(function(n){
+          return Object.assign({}, n, { pubMs: now });
+        }));
         renderNewsFeed();
+        // Dann Live-API probieren (ersetzt alles wenn erfolgreich)
         fetchLiveNewsBackground(ADMIN_NEWS_LIST);
       }).catch(function(e) {
-        console.log('Admin news load err:', e.message);
+        console.log('Firestore news err:', e.message);
         fetchLiveNewsBackground(adminNews);
       });
   } else {
@@ -1294,29 +1343,35 @@ function loadLiveNews() {
   }
 }
 
-// Auto-Refresh alle 3 Stunden
+// Auto-Refresh alle 30 Minuten (vorher 3 Stunden)
 (function startAutoRefresh() {
-  var THREE_HOURS_MS = 3 * 60 * 60 * 1000;
+  var THIRTY_MIN_MS = 30 * 60 * 1000;
   setInterval(function() {
-    // Nur wenn News-Tab aktiv
     newsLoadedAt = 0; // Cache invalidieren
     var newsPanel = document.getElementById('tp-news');
-    if (newsPanel && newsPanel.classList.contains('active')) {
+    if (newsPanel && newsPanel.classList.contains('on')) {
       loadLiveNews();
     }
-  }, THREE_HOURS_MS);
+  }, THIRTY_MIN_MS);
 })();
 
 function fetchLiveNewsBackground(adminNews) {
   var today = new Date().toLocaleDateString('de-DE', {day:'2-digit', month:'long', year:'numeric'});
-  var prompt = 'Finde heute (' + today + ') aktuelle Nachrichten über BiH Fussball Nationalmannschaft / Zmajevi / WM 2026 von Sportske.ba, Klix.ba, Sportsport.ba. Gib NUR ein JSON-Array zurück (kein Text davor/danach, keine Backticks), max 8 Artikel, neueste zuerst, Format: [{"title":"...","desc":"...","url":"...","src":"Sportske.ba","time":"vor Xh","tag":"Nationalteam","hot":false,"imageUrl":""}]. Wenn du nichts findest, gib [] zurück.';
+  // Aktuelles Datum explizit mitgeben damit die KI weiss was "heute" ist
+  var prompt = 'Heute ist der ' + today + '. Suche ECHTE, aktuelle Nachrichten der letzten 7 Tage ueber die bosnisch-herzegowinische Fussball-Nationalmannschaft (BiH / Zmajevi / WM 2026). ' +
+    'Durchsuche: Klix.ba, Sportske.ba, Sportsport.ba, Fanatik.ba, N1 Info, Reprezentacija.ba. ' +
+    'WICHTIG: Erfinde KEINE News. Gib nur real existierende Artikel zurueck. ' +
+    'Gib NUR ein JSON-Array zurueck (KEIN Text davor/danach, KEINE Backticks, KEIN Markdown), max 10 Artikel, neueste zuerst. ' +
+    'Format: [{"title":"exakter Titel","desc":"kurze Beschreibung","url":"echter Link","src":"Klix.ba","time":"vor 2h","tag":"Nationalteam","hot":false}]. ' +
+    'Tags: Nationalteam, Spieler, Transfers, Spielplan, Breaking, Ausruestung, Interview. ' +
+    'Wenn keine echten Artikel gefunden: [].';
 
   fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 2000,
+      max_tokens: 3000,
       tools: [{ type: 'web_search_20250305', name: 'web_search' }],
       messages: [{ role: 'user', content: prompt }]
     })
@@ -1327,31 +1382,60 @@ function fetchLiveNewsBackground(adminNews) {
     if (data.content) data.content.forEach(function(b){ if(b.type==='text') fullText += b.text; });
     fullText = fullText.trim().replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
     var s = fullText.indexOf('['), e = fullText.lastIndexOf(']');
-    if (s < 0 || e <= s) return;
-    var live = JSON.parse(fullText.slice(s, e+1));
-    if (!Array.isArray(live) || !live.length) return;
+    if (s < 0 || e <= s) { console.log('News API: kein Array gefunden'); return; }
+    var live;
+    try { live = JSON.parse(fullText.slice(s, e+1)); } catch(ex) { console.log('News API: JSON parse error'); return; }
+    if (!Array.isArray(live) || !live.length) { console.log('News API: leeres Array'); return; }
     var now = Date.now();
     var mapped = live.filter(function(a){ return a.title && a.title.length > 5; }).map(function(a, i){
-      return { id:'live_'+i+'_'+now, src:a.src||'Klix.ba', time:a.time||'Heute', pubMs:now-i*60000,
-        tag:a.tag||detectTag((a.title||'')+(a.desc||'')), hot:!!a.hot, likes:0,
-        title:(a.title||'').trim(), desc:(a.desc||'').trim(), url:a.url||'#',
-        imageUrl:a.imageUrl||'', fullContent:a.desc||'' };
+      return {
+        id: 'live_'+i+'_'+now,
+        src: a.src || 'Klix.ba',
+        time: a.time || 'Heute',
+        pubMs: now - i * 120000,
+        tag: a.tag || detectTag((a.title||'')+(a.desc||'')),
+        hot: !!a.hot,
+        likes: 0,
+        title: (a.title||'').trim(),
+        desc: (a.desc||'').trim(),
+        url: a.url || '#',
+        imageUrl: a.imageUrl || '',
+        fullContent: a.desc || ''
+      };
     });
-    if (!mapped.length) return;
-    // Merge: live News oben, kuratierte darunter (Duplikate nach Titel filtern)
+    if (!mapped.length) {
+      // API hat nichts gefunden → Fallback bleibt sichtbar
+      var upd2 = document.getElementById('ai-upd');
+      if (upd2) upd2.textContent = 'Klix.ba / Sportske.ba';
+      return;
+    }
+    // Duplikate mit Curated-Titeln filtern
     var curatedTitles = CURATED_NEWS.map(function(n){ return n.title.slice(0,30).toLowerCase(); });
     var newOnly = mapped.filter(function(m){
       return !curatedTitles.some(function(t){ return m.title.toLowerCase().indexOf(t) > -1; });
     });
-    if (!newOnly.length) return;
-    ALL_NEWS = ADMIN_NEWS_LIST.concat(newOnly).concat(CURATED_NEWS.map(function(n){
-      return Object.assign({}, n, { pubMs: now });
-    }));
+    // Live-News oben, dann Admin, dann Curated-Fallback
+    ALL_NEWS = ADMIN_NEWS_LIST.concat(newOnly.length ? newOnly : mapped).concat(
+      CURATED_NEWS.map(function(n){ return Object.assign({}, n, { pubMs: Date.now() - 7*86400000 }); })
+    );
     var upd = document.getElementById('ai-upd');
-    if (upd) upd.textContent = 'Live  -  ' + ALL_NEWS.length + ' News';
+    if (upd) upd.textContent = 'Live  —  ' + (newOnly.length || mapped.length) + ' aktuelle News';
+    newsLoadedAt = Date.now();
     renderNewsFeed();
+    console.log('News API: ' + mapped.length + ' Artikel geladen');
   })
-  .catch(function(e){ console.log('Background news fetch failed:', e.message); });
+  .catch(function(e){
+    console.log('Background news fetch failed:', e.message);
+    // Fallback bleibt sichtbar, nur Status aktualisieren
+    var upd = document.getElementById('ai-upd');
+    if (upd) upd.textContent = 'Klix.ba / Sportske.ba (Fallback)';
+    if (!ALL_NEWS.length) {
+      ALL_NEWS = ADMIN_NEWS_LIST.concat(CURATED_NEWS.map(function(n){
+        return Object.assign({}, n, { pubMs: Date.now() });
+      }));
+      renderNewsFeed();
+    }
+  });
 }
 
 function renderNewsTab() {
@@ -1378,10 +1462,8 @@ function renderNewsFeed() {
   var feed = document.getElementById('news-feed');
   if (!feed) return;
   if (!data.length) {
-    var emptyMsg = newsLoadedAt > 0
-      ? '<div style="text-align:center;padding:40px 20px;color:var(--gray)"><div style="font-size:40px;margin-bottom:12px">&#x1F4ED;</div><div style="font-weight:700;color:var(--white);font-size:15px;margin-bottom:6px">Keine aktuellen Beitraege</div><div style="font-size:13px">Keine relevanten News der letzten 3 Tage.<br>Tippe &#x21BB; oben rechts um erneut zu suchen.</div></div>'
-      : '<div style="text-align:center;padding:40px 20px;color:var(--gray)"><div style="font-size:40px;margin-bottom:12px">&#x1F504;</div><div style="font-size:13px">News werden geladen...</div></div>';
-    feed.innerHTML = emptyMsg; return;
+    feed.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--gray)"><div style="font-size:40px;margin-bottom:12px">&#x1F4ED;</div><div style="font-weight:700;color:var(--white);font-size:15px;margin-bottom:6px">Keine News gefunden</div><div style="font-size:13px">Tippe &#x21BB; oben rechts um zu aktualisieren.</div></div>';
+    return;
   }
   var h = '';
   data.forEach(function(n, i) {
@@ -1949,6 +2031,7 @@ var _resultsCacheTime = 0;
 var RESULTS_CACHE_MS = 30 * 60 * 1000; // 30 Minuten Cache
 var _erSelectedResult = 'win';
 
+// STANDINGS — Standardwerte, werden aus Firestore überschrieben
 var STANDINGS = {
   wm: {
     title:'WM 2026 - Gruppe B', sub:'Toronto - Los Angeles - Seattle - Jun 2026',
@@ -1974,6 +2057,23 @@ var STANDINGS = {
     adv:1, advNote:'1. Platz = Aufstieg Liga A'
   }
 };
+
+// Firestore → STANDINGS laden
+function loadStandingsFromFirestore() {
+  if (!fbDb) return;
+  fbDb.collection('standings').doc('data').get().then(function(doc) {
+    if (doc.exists) {
+      var d = doc.data();
+      if (d.wm) STANDINGS.wm = d.wm;
+      if (d.nl) STANDINGS.nl = d.nl;
+      // Spiele-Tab neu rendern wenn aktiv
+      var sp = document.getElementById('spiele-inner');
+      if (sp && document.getElementById('tp-spiele') && document.getElementById('tp-spiele').classList.contains('on')) {
+        renderSpiele();
+      }
+    }
+  }).catch(function(){});
+}
 
 // ── renderStandingsHTML ────────────────────────────────────────
 function renderStandingsHTML() {
@@ -2004,9 +2104,11 @@ function renderStandingsHTML() {
     var bg = t.bih ? 'background:rgba(245,197,24,.06)' : '';
     var nc = t.bih ? 'color:var(--gold);font-weight:900' : 'color:var(--white);font-weight:700';
     var adv = t.p <= (g.adv||0) ? 'border-left:3px solid var(--green)' : 'border-left:3px solid transparent';
-    return '<div style="display:grid;grid-template-columns:24px 1fr 24px 24px 24px 24px 34px 32px;gap:0;padding:8px 12px;border-bottom:1px solid var(--border);' + bg + ';' + adv + '">' +
+    var league = activeLeagueTab;
+    var teamKey = league + '_' + t.n;
+    return '<div onclick="openTeamGames(' + JSON.stringify(teamKey) + ')" style="display:grid;grid-template-columns:24px 1fr 24px 24px 24px 24px 34px 32px;gap:0;padding:8px 12px;border-bottom:1px solid var(--border);' + bg + ';' + adv + ';cursor:pointer">'+
       '<span style="color:var(--gray);font-size:11px;text-align:center;line-height:1.8">' + (t.p||'') + '</span>' +
-      '<span style="' + nc + ';font-size:12px;line-height:1.8">' + (t.f||'') + ' ' + (t.n||'') + '</span>' +
+      '<span style="' + nc + ';font-size:12px;line-height:1.8">' + (t.f||'') + ' ' + (t.n||'') + ' <span style=\"color:var(--gray2);font-size:9px\">›</span></span>' +
       '<span style="color:var(--gray);font-size:11px;text-align:center;line-height:1.8">' + (t.pld||0) + '</span>' +
       '<span style="color:var(--green);font-size:11px;text-align:center;line-height:1.8">' + (t.w||0) + '</span>' +
       '<span style="color:var(--gray);font-size:11px;text-align:center;line-height:1.8">' + (t.d||0) + '</span>' +
@@ -2023,55 +2125,92 @@ function renderStandingsHTML() {
 function renderSpiele() {
   var inner = document.getElementById('spiele-inner');
   if (!inner) return;
-
-  // Show skeleton while loading
   inner.innerHTML = renderStandingsHTML() +
     '<div style="height:1px;background:var(--border);margin:16px 0"></div>' +
-    '<div class="seclabel">PREDSTOJECCE UTAKMICE WM 2026</div>' +
-    renderFixturesHTML() +
+    '<div class="seclabel">PREDSTOJECCE UTAKMICE' +
+    '<button onclick="refreshFixtures()" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px 8px;color:var(--gray);font-size:10px;cursor:pointer;margin-left:8px">&#x21BB;</button>' +
+    '</div>' +
+    '<div id="fixtures-container"><div style="text-align:center;padding:16px;color:var(--gray);font-size:13px">Lade Spiele...</div></div>' +
     '<div class="seclabel" style="margin-top:12px">NEDAVNI REZULTATI ' +
-    '<span id="results-live-badge" style="background:rgba(46,213,115,.15);color:var(--green);font-size:9px;font-weight:800;padding:2px 7px;border-radius:10px;border:1px solid rgba(46,213,115,.3);margin-left:5px">&#x1F916; LIVE</span>' +
+    '<span id="results-live-badge" style="background:rgba(46,213,115,.15);color:var(--green);font-size:9px;font-weight:800;padding:2px 7px;border-radius:10px;border:1px solid rgba(46,213,115,.3);margin-left:5px">&#x2705; LIVE</span>' +
     '<button onclick="refreshResults()" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px 8px;color:var(--gray);font-size:10px;cursor:pointer;margin-left:6px">&#x21BB;</button>' +
     '</div>' +
-    '<div id="results-container"><div style="text-align:center;padding:20px;color:var(--gray);font-size:13px">&#x1F916; KI laedt aktuelle Ergebnisse...</div></div>';
-
+    '<div id="results-container"><div style="text-align:center;padding:20px;color:var(--gray);font-size:13px">Lade Ergebnisse...</div></div>';
+  loadFixturesFromFirestore();
   loadLiveResults();
 }
 
-// ── Fixed fixtures (upcoming WM games) ───────────────────────
-function renderFixturesHTML() {
-  var fixtures = [
-    { date:'29. Mai 2026', time:'20:30 MESZ', oppEmoji:'&#127474;&#127472;', opp:'S. Makedonija', comp:'Priprema', stadium:'Kosevo, Sarajevo', isHome:true, highlight:false },
-    { date:'12. Jun 2026', time:'21:00 MESZ', oppEmoji:'&#127464;&#127462;', opp:'Kanada',        comp:'WM 2026 - Gruppe B', stadium:'BMO Field, Toronto', isHome:false, highlight:true },
-    { date:'16. Jun 2026', time:'21:00 MESZ', oppEmoji:'&#127464;&#127469;', opp:'Svicarska',     comp:'WM 2026 - Gruppe B', stadium:'SoFi Stadium, Los Angeles', isHome:false, highlight:false },
-    { date:'20. Jun 2026', time:'TBD', oppEmoji:'&#127478;&#127462;',        opp:'Katar',         comp:'WM 2026 - Gruppe B', stadium:'Lumen Field, Seattle', isHome:false, highlight:false }
+function refreshFixtures() { loadFixturesFromFirestore(); }
+
+// ── Fixtures aus Firestore laden ──────────────────────────────
+function loadFixturesFromFirestore() {
+  if (!fbDb) { renderFixturesHTML(null); return; }
+  fbDb.collection('games').where('teamKey','==','wm_Bosna')
+    .orderBy('dateTs','asc').get()
+    .then(function(snap) {
+      var games = [];
+      snap.forEach(function(doc){ games.push(Object.assign({docId:doc.id},doc.data())); });
+      renderFixturesHTML(games);
+    }).catch(function(){ renderFixturesHTML(null); });
+}
+
+function renderFixturesHTML(games) {
+  var container = document.getElementById('fixtures-container');
+  if (!container) return;
+
+  // Fallback wenn noch keine Firestore-Daten
+  var fixtures = games && games.length ? games : [
+    { date:'06. Jun 2026', time:'TBD', oppEmoji:'&#127477;&#127462;', opp:'Panama',    comp:'Priprema', stadium:'USA', isHome:false, highlight:false },
+    { date:'12. Jun 2026', time:'21:00 MESZ', oppEmoji:'&#127464;&#127462;', opp:'Kanada',    comp:'WM 2026 - Gruppe B', stadium:'BMO Field, Toronto', isHome:false, highlight:true },
+    { date:'16. Jun 2026', time:'21:00 MESZ', oppEmoji:'&#127464;&#127469;', opp:'Svicarska', comp:'WM 2026 - Gruppe B', stadium:'SoFi Stadium, Los Angeles', isHome:false, highlight:false },
+    { date:'20. Jun 2026', time:'21:00 MESZ', oppEmoji:'&#127478;&#127462;', opp:'Katar',     comp:'WM 2026 - Gruppe B', stadium:'Lumen Field, Seattle', isHome:false, highlight:false }
   ];
   var h = '';
   fixtures.forEach(function(f) {
-    var borderColor = f.highlight ? 'rgba(245,197,24,.5)' : (f.isHome ? 'rgba(46,213,115,.25)' : 'rgba(245,197,24,.18)');
-    var bgGrad = f.highlight ? 'linear-gradient(135deg,#1a2f5e,#0f1f3d)' : 'var(--bg2)';
+    var played = (f.homeScore !== undefined && f.homeScore !== null && f.homeScore !== '') ||
+                 (f.score && f.score !== '');
+    var borderColor = f.highlight ? 'rgba(245,197,24,.5)' : played ? 'rgba(100,100,120,.3)' : (f.isHome ? 'rgba(46,213,115,.25)' : 'rgba(245,197,24,.18)');
+    var bgGrad = played ? 'var(--bg2)' : (f.highlight ? 'linear-gradient(135deg,#1a2f5e,#0f1f3d)' : 'var(--bg2)');
     var locationLabel = f.isHome
       ? '<div style="color:var(--green);font-size:10px;margin-top:4px">&#127968; Heimspiel</div>'
       : '<div style="color:var(--gray);font-size:10px;margin-top:4px">&#9992;&#65039; Auswaerts</div>';
-    h += '<div style="background:' + bgGrad + ';border-radius:16px;padding:14px;margin-bottom:8px;border:1px solid ' + borderColor + '">';
-    h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
-    h += '<span style="color:var(--gray);font-size:11px">&#128197; ' + f.date + ' - &#9200; ' + f.time + '</span>';
-    h += '<span style="background:' + (f.isHome?'rgba(46,213,115,.15)':'#1a2f5e') + ';color:' + (f.isHome?'var(--green)':'#7eb8f7') + ';font-size:10px;font-weight:700;padding:3px 8px;border-radius:9px">' + f.comp + '</span>';
-    h += '</div>';
-    h += '<div style="color:var(--gray2);font-size:10px;margin-bottom:10px">&#127967; ' + f.stadium + '</div>';
-    h += '<div style="display:flex;align-items:center;justify-content:space-between">';
-    if (f.isHome) {
-      h += '<div style="text-align:center;flex:1"><div style="font-size:28px">&#127463;&#127462;</div><div style="color:var(--gold);font-weight:900;font-size:13px;margin-top:3px;font-family:Barlow Condensed,sans-serif">BOSNA</div></div>';
-      h += '<div style="text-align:center;padding:0 8px"><div style="background:var(--bg);border-radius:9px;padding:7px 13px;border:1px solid var(--border2)"><div style="color:var(--gold);font-weight:900;font-size:18px;font-family:Barlow Condensed,sans-serif;letter-spacing:3px">VS</div></div>' + locationLabel + '</div>';
-      h += '<div style="text-align:center;flex:1"><div style="font-size:28px">' + f.oppEmoji + '</div><div style="color:var(--white);font-weight:800;font-size:13px;margin-top:3px;font-family:Barlow Condensed,sans-serif">' + f.opp.toUpperCase() + '</div></div>';
+    var scoreHTML;
+    if (played) {
+      var hs = f.homeScore !== undefined ? f.homeScore : (f.score||'?').split(':')[0];
+      var as = f.awayScore !== undefined ? f.awayScore : (f.score||'?').split(':')[1];
+      var note = f.note || '';
+      scoreHTML = '<div style="text-align:center;padding:0 8px"><div style="background:var(--bg);border-radius:9px;padding:7px 13px;border:1px solid var(--border2)">' +
+        '<div style="color:var(--white);font-weight:900;font-size:22px;font-family:Barlow Condensed,sans-serif;letter-spacing:2px">' + hs + ' : ' + as + '</div>' +
+        (note ? '<div style="color:var(--gray);font-size:9px;margin-top:2px">' + note + '</div>' : '') +
+        '</div>' + locationLabel + '</div>';
     } else {
-      h += '<div style="text-align:center;flex:1"><div style="font-size:28px">' + f.oppEmoji + '</div><div style="color:var(--white);font-weight:800;font-size:13px;margin-top:3px;font-family:Barlow Condensed,sans-serif">' + f.opp.toUpperCase() + '</div></div>';
-      h += '<div style="text-align:center;padding:0 8px"><div style="background:var(--bg);border-radius:9px;padding:7px 13px;border:1px solid var(--border2)"><div style="color:var(--gold);font-weight:900;font-size:18px;font-family:Barlow Condensed,sans-serif;letter-spacing:3px">VS</div></div>' + locationLabel + '</div>';
+      scoreHTML = '<div style="text-align:center;padding:0 8px"><div style="background:var(--bg);border-radius:9px;padding:7px 13px;border:1px solid var(--border2)"><div style="color:var(--gold);font-weight:900;font-size:18px;font-family:Barlow Condensed,sans-serif;letter-spacing:3px">VS</div></div>' + locationLabel + '</div>';
+    }
+    h += '<div style="background:' + bgGrad + ';border-radius:16px;padding:14px;margin-bottom:8px;border:1px solid ' + borderColor + (played?';opacity:.85':'') + '">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
+    h += '<span style="color:var(--gray);font-size:11px">&#128197; ' + (f.date||'') + (f.time ? ' - &#9200; ' + f.time : '') + '</span>';
+    h += '<span style="background:' + (played?'rgba(120,120,140,.2)':f.isHome?'rgba(46,213,115,.15)':'#1a2f5e') + ';color:' + (played?'var(--gray)':f.isHome?'var(--green)':'#7eb8f7') + ';font-size:10px;font-weight:700;padding:3px 8px;border-radius:9px">' + (played?'Gespielt':f.comp||'') + '</span>';
+    h += '</div>';
+    h += '<div style="color:var(--gray2);font-size:10px;margin-bottom:10px">&#127967; ' + (f.stadium||'') + '</div>';
+    h += '<div style="display:flex;align-items:center;justify-content:space-between">';
+    var homeTeam = f.homeTeam || 'Bosna';
+    var awayTeam = f.awayTeam || (f.opp||'');
+    var homeEmoji = f.homeTeam && f.homeTeam !== 'Bosna' ? (f.homeEmoji||f.oppEmoji||'') : '&#127463;&#127462;';
+    var awayEmoji = f.awayTeam && f.awayTeam !== 'Bosna' ? (f.awayEmoji||f.oppEmoji||'') : (f.oppEmoji||'');
+    var homeColor = (homeTeam==='Bosna') ? 'color:var(--gold);font-weight:900' : 'color:var(--white);font-weight:800';
+    var awayColor = (awayTeam==='Bosna') ? 'color:var(--gold);font-weight:900' : 'color:var(--white);font-weight:800';
+    if (f.isHome || homeTeam !== 'Bosna') {
+      h += '<div style="text-align:center;flex:1"><div style="font-size:28px">' + (homeEmoji||'&#127463;&#127462;') + '</div><div style="' + homeColor + ';font-size:13px;margin-top:3px;font-family:Barlow Condensed,sans-serif">' + homeTeam.toUpperCase() + '</div></div>';
+      h += scoreHTML;
+      h += '<div style="text-align:center;flex:1"><div style="font-size:28px">' + (awayEmoji||'&#127463;&#127462;') + '</div><div style="' + awayColor + ';font-size:13px;margin-top:3px;font-family:Barlow Condensed,sans-serif">' + awayTeam.toUpperCase() + '</div></div>';
+    } else {
+      h += '<div style="text-align:center;flex:1"><div style="font-size:28px">' + (f.oppEmoji||awayEmoji||'') + '</div><div style="color:var(--white);font-weight:800;font-size:13px;margin-top:3px;font-family:Barlow Condensed,sans-serif">' + (f.opp||awayTeam).toUpperCase() + '</div></div>';
+      h += scoreHTML;
       h += '<div style="text-align:center;flex:1"><div style="font-size:28px">&#127463;&#127462;</div><div style="color:var(--gold);font-weight:900;font-size:13px;margin-top:3px;font-family:Barlow Condensed,sans-serif">BOSNA</div></div>';
     }
     h += '</div></div>';
   });
-  return h;
+  container.innerHTML = h || '<div style="text-align:center;padding:16px;color:var(--gray);font-size:13px">Keine Spiele eingetragen</div>';
 }
 
 // ── LIVE RESULTS: Firestore first, AI fallback ────────────────
@@ -2113,10 +2252,13 @@ function loadResultsFromAI() {
   if (badge) badge.innerHTML = '&#x1F916; Lade...';
 
   var today = new Date().toLocaleDateString('de-DE', {day:'2-digit', month:'long', year:'numeric'});
-  var prompt = 'Suche HEUTE (' + today + ') die letzten 8 Ergebnisse der bosnisch-herzegowinischen Fussball-Nationalmannschaft (BiH / Bosna i Hercegovina / Zmajevi). ' +
-    'Quellen: Transfermarkt, Soccerway, Flashscore, N/FSBiH. ' +
+  var prompt = 'Heute ist der ' + today + '. Suche die letzten Ergebnisse der bosnisch-herzegowinischen Fussball-Nationalmannschaft (BiH / Bosna i Hercegovina / Zmajevi). ' +
+    'BEKANNTE Ergebnisse: S. Makedonija 0:0 (29. Maj 2026, Priprema Kosevo). ' +
+    'NOCH NICHT GESPIELT: Panama (06. Jun 2026). ' +
+    'Quellen: Transfermarkt, Soccerway, Flashscore, Klix.ba, Sportske.ba, N/FSBiH. ' +
+    'Erfinde KEINE Ergebnisse - nur echte veroeffentlichte Resultate. ' +
     'Gib NUR ein JSON-Array zurueck (kein Text, keine Backticks), neueste zuerst, Format: ' +
-    '[{"opp":"Kanada","date":"12. Jun 2026","score":"2:1","win":true,"detail":"WM 2026 Gruppe B"},...]. ' +
+    '[{"opp":"S. Makedonija","date":"29. Maj 2026","score":"0:0","win":null,"detail":"Priprema - Kosevo"},...]. ' +
     'win: true=Sieg, false=Niederlage, null=Unentschieden. Wenn kein Ergebnis gefunden: [].';
 
   fetch('https://api.anthropic.com/v1/messages', {
@@ -2219,12 +2361,13 @@ function renderResultsInDOM(results, source) {
 function renderResultsFallback() {
   // Static fallback if AI and Firestore both fail
   var fallback = [
-    { opp:'Italija (WM-Playoff Finale)',    date:'31. Mrz 2026', score:'1:1 (4:1 pen.)', win:true,  detail:'WM-Qualifikation!' },
-    { opp:'Wales (WM-Playoff Halbfinale)',  date:'26. Mrz 2026', score:'1:1 (3:2 pen.)', win:true,  detail:'Cardiff' },
-    { opp:'Italija (WM-Playoff Hinspiel)', date:'24. Mrz 2026', score:'1:1',             win:null,  detail:'Zenica' },
-    { opp:'S. Irska (Playoff Hinspiel)',   date:'20. Mrz 2026', score:'2:1',             win:true,  detail:'' },
-    { opp:'Austrija',                      date:'18. Nov 2025',  score:'1:1',             win:null,  detail:'Nations League' },
-    { opp:'Rumanija',                      date:'15. Nov 2025',  score:'3:1',             win:true,  detail:'Nations League' }
+    { opp:'S. Makedonija',                 date:'29. Maj 2026',  score:'0:0',            win:null,  detail:'Priprema - Kosevo, Sarajevo' },
+    { opp:'Italija (WM-Playoff Finale)',   date:'31. Mrz 2026',  score:'1:1 (4:1 pen.)', win:true,  detail:'WM-Qualifikation!' },
+    { opp:'Wales (WM-Playoff Halbfinale)', date:'26. Mrz 2026',  score:'1:1 (3:2 pen.)', win:true,  detail:'Cardiff' },
+    { opp:'Italija (WM-Playoff Hinspiel)',date:'24. Mrz 2026',   score:'1:1',            win:null,  detail:'Zenica' },
+    { opp:'S. Irska (Playoff Hinspiel)',   date:'20. Mrz 2026',  score:'2:1',            win:true,  detail:'' },
+    { opp:'Austrija',                      date:'18. Nov 2025',  score:'1:1',            win:null,  detail:'Nations League' },
+    { opp:'Rumanija',                      date:'15. Nov 2025',  score:'3:1',            win:true,  detail:'Nations League' }
   ];
   _resultsCache = fallback;
   _resultsCacheTime = Date.now() - RESULTS_CACHE_MS + 60000; // expire in 1min to retry
@@ -2257,6 +2400,317 @@ function erPickResult(btn) {
   if (val === 'win') { btn.style.background='rgba(46,213,115,.2)'; btn.style.borderColor='rgba(46,213,115,.5)'; btn.style.color='var(--green)'; }
   else if (val === 'loss') { btn.style.background='rgba(255,71,87,.15)'; btn.style.borderColor='rgba(255,71,87,.4)'; btn.style.color='var(--red)'; }
   else { btn.style.background='rgba(245,197,24,.15)'; btn.style.borderColor='rgba(245,197,24,.4)'; btn.style.color='var(--gold)'; }
+}
+
+
+// ════ ADMIN: TABELLE ════════════════════════════════════════════
+var _adminTblLeague = 'wm';
+
+function adminTblLeague(key, btn) {
+  _adminTblLeague = key;
+  document.querySelectorAll('#atab-tabelle .dur-btn').forEach(function(b){ b.classList.remove('on'); });
+  if (btn) btn.classList.add('on');
+  renderAdminTableEditor();
+}
+
+
+
+function renderAdminTableEditor() {
+  var g = STANDINGS[_adminTblLeague];
+  if (!g) return;
+  var ed = document.getElementById('admin-table-editor');
+  if (!ed) return;
+  var h = '<div style="background:var(--bg2);border-radius:14px;border:1px solid var(--border);overflow:hidden;margin-bottom:8px">';
+  h += '<div style="display:grid;grid-template-columns:28px 1fr 36px 28px 28px 28px 44px 36px;gap:0;padding:8px 10px;border-bottom:1px solid var(--border);background:var(--bg3)">';
+  h += '<span style="color:var(--gray2);font-size:10px;text-align:center">#</span>';
+  h += '<span style="color:var(--gray2);font-size:10px">Team</span>';
+  h += '<span style="color:var(--gray2);font-size:10px;text-align:center">Sp</span>';
+  h += '<span style="color:var(--gold);font-size:10px;text-align:center">S</span>';
+  h += '<span style="color:var(--gray);font-size:10px;text-align:center">U</span>';
+  h += '<span style="color:var(--red);font-size:10px;text-align:center">N</span>';
+  h += '<span style="color:var(--gray2);font-size:10px;text-align:center">Tore</span>';
+  h += '<span style="color:var(--white);font-size:10px;text-align:center;font-weight:800">Pkt</span>';
+  h += '</div>';
+  g.teams.forEach(function(t, i) {
+    var bg = t.bih ? 'background:rgba(245,197,24,.06)' : '';
+    h += '<div style="display:grid;grid-template-columns:28px 1fr 36px 28px 28px 28px 44px 36px;gap:0;padding:6px 10px;border-bottom:1px solid var(--border);align-items:center;'+bg+'">';
+    h += '<span style="color:var(--gray);font-size:11px;text-align:center">' + (t.p||i+1) + '</span>';
+    h += '<span style="color:' + (t.bih?'var(--gold)':'var(--white)') + ';font-size:12px;font-weight:700">' + (t.f||'') + ' ' + t.n + '</span>';
+    // Editable fields
+    ['pld','w','d','l'].forEach(function(field) {
+      h += '<input type="number" min="0" max="99" value="' + (t[field]||0) + '" data-team="'+i+'" data-field="'+field+'" onchange="adminTblChange(this)" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--white);font-size:12px;text-align:center;padding:4px 2px;-webkit-appearance:none">';
+    });
+    // Tore: GF:GA
+    h += '<div style="display:flex;align-items:center;gap:2px">';
+    h += '<input type="number" min="0" max="99" value="' + (t.gf||0) + '" data-team="'+i+'" data-field="gf" onchange="adminTblChange(this)" style="width:46%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--white);font-size:11px;text-align:center;padding:4px 1px">';
+    h += '<span style="color:var(--gray2);font-size:10px">:</span>';
+    h += '<input type="number" min="0" max="99" value="' + (t.ga||0) + '" data-team="'+i+'" data-field="ga" onchange="adminTblChange(this)" style="width:46%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--white);font-size:11px;text-align:center;padding:4px 1px">';
+    h += '</div>';
+    h += '<input type="number" min="0" max="99" value="' + (t.pts||0) + '" data-team="'+i+'" data-field="pts" onchange="adminTblChange(this)" style="width:100%;background:var(--bg3);border:1px solid rgba(245,197,24,.3);border-radius:6px;color:var(--gold);font-size:13px;font-weight:900;text-align:center;padding:4px 2px">';
+    h += '</div>';
+  });
+  h += '</div>';
+  h += '<div style="color:var(--gray);font-size:11px;text-align:center;padding:4px">Werte direkt in den Feldern bearbeiten, dann Speichern</div>';
+  ed.innerHTML = h;
+}
+
+function adminTblChange(input) {
+  var i = parseInt(input.getAttribute('data-team'));
+  var field = input.getAttribute('data-field');
+  var val = parseInt(input.value) || 0;
+  STANDINGS[_adminTblLeague].teams[i][field] = val;
+  // Auto Punkte berechnen wenn S/U/N geändert
+  if (field==='w'||field==='d'||field==='l') {
+    var t = STANDINGS[_adminTblLeague].teams[i];
+    t.pts = t.w*3 + t.d;
+    t.pld = t.w + t.d + t.l;
+    // Punkte-Feld aktualisieren
+    var allInputs = document.querySelectorAll('[data-team="'+i+'"]');
+    allInputs.forEach(function(inp) {
+      if (inp.getAttribute('data-field')==='pts') inp.value = t.pts;
+      if (inp.getAttribute('data-field')==='pld') inp.value = t.pld;
+    });
+  }
+  // Tabelle nach Punkten sortieren
+  STANDINGS[_adminTblLeague].teams.sort(function(a,b){
+    if (b.pts!==a.pts) return b.pts-a.pts;
+    var adA=(a.gf||0)-(a.ga||0), adB=(b.gf||0)-(b.ga||0);
+    return adB-adA;
+  });
+  STANDINGS[_adminTblLeague].teams.forEach(function(t,idx){ t.p=idx+1; });
+}
+
+function adminSaveTable() {
+  if (!fbDb) { showToast('Keine Firebase-Verbindung!'); return; }
+  fbDb.collection('standings').doc('data').set({
+    wm: STANDINGS.wm,
+    nl: STANDINGS.nl,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function() {
+    showToast('✅ Tabelle gespeichert!');
+    renderAdminTableEditor();
+    // Spiele-Tab sofort aktualisieren
+    var sp = document.getElementById('spiele-inner');
+    if (sp) renderSpiele();
+  }).catch(function(e){ showToast('Fehler: '+e.message); });
+}
+
+// ════ ADMIN: SPIELE / GAMES ══════════════════════════════════════
+var _adminTeamKey = '';
+
+function adminLoadTeamGames() {
+  var sel = document.getElementById('sg-team');
+  if (!sel || !sel.value) {
+    document.getElementById('admin-team-games-list').innerHTML = '';
+    document.getElementById('admin-add-game-form').style.display='none';
+    document.getElementById('btn-add-game').style.display='none';
+    return;
+  }
+  _adminTeamKey = sel.value;
+  document.getElementById('btn-add-game').style.display='block';
+  document.getElementById('admin-add-game-form').style.display='none';
+  var list = document.getElementById('admin-team-games-list');
+  list.innerHTML='<div style="color:var(--gray);font-size:12px;padding:8px 0">Lade...</div>';
+  if (!fbDb) { list.innerHTML='<div style="color:var(--red);font-size:12px">Keine Firebase-Verbindung</div>'; return; }
+  fbDb.collection('games').where('teamKey','==',_adminTeamKey)
+    .orderBy('dateTs','asc').get()
+    .then(function(snap) {
+      if (snap.empty) { list.innerHTML='<div style="color:var(--gray);font-size:12px;padding:8px 0">Noch keine Spiele eingetragen.</div>'; return; }
+      var h = '<div style="background:var(--bg2);border-radius:14px;border:1px solid var(--border);overflow:hidden;margin-bottom:8px">';
+      snap.forEach(function(doc) {
+        var g = doc.data(); var id = doc.id;
+        var played = g.homeScore !== undefined && g.homeScore !== null;
+        var scoreStr = played ? g.homeScore+':'+g.awayScore+(g.note?' ('+g.note+')':'') : 'Noch nicht gespielt';
+        var scoreCol = played ? 'var(--white)' : 'var(--gray2)';
+        h += '<div style="display:flex;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);gap:8px">';
+        h += '<div style="flex:1">';
+        h += '<div style="color:var(--white);font-size:12px;font-weight:700">' + (g.homeTeam||'Bosna') + ' vs. ' + (g.awayTeam||g.opp||'?') + '</div>';
+        h += '<div style="color:var(--gray);font-size:10px;margin-top:2px">' + (g.date||'') + (g.comp?' &middot; '+g.comp:'') + '</div>';
+        h += '<div style="color:'+scoreCol+';font-size:11px;font-weight:700;margin-top:2px">' + scoreStr + '</div>';
+        h += '</div>';
+        h += '<button data-gid="' + id + '" onclick="adminEditGame(this.dataset.gid)" style="background:rgba(245,197,24,.15);border:1px solid rgba(245,197,24,.3);border-radius:8px;padding:5px 10px;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">&#9999;</button>';
+        h += '<button data-gid="' + id + '" onclick="adminDeleteGame(this.dataset.gid)" style="background:rgba(255,71,87,.15);border:1px solid rgba(255,71,87,.3);border-radius:8px;padding:5px 8px;color:var(--red);font-size:11px;cursor:pointer;flex-shrink:0">&#128465;</button>';
+        h += '</div>';
+      });
+      h += '</div>';
+      list.innerHTML = h;
+    }).catch(function(e){ list.innerHTML='<div style="color:var(--red);font-size:12px">'+e.message+'</div>'; });
+}
+
+function adminShowAddGame() {
+  document.getElementById('sg-edit-id').value = '';
+  document.getElementById('sg-home').value = _adminTeamKey.split('_')[1] || 'Bosna';
+  document.getElementById('sg-away').value = '';
+  document.getElementById('sg-date').value = '';
+  document.getElementById('sg-time').value = '';
+  document.getElementById('sg-comp').value = _adminTeamKey.startsWith('wm_') ? 'WM 2026 - Gruppe B' : 'Nations League B4';
+  document.getElementById('sg-stadium').value = '';
+  document.getElementById('sg-home-score').value = '';
+  document.getElementById('sg-away-score').value = '';
+  document.getElementById('sg-note').value = '';
+  document.getElementById('admin-add-game-form').style.display='block';
+  document.getElementById('admin-add-game-form').scrollIntoView({behavior:'smooth'});
+}
+
+function adminCancelGame() {
+  document.getElementById('admin-add-game-form').style.display='none';
+}
+
+function adminEditGame(id) {
+  if (!fbDb) return;
+  fbDb.collection('games').doc(id).get().then(function(doc) {
+    if (!doc.exists) return;
+    var g = doc.data();
+    document.getElementById('sg-edit-id').value = id;
+    document.getElementById('sg-home').value = g.homeTeam || '';
+    document.getElementById('sg-away').value = g.awayTeam || g.opp || '';
+    document.getElementById('sg-date').value = g.dateRaw || '';
+    document.getElementById('sg-time').value = g.time || '';
+    document.getElementById('sg-comp').value = g.comp || '';
+    document.getElementById('sg-stadium').value = g.stadium || '';
+    document.getElementById('sg-home-score').value = g.homeScore !== undefined ? g.homeScore : '';
+    document.getElementById('sg-away-score').value = g.awayScore !== undefined ? g.awayScore : '';
+    document.getElementById('sg-note').value = g.note || '';
+    document.getElementById('admin-add-game-form').style.display='block';
+    document.getElementById('admin-add-game-form').scrollIntoView({behavior:'smooth'});
+  });
+}
+
+function adminSaveGame() {
+  if (!fbDb) { showToast('Keine Firebase-Verbindung!'); return; }
+  var editId = document.getElementById('sg-edit-id').value;
+  var homeTeam = document.getElementById('sg-home').value.trim();
+  var awayTeam = document.getElementById('sg-away').value.trim();
+  var dateRaw  = document.getElementById('sg-date').value;
+  var time     = document.getElementById('sg-time').value.trim();
+  var comp     = document.getElementById('sg-comp').value.trim();
+  var stadium  = document.getElementById('sg-stadium').value.trim();
+  var hs = document.getElementById('sg-home-score').value;
+  var as = document.getElementById('sg-away-score').value;
+  var note = document.getElementById('sg-note').value.trim();
+  if (!homeTeam || !awayTeam) { showToast('Heimteam und Auswärtsteam angeben!'); return; }
+  // Format date for display
+  var dateDisplay = dateRaw;
+  if (dateRaw) {
+    var parts = dateRaw.split('-');
+    if (parts.length===3) {
+      var months = ['Jan','Feb','Mrz','Apr','Maj','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+      dateDisplay = parseInt(parts[2]) + '. ' + months[parseInt(parts[1])-1] + ' ' + parts[0];
+    }
+  }
+  // Determine oppEmoji from team name
+  var emojiMap = {
+    'Kanada':'&#127464;&#127462;','Svicarska':'&#127464;&#127469;','Katar':'&#127478;&#127462;',
+    'Bosna':'&#127463;&#127462;','Panama':'&#127477;&#127462;','Poljska':'&#127477;&#127473;',
+    'Rumanija':'&#127479;&#127476;','Svedska':'&#127480;&#127466;','S. Makedonija':'&#127474;&#127472;'
+  };
+  var isHome = (homeTeam === 'Bosna' || homeTeam.toLowerCase().includes('bosna'));
+  var opp = isHome ? awayTeam : homeTeam;
+  var data = {
+    teamKey: _adminTeamKey,
+    homeTeam: homeTeam, awayTeam: awayTeam,
+    opp: opp,
+    date: dateDisplay, dateRaw: dateRaw,
+    dateTs: dateRaw ? new Date(dateRaw).getTime() : Date.now(),
+    time: time, comp: comp, stadium: stadium,
+    isHome: isHome,
+    oppEmoji: emojiMap[opp] || '',
+    highlight: comp.toLowerCase().includes('wm') && opp==='Kanada',
+    note: note,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  if (hs !== '' && as !== '') {
+    data.homeScore = parseInt(hs);
+    data.awayScore = parseInt(as);
+    data.score = hs + ':' + as;
+  } else {
+    data.homeScore = null; data.awayScore = null; data.score = null;
+  }
+  var promise = editId
+    ? fbDb.collection('games').doc(editId).set(data)
+    : fbDb.collection('games').add(data);
+  promise.then(function() {
+    showToast('✅ Spiel gespeichert!');
+    document.getElementById('admin-add-game-form').style.display='none';
+    adminLoadTeamGames();
+    // Fixtures-Tab neu laden wenn BiH-Spiel
+    if (_adminTeamKey === 'wm_Bosna') loadFixturesFromFirestore();
+  }).catch(function(e){ showToast('Fehler: '+e.message); });
+}
+
+function adminDeleteGame(id) {
+  if (!id||!fbDb) return;
+  if (!confirm('Spiel wirklich löschen?')) return;
+  fbDb.collection('games').doc(id).delete().then(function() {
+    showToast('🗑 Spiel gelöscht');
+    adminLoadTeamGames();
+    loadFixturesFromFirestore();
+  }).catch(function(e){ showToast('Fehler: '+e.message); });
+}
+
+// Team-Spiele aus Nutzer-Sicht öffnen (Klick auf Tabellen-Zeile)
+function openTeamGames(teamKey) {
+  if (!fbDb) { showToast('Keine Verbindung'); return; }
+  var teamName = teamKey.split('_')[1] || teamKey;
+  var emojiMap = {'Kanada':'\u{1F1E8}\u{1F1E6}','Svicarska':'\u{1F1E8}\u{1F1ED}','Katar':'\u{1F1F6}\u{1F1E6}','Bosna':'\u{1F1E7}\u{1F1E6}','Panama':'\u{1F1F5}\u{1F1E6}','Poljska':'\u{1F1F5}\u{1F1F1}','Rumanija':'\u{1F1F7}\u{1F1F4}','Svedska':'\u{1F1F8}\u{1F1EA}'};
+  var flag = emojiMap[teamName] || '\u{1F3F3}\uFE0F';
+  var modal = document.createElement('div');
+  modal.id = 'team-modal-overlay';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;align-items:flex-end;justify-content:center';
+  var inner = document.createElement('div');
+  inner.style.cssText = 'background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:80vh;display:flex;flex-direction:column;border-top:2px solid var(--gold)';
+  inner.innerHTML = '<div style="width:34px;height:4px;border-radius:2px;background:var(--gray2);margin:12px auto 4px"></div>' +
+    '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px 14px;border-bottom:1px solid var(--border)">' +
+    '<span style="font-size:28px">' + flag + '</span>' +
+    '<div><div style="color:var(--white);font-weight:800;font-size:17px">' + teamName + '</div>' +
+    '<div style="color:var(--gray);font-size:11px">Alle Spiele</div></div>' +
+    '<button id="team-modal-close" style="margin-left:auto;background:var(--bg3);border:none;color:var(--gray);font-size:17px;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center">&#x2715;</button>' +
+    '</div>' +
+    '<div id="team-games-modal-list" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px">' +
+    '<div style="text-align:center;padding:20px;color:var(--gray)">Lade...</div></div>';
+  modal.appendChild(inner);
+  document.body.appendChild(modal);
+  document.getElementById('team-modal-close').onclick = function(){ modal.remove(); };
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+
+  fbDb.collection('games').where('teamKey','==',teamKey)
+    .orderBy('dateTs','asc').get()
+    .then(function(snap) {
+      var listEl = document.getElementById('team-games-modal-list');
+      if (!listEl) return;
+      if (snap.empty) {
+        listEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--gray);font-size:13px">Noch keine Spiele eingetragen.</div>';
+        return;
+      }
+      var h = '';
+      snap.forEach(function(doc) {
+        var g = doc.data();
+        var played = g.homeScore !== null && g.homeScore !== undefined;
+        var bihWin = played && ((g.homeScore > g.awayScore && (g.homeTeam||'').toLowerCase().includes('bosna')) || (g.awayScore > g.homeScore && (g.awayTeam||'').toLowerCase().includes('bosna')));
+        var bihLoss = played && ((g.homeScore < g.awayScore && (g.homeTeam||'').toLowerCase().includes('bosna')) || (g.awayScore < g.homeScore && (g.awayTeam||'').toLowerCase().includes('bosna')));
+        var bc = !played ? 'var(--border)' : bihWin ? 'rgba(46,213,115,.3)' : bihLoss ? 'rgba(255,71,87,.25)' : 'rgba(122,138,170,.25)';
+        h += '<div style="background:var(--bg3);border-radius:14px;padding:12px;margin-bottom:8px;border:1px solid ' + bc + '">';
+        h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+        h += '<span style="color:var(--gray);font-size:10px">&#128197; ' + (g.date||'') + (g.time ? ' &middot; &#9200; ' + g.time : '') + '</span>';
+        h += '<span style="background:var(--bg2);color:var(--gray);font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px">' + (g.comp||'') + '</span>';
+        h += '</div>';
+        h += '<div style="display:flex;align-items:center;justify-content:space-between">';
+        h += '<div style="text-align:center;flex:1"><div style="font-size:22px">' + (g.homeEmoji||'&#127987;') + '</div><div style="color:var(--white);font-size:12px;font-weight:700;margin-top:2px">' + (g.homeTeam||'') + '</div></div>';
+        if (played) {
+          h += '<div style="text-align:center;padding:0 8px"><div style="background:var(--bg);border-radius:10px;padding:8px 14px;border:1px solid var(--border2)"><div style="color:var(--white);font-weight:900;font-size:24px;font-family:Barlow Condensed,sans-serif">' + g.homeScore + ' : ' + g.awayScore + '</div>' + (g.note ? '<div style="color:var(--gray);font-size:9px">' + g.note + '</div>' : '') + '</div></div>';
+        } else {
+          h += '<div style="text-align:center;padding:0 8px"><div style="background:var(--bg);border-radius:10px;padding:8px 14px;border:1px solid var(--border2)"><div style="color:var(--gold);font-weight:900;font-size:18px;font-family:Barlow Condensed,sans-serif;letter-spacing:2px">VS</div></div></div>';
+        }
+        h += '<div style="text-align:center;flex:1"><div style="font-size:22px">' + (g.awayEmoji||'&#127987;') + '</div><div style="color:var(--white);font-size:12px;font-weight:700;margin-top:2px">' + (g.awayTeam||'') + '</div></div>';
+        h += '</div>';
+        if (g.stadium) h += '<div style="color:var(--gray2);font-size:10px;margin-top:6px;text-align:center">&#127967; ' + g.stadium + '</div>';
+        h += '</div>';
+      });
+      listEl.innerHTML = h;
+    }).catch(function(e){
+      var listEl = document.getElementById('team-games-modal-list');
+      if (listEl) listEl.innerHTML = '<div style="color:var(--red);font-size:12px;padding:12px">' + e.message + '</div>';
+    });
 }
 
 function adminSaveResult() {
