@@ -1922,6 +1922,7 @@ function openAdminKader() {
 }
 
 function saveNewPlayer() {
+  if (!isAdmin()) { showToast('Nur Admin!'); return; }
   if (!fbDb) { showToast('Keine Firebase-Verbindung!'); return; }
   var name = (document.getElementById('ak-name')||{}).value||'';
   var pos  = (document.getElementById('ak-pos')||{}).value||'GK';
@@ -1938,10 +1939,29 @@ function saveNewPlayer() {
     flag: posFlag(pos), form:[1,1,1,1,1],
     source: 'admin', updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(function() {
-    showToast('✅ ' + name + ' hinzugefügt!');
-    PLAYERS = []; playersLoaded = false;
-    loadSpielerFromFirestore(loadSpielerFromAI);
+    showToast('✅ ' + name + ' gespeichert!');
+    // Kader neu aus Firestore laden, Admin-Editor offen lassen
+    reloadKaderThenAdmin();
   }).catch(function(e){ showToast('Fehler: '+e.message); });
+}
+
+// Kader frisch aus Firestore laden und danach den Admin-Editor neu zeichnen
+function reloadKaderThenAdmin() {
+  if (!fbDb) { openAdminKader(); return; }
+  fbDb.collection('kader').limit(60).get().then(function(snap) {
+    if (!snap.empty) {
+      PLAYERS = [];
+      snap.forEach(function(doc) { PLAYERS.push(Object.assign({ docId: doc.id, id: doc.id }, doc.data())); });
+      var grpPrio = { Golmani:0, Odbrana:1, 'Vezni red':2, Napadaci:3 };
+      PLAYERS.sort(function(a,b) {
+        var ga = grpPrio[a.grp]||4, gb = grpPrio[b.grp]||4;
+        if (ga !== gb) return ga - gb;
+        return (a.name||'').localeCompare(b.name||'');
+      });
+      playersLoaded = true;
+    }
+    openAdminKader();
+  }).catch(function() { openAdminKader(); });
 }
 
 function openEditPlayer(id) {
@@ -1996,8 +2016,7 @@ function saveEditPlayer(id) {
   }
   savePromise.then(function() {
     showToast('✅ ' + name + ' gespeichert!');
-    PLAYERS = []; playersLoaded = false;
-    loadSpielerFromFirestore(loadSpielerFromAI);
+    reloadKaderThenAdmin();
   }).catch(function(e){ showToast('Fehler: '+e.message); });
 }
 
@@ -2016,8 +2035,7 @@ function deletePlayerFromFirestore(id) {
   }
   fbDb.collection('kader').doc(id).delete().then(function() {
     showToast('🗑 ' + name + ' gelöscht!');
-    PLAYERS = []; playersLoaded = false;
-    loadSpielerFromFirestore(loadSpielerFromAI);
+    reloadKaderThenAdmin();
   }).catch(function(e){ showToast('Fehler: '+e.message); });
 }
 
@@ -2062,6 +2080,13 @@ var STANDINGS = {
 // Struktur: MATCH_RESULTS[liga][key] = { home, away, hs, as }
 var MATCH_RESULTS = { wm:{}, nl:{} };
 var _resultPanelOpen = true;
+// Ergebnisse einzelner Spielkarten (auch Freundschaftsspiele ohne Tabellen-Bezug)
+var FIXTURE_SCORES = {};
+
+// Stabiler, Firestore-sicherer Schluessel fuer eine Spielkarte
+function _fixtureKey(date, home, away) {
+  return ((date || '') + '_' + (home || '') + '_' + (away || '')).replace(/[^a-zA-Z0-9]+/g, '_');
+}
 
 // Stabiler Schluessel fuer ein Spiel (alphabetisch sortiert)
 function _matchKey(a, b) { return [a, b].sort().join('__'); }
@@ -2171,6 +2196,7 @@ function matchScoreInput(inp) {
 
 // Resultate + berechnete Tabelle in Firestore speichern
 function saveMatchResults() {
+  if (!isAdmin()) { showToast('Nur Admin!'); return; }
   if (!fbDb) { showToast('Keine Firebase-Verbindung!'); return; }
   ['wm', 'nl'].forEach(function(lg) {
     if (MATCH_RESULTS[lg] && Object.keys(MATCH_RESULTS[lg]).length) recomputeStandings(lg);
@@ -2198,6 +2224,7 @@ function loadStandingsFromFirestore() {
       if (d.nl) STANDINGS.nl = d.nl;
       if (d.wmMatches) MATCH_RESULTS.wm = d.wmMatches;
       if (d.nlMatches) MATCH_RESULTS.nl = d.nlMatches;
+      if (d.fixtureScores) FIXTURE_SCORES = d.fixtureScores;
       ['wm', 'nl'].forEach(function(lg) {
         if (MATCH_RESULTS[lg] && Object.keys(MATCH_RESULTS[lg]).length) recomputeStandings(lg);
       });
@@ -2261,7 +2288,7 @@ function renderSpiele() {
   var inner = document.getElementById('spiele-inner');
   if (!inner) return;
   inner.innerHTML = '<div id="standings-container">' + renderStandingsHTML() + '</div>' +
-    renderResultEntryPanel() +
+    (isAdmin() ? renderResultEntryPanel() : '') +
     '<div style="height:1px;background:var(--border);margin:16px 0"></div>' +
     '<div class="seclabel">PREDSTOJECCE UTAKMICE' +
     '<button onclick="refreshFixtures()" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px 8px;color:var(--gray);font-size:10px;cursor:pointer;margin-left:8px">&#x21BB;</button>' +
@@ -2305,7 +2332,15 @@ function renderFixturesHTML(games) {
   fixtures.forEach(function(f, idx) {
     var homeTeam = f.homeTeam || 'Bosna';
     var awayTeam = f.awayTeam || (f.opp || '');
-    // Ergebnis ggf. aus den eingetragenen Resultaten (Tabelle) uebernehmen
+    var _fk = _fixtureKey(f.date, homeTeam, awayTeam);
+    // 1) Direkt auf der Karte eingetragenes Ergebnis (auch Freundschaftsspiele)
+    if ((f.homeScore === undefined || f.homeScore === null || f.homeScore === '') && FIXTURE_SCORES[_fk]) {
+      var _fs = FIXTURE_SCORES[_fk];
+      if (_fs.hs !== '' && _fs.hs != null && _fs.as !== '' && _fs.as != null) {
+        f.homeScore = _fs.hs; f.awayScore = _fs.as; f.score = _fs.hs + ':' + _fs.as;
+      }
+    }
+    // 2) Sonst Ergebnis aus der Tabellen-Eingabe (Gruppenspiele) uebernehmen
     var _lg = /nations|liga b|\bnl\b/i.test(f.comp || '') ? 'nl' : (/wm|gruppe/i.test(f.comp || '') ? 'wm' : null);
     if ((f.homeScore === undefined || f.homeScore === null || f.homeScore === '') && _lg && MATCH_RESULTS[_lg]) {
       var _k = _matchKey(homeTeam, awayTeam), _m = MATCH_RESULTS[_lg][_k];
@@ -2373,7 +2408,7 @@ function renderFixturesHTML(games) {
       h += '<input id="fixa-' + fid + '" type="number" min="0" max="99" inputmode="numeric" value="' + curA + '" style="' + ein + '">';
       h += '<span style="color:var(--white);font-size:12px;font-weight:700">' + awayTeam + '</span>';
       h += '</div>';
-      h += '<button data-fid="' + fid + '" data-home="' + homeTeam + '" data-away="' + awayTeam + '" data-comp="' + (f.comp || '') + '" data-docid="' + (f.docId || '') + '" onclick="saveFixtureScore(this)" style="width:100%;background:var(--gold);border:none;border-radius:9px;padding:10px;color:#0a0f1e;font-size:13px;font-weight:800;cursor:pointer">&#x2705; Speichern</button>';
+      h += '<button data-fid="' + fid + '" data-fkey="' + _fixtureKey(f.date, homeTeam, awayTeam) + '" data-home="' + homeTeam + '" data-away="' + awayTeam + '" data-comp="' + (f.comp || '') + '" data-docid="' + (f.docId || '') + '" onclick="saveFixtureScore(this)" style="width:100%;background:var(--gold);border:none;border-radius:9px;padding:10px;color:#0a0f1e;font-size:13px;font-weight:800;cursor:pointer">&#x2705; Speichern</button>';
       h += '</div>';
       h += '</div>';
     }
@@ -2390,8 +2425,10 @@ function toggleFixtureEdit(fid) {
 
 // Ergebnis direkt von einer Spielkarte speichern → Tabelle aktualisiert sich
 function saveFixtureScore(btn) {
+  if (!isAdmin()) { showToast('Nur Admin!'); return; }
   if (!fbDb) { showToast('Keine Firebase-Verbindung!'); return; }
   var fid = btn.getAttribute('data-fid');
+  var fkey = btn.getAttribute('data-fkey');
   var homeTeam = btn.getAttribute('data-home');
   var awayTeam = btn.getAttribute('data-away');
   var comp = btn.getAttribute('data-comp') || '';
@@ -2402,6 +2439,8 @@ function saveFixtureScore(btn) {
   var av = aEl ? aEl.value.trim() : '';
   if (hv === '' || av === '') { showToast('Bitte beide Ergebnisse eingeben'); return; }
   var hs = parseInt(hv) || 0, as = parseInt(av) || 0;
+  // Karten-Ergebnis immer merken (auch Freundschaftsspiele wie Panama)
+  if (fkey) FIXTURE_SCORES[fkey] = { hs: hs, as: as, home: homeTeam, away: awayTeam };
   // Liga bestimmen und Tabelle aktualisieren (nur wenn beide Teams in der Gruppe sind)
   var lg = /nations|liga b|\bnl\b/i.test(comp) ? 'nl' : (/wm|gruppe/i.test(comp) ? 'wm' : null);
   if (lg && STANDINGS[lg]) {
@@ -2426,6 +2465,7 @@ function saveFixtureScore(btn) {
   tasks.push(fbDb.collection('standings').doc('data').set({
     wm: STANDINGS.wm, nl: STANDINGS.nl,
     wmMatches: MATCH_RESULTS.wm || {}, nlMatches: MATCH_RESULTS.nl || {},
+    fixtureScores: FIXTURE_SCORES,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   }, { merge: true }));
   Promise.all(tasks).then(function() {
