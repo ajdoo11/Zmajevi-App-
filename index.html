@@ -2058,6 +2058,136 @@ var STANDINGS = {
   }
 };
 
+// ── RESULTATE der Einzelspiele (Quelle der Wahrheit fuer die Tabelle) ──
+// Struktur: MATCH_RESULTS[liga][key] = { home, away, hs, as }
+var MATCH_RESULTS = { wm:{}, nl:{} };
+var _resultPanelOpen = true;
+
+// Stabiler Schluessel fuer ein Spiel (alphabetisch sortiert)
+function _matchKey(a, b) { return [a, b].sort().join('__'); }
+
+// Tabelle aus den eingetragenen Einzel-Ergebnissen NEU berechnen
+function recomputeStandings(league) {
+  var g = STANDINGS[league];
+  if (!g) return;
+  var byName = {};
+  g.teams.forEach(function(t) {
+    t.pld = 0; t.w = 0; t.d = 0; t.l = 0; t.gf = 0; t.ga = 0; t.pts = 0;
+    byName[t.n] = t;
+  });
+  var matches = MATCH_RESULTS[league] || {};
+  Object.keys(matches).forEach(function(k) {
+    var m = matches[k];
+    if (!m) return;
+    if (m.hs === '' || m.hs === null || m.hs === undefined) return;
+    if (m.as === '' || m.as === null || m.as === undefined) return;
+    var hs = parseInt(m.hs), as = parseInt(m.as);
+    if (isNaN(hs) || isNaN(as)) return;
+    var ht = byName[m.home], at = byName[m.away];
+    if (!ht || !at) return;
+    ht.pld++; at.pld++;
+    ht.gf += hs; ht.ga += as; at.gf += as; at.ga += hs;
+    if (hs > as) { ht.w++; at.l++; ht.pts += 3; }
+    else if (hs < as) { at.w++; ht.l++; at.pts += 3; }
+    else { ht.d++; at.d++; ht.pts++; at.pts++; }
+  });
+  g.teams.sort(function(a, b) {
+    if (b.pts !== a.pts) return b.pts - a.pts;
+    var adA = (a.gf - a.ga), adB = (b.gf - b.ga);
+    if (adB !== adA) return adB - adA;
+    return (b.gf || 0) - (a.gf || 0);
+  });
+  g.teams.forEach(function(t, i) { t.p = i + 1; });
+}
+
+// Panel zum direkten Eintragen der Ergebnisse (im Spiele-Tab)
+function renderResultEntryPanel() {
+  var league = activeLeagueTab;
+  var g = STANDINGS[league] || STANDINGS.wm;
+  var teams = (g.teams || []).slice().sort(function(a, b) { return a.n.localeCompare(b.n); });
+  var emojiOf = {};
+  (g.teams || []).forEach(function(t) { emojiOf[t.n] = t.f || ''; });
+  var mr = MATCH_RESULTS[league] || {};
+  var pairs = [];
+  for (var i = 0; i < teams.length; i++) {
+    for (var j = i + 1; j < teams.length; j++) {
+      var sorted = [teams[i].n, teams[j].n].sort();
+      pairs.push({ home: sorted[0], away: sorted[1], key: sorted.join('__') });
+    }
+  }
+  var inpStyle = 'width:32px;background:var(--bg);border:1px solid var(--border2);border-radius:7px;color:var(--white);font-size:14px;font-weight:800;text-align:center;padding:5px 1px;-webkit-appearance:none';
+  var rows = pairs.map(function(p) {
+    var m = mr[p.key] || {};
+    var hv = (m.hs !== undefined && m.hs !== null) ? m.hs : '';
+    var av = (m.as !== undefined && m.as !== null) ? m.as : '';
+    return '<div style="display:grid;grid-template-columns:1fr 78px 1fr;align-items:center;gap:6px;padding:9px 10px;border-bottom:1px solid var(--border)">' +
+      '<div style="text-align:right;color:var(--white);font-size:12px;font-weight:700">' + (emojiOf[p.home] || '') + ' ' + p.home + '</div>' +
+      '<div style="display:flex;align-items:center;gap:4px;justify-content:center">' +
+        '<input type="number" min="0" max="99" inputmode="numeric" value="' + hv + '" data-mkey="' + p.key + '" data-side="hs" oninput="matchScoreInput(this)" style="' + inpStyle + '">' +
+        '<span style="color:var(--gray2);font-weight:800">:</span>' +
+        '<input type="number" min="0" max="99" inputmode="numeric" value="' + av + '" data-mkey="' + p.key + '" data-side="as" oninput="matchScoreInput(this)" style="' + inpStyle + '">' +
+      '</div>' +
+      '<div style="text-align:left;color:var(--white);font-size:12px;font-weight:700">' + p.away + ' ' + (emojiOf[p.away] || '') + '</div>' +
+    '</div>';
+  }).join('');
+  var bodyDisp = _resultPanelOpen ? 'block' : 'none';
+  var arrow = _resultPanelOpen ? '&#9650;' : '&#9660;';
+  return '<div style="background:var(--bg2);border:1px solid rgba(245,197,24,.25);border-radius:16px;overflow:hidden;margin:12px 0">' +
+    '<div onclick="toggleResultPanel()" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;background:linear-gradient(135deg,var(--bg2),var(--bg3))">' +
+      '<span style="color:var(--gold);font-size:13px;font-weight:800">&#9917; Resultate eintragen</span>' +
+      '<span style="color:var(--gray);font-size:12px">' + arrow + '</span>' +
+    '</div>' +
+    '<div id="result-entry-body" style="display:' + bodyDisp + '">' +
+      '<div style="color:var(--gray);font-size:10px;padding:8px 12px 2px">Trage die Ergebnisse aller Spiele ein &ndash; die Tabelle oben aktualisiert sich automatisch.</div>' +
+      rows +
+      '<div style="padding:12px">' +
+        '<button onclick="saveMatchResults()" style="background:var(--gold);border:none;border-radius:12px;padding:13px;width:100%;color:#0a0f1e;font-size:14px;font-weight:800;cursor:pointer">&#x2705; Resultate &amp; Tabelle speichern</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function toggleResultPanel() {
+  _resultPanelOpen = !_resultPanelOpen;
+  renderSpiele();
+}
+
+// Eingabe eines Ergebnisses → Tabelle sofort neu berechnen & neu zeichnen
+function matchScoreInput(inp) {
+  var key = inp.getAttribute('data-mkey');
+  var side = inp.getAttribute('data-side');
+  var league = activeLeagueTab;
+  if (!MATCH_RESULTS[league]) MATCH_RESULTS[league] = {};
+  if (!MATCH_RESULTS[league][key]) {
+    var parts = key.split('__');
+    MATCH_RESULTS[league][key] = { home: parts[0], away: parts[1], hs: '', as: '' };
+  }
+  var v = (inp.value || '').trim();
+  MATCH_RESULTS[league][key][side] = (v === '') ? '' : (parseInt(v) || 0);
+  recomputeStandings(league);
+  var sc = document.getElementById('standings-container');
+  if (sc) sc.innerHTML = renderStandingsHTML();
+}
+
+// Resultate + berechnete Tabelle in Firestore speichern
+function saveMatchResults() {
+  if (!fbDb) { showToast('Keine Firebase-Verbindung!'); return; }
+  ['wm', 'nl'].forEach(function(lg) {
+    if (MATCH_RESULTS[lg] && Object.keys(MATCH_RESULTS[lg]).length) recomputeStandings(lg);
+  });
+  fbDb.collection('standings').doc('data').set({
+    wm: STANDINGS.wm,
+    nl: STANDINGS.nl,
+    wmMatches: MATCH_RESULTS.wm || {},
+    nlMatches: MATCH_RESULTS.nl || {},
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true }).then(function() {
+    showToast('✅ Resultate & Tabelle gespeichert!');
+    var sc = document.getElementById('standings-container');
+    if (sc) sc.innerHTML = renderStandingsHTML();
+  }).catch(function(e) { showToast('Fehler: ' + e.message); });
+}
+
 // Firestore → STANDINGS laden
 function loadStandingsFromFirestore() {
   if (!fbDb) return;
@@ -2066,6 +2196,11 @@ function loadStandingsFromFirestore() {
       var d = doc.data();
       if (d.wm) STANDINGS.wm = d.wm;
       if (d.nl) STANDINGS.nl = d.nl;
+      if (d.wmMatches) MATCH_RESULTS.wm = d.wmMatches;
+      if (d.nlMatches) MATCH_RESULTS.nl = d.nlMatches;
+      ['wm', 'nl'].forEach(function(lg) {
+        if (MATCH_RESULTS[lg] && Object.keys(MATCH_RESULTS[lg]).length) recomputeStandings(lg);
+      });
       // Spiele-Tab neu rendern wenn aktiv
       var sp = document.getElementById('spiele-inner');
       if (sp && document.getElementById('tp-spiele') && document.getElementById('tp-spiele').classList.contains('on')) {
@@ -2125,7 +2260,8 @@ function renderStandingsHTML() {
 function renderSpiele() {
   var inner = document.getElementById('spiele-inner');
   if (!inner) return;
-  inner.innerHTML = renderStandingsHTML() +
+  inner.innerHTML = '<div id="standings-container">' + renderStandingsHTML() + '</div>' +
+    renderResultEntryPanel() +
     '<div style="height:1px;background:var(--border);margin:16px 0"></div>' +
     '<div class="seclabel">PREDSTOJECCE UTAKMICE' +
     '<button onclick="refreshFixtures()" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px 8px;color:var(--gray);font-size:10px;cursor:pointer;margin-left:8px">&#x21BB;</button>' +
