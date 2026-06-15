@@ -668,6 +668,7 @@ a{text-decoration:none;color:inherit}
       <div class="atab-pill" onclick="adminTab('ergebnisse',this)">&#x26BD; Ergebnisse</div>
       <div class="atab-pill" onclick="adminTab('tabelle',this)">&#x1F4CA; Tabelle</div>
       <div class="atab-pill" onclick="adminTab('spiele-admin',this)">&#x1F4C5; Spiele</div>
+      <div class="atab-pill" onclick="adminTab('werbung',this)">&#x1F4B0; Werbung</div>
     </div>
 
     <!-- Posts tab -->
@@ -901,6 +902,13 @@ a{text-decoration:none;color:inherit}
       <button onclick="adminShowAddGame()" id="btn-add-game" style="display:none;width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:13px;color:var(--gold);font-size:14px;font-weight:700;cursor:pointer;margin-top:4px">&#x2795; Neues Spiel eintragen</button>
     </div>
 
+    <!-- Werbung / Kontaktanfragen tab -->
+    <div id="atab-werbung" style="display:none">
+      <div class="amod-title">&#x1F4B0; Werbe-Anfragen</div>
+      <div style="color:var(--gray);font-size:12px;margin-bottom:12px;line-height:1.5">Hier landen alle Anfragen von Leuten, die in der App Werbung schalten moechten. Tippe auf WhatsApp, Anrufen oder E-Mail, um die Person direkt zu kontaktieren.</div>
+      <div id="admin-ads-list"><div style="color:var(--gray);text-align:center;padding:20px;font-size:13px">Lade...</div></div>
+    </div>
+
   </div><!-- end apanel-body -->
 
   <!-- CLOSE BUTTON AT BOTTOM — always visible, easy to tap -->
@@ -921,6 +929,27 @@ a{text-decoration:none;color:inherit}
       <button onclick="closeNotifModal()" style="background:var(--bg3);border:none;color:var(--gray);font-size:17px;cursor:pointer;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center">&#x2715;</button>
     </div>
     <div id="notif-list" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch"></div>
+  </div>
+</div>
+
+<!-- WERBUNG / KONTAKT MODAL -->
+<div class="modal" id="ad-modal" style="align-items:flex-end">
+  <div style="background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-height:92vh;display:flex;flex-direction:column;border-top:1px solid var(--border2)">
+    <div style="width:34px;height:4px;border-radius:2px;background:var(--gray2);margin:12px auto 4px"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 13px;border-bottom:1px solid var(--border)">
+      <span style="color:var(--white);font-weight:800;font-size:17px">&#x1F4E3; Werbung schalten</span>
+      <button onclick="closeAdModal()" style="background:var(--bg3);border:none;color:var(--gray);font-size:17px;cursor:pointer;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center">&#x2715;</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px">
+      <div style="color:var(--gray);font-size:13px;line-height:1.6;margin-bottom:14px">Du moechtest dein Unternehmen, Produkt oder Event in der Zmajevi-App bewerben? Hinterlasse deine Kontaktdaten &ndash; wir melden uns persoenlich bei dir. &#x1F1E7;&#x1F1E6;</div>
+      <input class="poll-inp" id="ad-name" placeholder="Dein Name *">
+      <input class="poll-inp" id="ad-company" placeholder="Firma / Unternehmen (optional)">
+      <input class="poll-inp" id="ad-phone" type="tel" inputmode="tel" placeholder="Telefon / WhatsApp *">
+      <input class="poll-inp" id="ad-email" type="email" inputmode="email" placeholder="E-Mail *">
+      <textarea class="poll-inp" id="ad-msg" placeholder="Was moechtest du bewerben? (kurz beschreiben)" style="height:90px;resize:none;line-height:1.5"></textarea>
+      <button onclick="saveAdInquiry()" style="background:var(--gold);border:none;border-radius:13px;padding:14px;width:100%;color:#0a0f1e;font-size:15px;font-weight:800;cursor:pointer;margin-top:6px">&#x1F4E8; Anfrage senden</button>
+      <div style="color:var(--gray2);font-size:11px;text-align:center;margin-top:10px;line-height:1.5">Deine Daten werden nur fuer die Kontaktaufnahme genutzt.</div>
+    </div>
   </div>
 </div>
 
@@ -1495,6 +1524,14 @@ function renderNewsFeed() {
         '<div class="comp-foot">' + tag + like + adminDel + '<span class="comp-read">Otvori &#x2192;</span></div></div></div>';
     }
   });
+  h += '<div onclick="openAdModal()" style="background:linear-gradient(135deg,#1a2f5e,#0f1f3d);border:1px solid rgba(245,197,24,.35);border-radius:16px;padding:16px;margin-top:10px;cursor:pointer;display:flex;align-items:center;gap:13px">' +
+    '<div style="font-size:30px;flex-shrink:0">&#x1F4E3;</div>' +
+    '<div style="flex:1">' +
+      '<div style="color:var(--gold);font-size:14px;font-weight:800">Hier koennte deine Werbung stehen!</div>' +
+      '<div style="color:var(--gray);font-size:12px;margin-top:3px;line-height:1.4">Erreiche tausende Zmajevi-Fans. Jetzt unverbindlich anfragen &#x2192;</div>' +
+    '</div>' +
+    '<div style="background:var(--gold);color:#0a0f1e;font-size:12px;font-weight:800;padding:8px 12px;border-radius:10px;flex-shrink:0">Anfragen</div>' +
+  '</div>';
   feed.innerHTML = h;
 }
 
@@ -4190,6 +4227,7 @@ function openAdminPanel() {
   var p = document.getElementById('admin-panel-screen');
   if (p) p.style.display = 'flex';
   adminTab('posts', document.querySelector('.atab-pill'));
+  loadAdBadge();
 }
 function closeAdminPanel() {
   var p = document.getElementById('admin-panel-screen');
@@ -4197,7 +4235,7 @@ function closeAdminPanel() {
 }
 
 function adminTab(tab, el) {
-  ['posts','users','stories','compose','news','poll','announce','ergebnisse'].forEach(function(t) {
+  ['posts','users','stories','compose','news','poll','announce','ergebnisse','tabelle','spiele-admin','werbung'].forEach(function(t) {
     var d = document.getElementById('atab-' + t);
     if (d) d.style.display = t === tab ? 'block' : 'none';
   });
@@ -4208,6 +4246,7 @@ function adminTab(tab, el) {
   if (tab === 'stories') loadAdminStories();
   if (tab === 'compose') loadAdminComposeList();
   if (tab === 'ergebnisse') loadAdminResultsList();
+  if (tab === 'werbung') loadAdInquiries();
 }
 
 // ── Duration pickers ──
@@ -4841,6 +4880,113 @@ function openNotifications() {
 function closeNotifModal() {
   var modal = document.getElementById('notif-modal');
   if (modal) modal.classList.remove('open');
+}
+
+// ── WERBUNG / Kontaktanfragen ──────────────────────────────────
+function _esc(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function openAdModal() {
+  var m = document.getElementById('ad-modal');
+  if (m) m.classList.add('open');
+}
+function closeAdModal() {
+  var m = document.getElementById('ad-modal');
+  if (m) m.classList.remove('open');
+}
+
+function saveAdInquiry() {
+  var name = ((document.getElementById('ad-name') || {}).value || '').trim();
+  var company = ((document.getElementById('ad-company') || {}).value || '').trim();
+  var phone = ((document.getElementById('ad-phone') || {}).value || '').trim();
+  var email = ((document.getElementById('ad-email') || {}).value || '').trim();
+  var msg = ((document.getElementById('ad-msg') || {}).value || '').trim();
+  if (!name || (!phone && !email)) { showToast('Bitte Name und Telefon oder E-Mail angeben!'); return; }
+  if (!fbDb) { showToast('Keine Firebase-Verbindung!'); return; }
+  fbDb.collection('ad_inquiries').add({
+    name: name, company: company, phone: phone, email: email, message: msg,
+    status: 'neu',
+    fromUser: (ME && ME.username) ? ME.username : '',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function() {
+    showToast('✅ Danke! Deine Anfrage wurde gesendet.');
+    ['ad-name', 'ad-company', 'ad-phone', 'ad-email', 'ad-msg'].forEach(function(id) {
+      var e = document.getElementById(id); if (e) e.value = '';
+    });
+    closeAdModal();
+    loadAdBadge();
+  }).catch(function(e) { showToast('Fehler: ' + e.message); });
+}
+
+function loadAdInquiries() {
+  var list = document.getElementById('admin-ads-list');
+  if (!list) return;
+  if (!fbDb) { list.innerHTML = '<div style="color:var(--gray);text-align:center;padding:20px;font-size:13px">Keine Verbindung.</div>'; return; }
+  fbDb.collection('ad_inquiries').orderBy('createdAt', 'desc').limit(100).get().then(function(snap) {
+    if (snap.empty) { list.innerHTML = '<div style="text-align:center;padding:28px;color:var(--gray);font-size:14px">Noch keine Anfragen.</div>'; return; }
+    var aBtn = 'display:inline-flex;align-items:center;gap:4px;text-decoration:none;border-radius:9px;padding:7px 11px;font-size:12px;font-weight:700;margin:4px 6px 0 0';
+    var h = '';
+    snap.forEach(function(doc) {
+      var d = doc.data();
+      var ts = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toLocaleDateString('de-DE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+      var done = d.status === 'erledigt';
+      var waNum = (d.phone || '').replace(/[^0-9]/g, '');
+      var btns = '';
+      if (waNum) btns += '<a href="https://wa.me/' + waNum + '" target="_blank" rel="noopener" style="' + aBtn + ';background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.4);color:#25d366">&#x1F4AC; WhatsApp</a>';
+      if (d.phone) btns += '<a href="tel:' + _esc(d.phone) + '" style="' + aBtn + ';background:var(--bg3);border:1px solid var(--border2);color:var(--white)">&#x1F4DE; Anrufen</a>';
+      if (d.email) btns += '<a href="mailto:' + _esc(d.email) + '?subject=' + encodeURIComponent('Werbung in der Zmajevi-App') + '" style="' + aBtn + ';background:rgba(79,172,254,.15);border:1px solid rgba(79,172,254,.4);color:#4facfe">&#x2709; E-Mail</a>';
+      h += '<div style="background:var(--bg2);border:1px solid ' + (done ? 'var(--border)' : 'rgba(245,197,24,.3)') + ';border-radius:13px;padding:13px;margin-bottom:9px' + (done ? ';opacity:.6' : '') + '">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">' +
+          '<div style="flex:1">' +
+            '<div style="color:var(--white);font-size:14px;font-weight:800">' + _esc(d.name || '?') + (d.company ? ' <span style="color:var(--gray);font-weight:600;font-size:12px">&#xB7; ' + _esc(d.company) + '</span>' : '') + '</div>' +
+            (d.phone ? '<div style="color:var(--gray);font-size:12px;margin-top:3px">&#x1F4DE; ' + _esc(d.phone) + '</div>' : '') +
+            (d.email ? '<div style="color:var(--gray);font-size:12px;margin-top:2px">&#x2709; ' + _esc(d.email) + '</div>' : '') +
+          '</div>' +
+          (done ? '<span style="background:rgba(46,213,115,.15);color:var(--green);font-size:10px;font-weight:800;padding:3px 8px;border-radius:9px;flex-shrink:0">ERLEDIGT</span>' : '<span style="background:var(--red);color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:9px;flex-shrink:0">NEU</span>') +
+        '</div>' +
+        (d.message ? '<div style="color:var(--white);font-size:13px;margin-top:9px;line-height:1.5;background:var(--bg);border-radius:9px;padding:9px 11px">' + _esc(d.message) + '</div>' : '') +
+        '<div style="margin-top:6px">' + btns + '</div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;border-top:1px solid var(--border);padding-top:8px">' +
+          '<span style="color:var(--gray2);font-size:10px">' + ts + (d.fromUser ? ' &#xB7; @' + _esc(d.fromUser) : '') + '</span>' +
+          '<div>' +
+            '<button onclick="adMarkDone(&apos;' + doc.id + '&apos;,' + (!done) + ')" style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--gray);font-size:11px;font-weight:700;padding:5px 9px;cursor:pointer;margin-right:6px">' + (done ? '&#x21A9; Neu' : '&#x2713; Erledigt') + '</button>' +
+            '<button onclick="adDeleteInquiry(&apos;' + doc.id + '&apos;)" style="background:rgba(255,71,87,.15);border:1px solid rgba(255,71,87,.3);border-radius:8px;color:var(--red);font-size:11px;font-weight:700;padding:5px 9px;cursor:pointer">&#x1F5D1;</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    });
+    list.innerHTML = h;
+  }).catch(function(e) { list.innerHTML = '<div style="color:var(--red);text-align:center;padding:20px;font-size:13px">Fehler: ' + e.message + '</div>'; });
+}
+
+function adMarkDone(id, done) {
+  if (!fbDb || !isAdmin()) return;
+  fbDb.collection('ad_inquiries').doc(id).set({
+    status: done ? 'erledigt' : 'neu',
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true }).then(function() { loadAdInquiries(); loadAdBadge(); });
+}
+
+function adDeleteInquiry(id) {
+  if (!fbDb || !isAdmin()) return;
+  if (!confirm('Anfrage wirklich loeschen?')) return;
+  fbDb.collection('ad_inquiries').doc(id).delete().then(function() {
+    showToast('🗑 Geloescht'); loadAdInquiries(); loadAdBadge();
+  }).catch(function(e) { showToast('Fehler: ' + e.message); });
+}
+
+// Roter Zaehler auf dem Werbung-Tab (Anzahl neuer Anfragen) — nur Admin
+function loadAdBadge() {
+  if (!fbDb || !isAdmin()) return;
+  fbDb.collection('ad_inquiries').where('status', '==', 'neu').get().then(function(snap) {
+    var n = snap.size;
+    document.querySelectorAll('.atab-pill').forEach(function(p) {
+      if (/Werbung/.test(p.textContent)) {
+        p.innerHTML = '&#x1F4B0; Werbung' + (n > 0 ? ' <span style="background:var(--red);color:#fff;border-radius:9px;padding:0 6px;font-size:10px;font-weight:800">' + n + '</span>' : '');
+      }
+    });
+  }).catch(function() {});
 }
 </script>
 </body>
