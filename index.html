@@ -2302,7 +2302,20 @@ function renderFixturesHTML(games) {
     { date:'20. Jun 2026', time:'21:00 MESZ', oppEmoji:'&#127478;&#127462;', opp:'Katar',     comp:'WM 2026 - Gruppe B', stadium:'Lumen Field, Seattle', isHome:false, highlight:false }
   ];
   var h = '';
-  fixtures.forEach(function(f) {
+  fixtures.forEach(function(f, idx) {
+    var homeTeam = f.homeTeam || 'Bosna';
+    var awayTeam = f.awayTeam || (f.opp || '');
+    // Ergebnis ggf. aus den eingetragenen Resultaten (Tabelle) uebernehmen
+    var _lg = /nations|liga b|\bnl\b/i.test(f.comp || '') ? 'nl' : (/wm|gruppe/i.test(f.comp || '') ? 'wm' : null);
+    if ((f.homeScore === undefined || f.homeScore === null || f.homeScore === '') && _lg && MATCH_RESULTS[_lg]) {
+      var _k = _matchKey(homeTeam, awayTeam), _m = MATCH_RESULTS[_lg][_k];
+      if (_m && _m.hs !== '' && _m.hs != null && _m.as !== '' && _m.as != null) {
+        var _s = [homeTeam, awayTeam].sort();
+        if (_s[0] === homeTeam) { f.homeScore = _m.hs; f.awayScore = _m.as; }
+        else { f.homeScore = _m.as; f.awayScore = _m.hs; }
+        f.score = f.homeScore + ':' + f.awayScore;
+      }
+    }
     var played = (f.homeScore !== undefined && f.homeScore !== null && f.homeScore !== '') ||
                  (f.score && f.score !== '');
     var borderColor = f.highlight ? 'rgba(245,197,24,.5)' : played ? 'rgba(100,100,120,.3)' : (f.isHome ? 'rgba(46,213,115,.25)' : 'rgba(245,197,24,.18)');
@@ -2329,8 +2342,8 @@ function renderFixturesHTML(games) {
     h += '</div>';
     h += '<div style="color:var(--gray2);font-size:10px;margin-bottom:10px">&#127967; ' + (f.stadium||'') + '</div>';
     h += '<div style="display:flex;align-items:center;justify-content:space-between">';
-    var homeTeam = f.homeTeam || 'Bosna';
-    var awayTeam = f.awayTeam || (f.opp||'');
+    homeTeam = f.homeTeam || 'Bosna';
+    awayTeam = f.awayTeam || (f.opp||'');
     var homeEmoji = f.homeTeam && f.homeTeam !== 'Bosna' ? (f.homeEmoji||f.oppEmoji||'') : '&#127463;&#127462;';
     var awayEmoji = f.awayTeam && f.awayTeam !== 'Bosna' ? (f.awayEmoji||f.oppEmoji||'') : (f.oppEmoji||'');
     var homeColor = (homeTeam==='Bosna') ? 'color:var(--gold);font-weight:900' : 'color:var(--white);font-weight:800';
@@ -2344,9 +2357,83 @@ function renderFixturesHTML(games) {
       h += scoreHTML;
       h += '<div style="text-align:center;flex:1"><div style="font-size:28px">&#127463;&#127462;</div><div style="color:var(--gold);font-weight:900;font-size:13px;margin-top:3px;font-family:Barlow Condensed,sans-serif">BOSNA</div></div>';
     }
-    h += '</div></div>';
+    h += '</div>';
+    if (isAdmin()) {
+      var fid = f.docId || ('row' + idx);
+      var curH = (f.homeScore != null && f.homeScore !== '') ? f.homeScore : '';
+      var curA = (f.awayScore != null && f.awayScore !== '') ? f.awayScore : '';
+      var ein = 'width:34px;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;color:var(--white);font-size:15px;font-weight:800;text-align:center;padding:5px 1px;-webkit-appearance:none';
+      h += '<div style="margin-top:11px;border-top:1px solid var(--border);padding-top:10px">';
+      h += '<button onclick="toggleFixtureEdit(&apos;' + fid + '&apos;)" style="width:100%;background:rgba(245,197,24,.12);border:1px solid rgba(245,197,24,.3);border-radius:9px;padding:8px;color:var(--gold);font-size:12px;font-weight:700;cursor:pointer">&#x270F; Ergebnis eintragen</button>';
+      h += '<div id="fixedit-' + fid + '" style="display:none;margin-top:9px">';
+      h += '<div style="display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:9px">';
+      h += '<span style="color:var(--white);font-size:12px;font-weight:700">' + homeTeam + '</span>';
+      h += '<input id="fixh-' + fid + '" type="number" min="0" max="99" inputmode="numeric" value="' + curH + '" style="' + ein + '">';
+      h += '<span style="color:var(--gray2);font-weight:800">:</span>';
+      h += '<input id="fixa-' + fid + '" type="number" min="0" max="99" inputmode="numeric" value="' + curA + '" style="' + ein + '">';
+      h += '<span style="color:var(--white);font-size:12px;font-weight:700">' + awayTeam + '</span>';
+      h += '</div>';
+      h += '<button data-fid="' + fid + '" data-home="' + homeTeam + '" data-away="' + awayTeam + '" data-comp="' + (f.comp || '') + '" data-docid="' + (f.docId || '') + '" onclick="saveFixtureScore(this)" style="width:100%;background:var(--gold);border:none;border-radius:9px;padding:10px;color:#0a0f1e;font-size:13px;font-weight:800;cursor:pointer">&#x2705; Speichern</button>';
+      h += '</div>';
+      h += '</div>';
+    }
+    h += '</div>';
   });
   container.innerHTML = h || '<div style="text-align:center;padding:16px;color:var(--gray);font-size:13px">Keine Spiele eingetragen</div>';
+}
+
+// Editor auf einer Spielkarte ein-/ausklappen
+function toggleFixtureEdit(fid) {
+  var el = document.getElementById('fixedit-' + fid);
+  if (el) el.style.display = (el.style.display === 'none' || !el.style.display) ? 'block' : 'none';
+}
+
+// Ergebnis direkt von einer Spielkarte speichern → Tabelle aktualisiert sich
+function saveFixtureScore(btn) {
+  if (!fbDb) { showToast('Keine Firebase-Verbindung!'); return; }
+  var fid = btn.getAttribute('data-fid');
+  var homeTeam = btn.getAttribute('data-home');
+  var awayTeam = btn.getAttribute('data-away');
+  var comp = btn.getAttribute('data-comp') || '';
+  var docId = btn.getAttribute('data-docid') || '';
+  var hEl = document.getElementById('fixh-' + fid);
+  var aEl = document.getElementById('fixa-' + fid);
+  var hv = hEl ? hEl.value.trim() : '';
+  var av = aEl ? aEl.value.trim() : '';
+  if (hv === '' || av === '') { showToast('Bitte beide Ergebnisse eingeben'); return; }
+  var hs = parseInt(hv) || 0, as = parseInt(av) || 0;
+  // Liga bestimmen und Tabelle aktualisieren (nur wenn beide Teams in der Gruppe sind)
+  var lg = /nations|liga b|\bnl\b/i.test(comp) ? 'nl' : (/wm|gruppe/i.test(comp) ? 'wm' : null);
+  if (lg && STANDINGS[lg]) {
+    var names = STANDINGS[lg].teams.map(function(t) { return t.n; });
+    if (names.indexOf(homeTeam) >= 0 && names.indexOf(awayTeam) >= 0) {
+      var key = _matchKey(homeTeam, awayTeam);
+      var s = [homeTeam, awayTeam].sort();
+      var sh = (s[0] === homeTeam) ? hs : as;
+      var sa = (s[0] === homeTeam) ? as : hs;
+      if (!MATCH_RESULTS[lg]) MATCH_RESULTS[lg] = {};
+      MATCH_RESULTS[lg][key] = { home: s[0], away: s[1], hs: sh, as: sa };
+      recomputeStandings(lg);
+    }
+  }
+  var tasks = [];
+  if (docId) {
+    tasks.push(fbDb.collection('games').doc(docId).set({
+      homeScore: hs, awayScore: as, score: hs + ':' + as,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true }));
+  }
+  tasks.push(fbDb.collection('standings').doc('data').set({
+    wm: STANDINGS.wm, nl: STANDINGS.nl,
+    wmMatches: MATCH_RESULTS.wm || {}, nlMatches: MATCH_RESULTS.nl || {},
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true }));
+  Promise.all(tasks).then(function() {
+    showToast('✅ Ergebnis gespeichert!');
+    var sc = document.getElementById('standings-container');
+    if (sc) sc.innerHTML = renderStandingsHTML();
+    loadFixturesFromFirestore();
+  }).catch(function(e) { showToast('Fehler: ' + e.message); });
 }
 
 // ── LIVE RESULTS: Firestore first, AI fallback ────────────────
