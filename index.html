@@ -1124,6 +1124,127 @@ function setLang(lang) {
   document.querySelectorAll('.lang-btn').forEach(function(b){
     b.classList.toggle('on', b.getAttribute('data-lang') === APP_LANG);
   });
+  // App-Inhalte neu rendern und Uebersetzung anwenden
+  if (APP_LANG === 'bs') startBsObserver(); else stopBsObserver();
+  try {
+    if (ME) {
+      if (typeof renderAll === 'function') renderAll();
+      var bb = document.getElementById('tp-bihbook'); if (bb && bb.classList.contains('on') && typeof renderBihbook === 'function') renderBihbook();
+      var sp = document.getElementById('tp-spieler'); if (sp && sp.classList.contains('on') && typeof renderSpieler === 'function') renderSpieler();
+    }
+  } catch (e) {}
+  applyBosnianDOM(document.body);
+}
+
+// ════════════════════════════════════════════════════════════
+// AUTOMATISCHE BOSNISCHE UEBERSETZUNG (Deutsch -> Bosanski)
+// Woerterbuch: Schluessel = deutscher Text (ohne fuehrende/abschliessende
+// Emojis, Symbole oder Leerzeichen), Wert = bosnische Uebersetzung.
+// ════════════════════════════════════════════════════════════
+var BS_MAP = {
+  // Buttons / allgemein
+  'Posten': 'Objavi', 'Speichern': 'Spremi', 'Schliessen': 'Zatvori', 'Schließen': 'Zatvori',
+  'Zurueck': 'Nazad', 'Zurück': 'Nazad', 'Abbrechen': 'Otkaži', 'Senden': 'Pošalji',
+  'Anrufen': 'Pozovi', 'Loeschen': 'Obriši', 'Löschen': 'Obriši', 'Bearbeiten': 'Uredi',
+  'Antworten': 'Odgovori', 'Hinzufuegen': 'Dodaj', 'Hinzufügen': 'Dodaj', 'Anfragen': 'Upit',
+  'Erledigt': 'Završeno', 'Neu': 'Novo', 'Lade': 'Učitavam', 'Aktuell': 'Aktuelno',
+  // Benachrichtigungen
+  'Benachrichtigungen': 'Obavještenja', 'Keine Benachrichtigungen': 'Nema obavještenja',
+  // Kommentare / Stories
+  'Noch keine Kommentare': 'Još nema komentara', 'Kommentar': 'Komentar', 'Kommentare': 'Komentari',
+  'Antwort gesendet': 'Odgovor poslan', 'Story ist abgelaufen': 'Priča je istekla',
+  'Keine aktiven Stories': 'Nema aktivnih priča', 'Story 6h live': 'Priča je 6h aktivna',
+  // Werbung
+  'Werbung schalten': 'Postavi reklamu', 'Werbung': 'Reklama', 'Werbe-Anfragen': 'Upiti za reklame',
+  'Hier koennte deine Werbung stehen': 'Ovdje može biti tvoja reklama',
+  'Erreiche tausende Zmajevi-Fans. Jetzt unverbindlich anfragen': 'Dosegni hiljade Zmajevi-fanova. Pošalji upit',
+  'Du moechtest dein Unternehmen, Produkt oder Event in der Zmajevi-App bewerben? Hinterlasse deine Kontaktdaten – wir melden uns persoenlich bei dir': 'Želiš reklamirati svoju firmu, proizvod ili događaj u Zmajevi aplikaciji? Ostavi svoje kontakt podatke – javit ćemo ti se lično',
+  'Dein Name': 'Tvoje ime', 'Firma / Unternehmen (optional)': 'Firma / preduzeće (opcionalno)',
+  'Was moechtest du bewerben? (kurz beschreiben': 'Šta želiš reklamirati? (ukratko opiši',
+  'Anfrage senden': 'Pošalji upit', 'Deine Daten werden nur fuer die Kontaktaufnahme genutzt': 'Tvoji podaci se koriste samo za kontakt',
+  'Danke! Deine Anfrage wurde gesendet': 'Hvala! Tvoj upit je poslan',
+  'Bitte Name und Telefon oder E-Mail angeben': 'Unesi ime i telefon ili e-mail',
+  'Hier landen alle Anfragen von Leuten, die in der App Werbung schalten moechten. Tippe auf WhatsApp, Anrufen oder E-Mail, um die Person direkt zu kontaktieren': 'Ovdje stižu svi upiti ljudi koji žele reklamirati u aplikaciji. Klikni na WhatsApp, Pozovi ili E-Mail da kontaktiraš osobu.',
+  'Noch keine Anfragen': 'Još nema upita', 'Geloescht': 'Obrisano',
+  // Spiele / Resultate
+  'Resultate eintragen': 'Unesi rezultate', 'Resultate & Tabelle speichern': 'Spremi rezultate i tabelu',
+  'Trage die Ergebnisse aller Spiele ein – die Tabelle oben aktualisiert sich automatisch': 'Unesi rezultate svih utakmica – tabela iznad se automatski ažurira',
+  'Ergebnis eintragen': 'Unesi rezultat', 'Ergebnis gespeichert': 'Rezultat spremljen',
+  'Resultate & Tabelle gespeichert': 'Rezultati i tabela spremljeni',
+  'Bitte beide Ergebnisse eingeben': 'Unesi oba rezultata',
+  'Keine Spiele eingetragen': 'Nema unesenih utakmica',
+  // Kader
+  'Kader bearbeiten': 'Uredi kadar', 'Kader verwalten': 'Upravljaj kadrom',
+  'NEUEN SPIELER HINZUFUEGEN': 'DODAJ NOVOG IGRAČA', 'Spieler hinzufuegen': 'Dodaj igrača',
+  'Name und Verein sind Pflicht': 'Ime i klub su obavezni', 'Name ist Pflicht': 'Ime je obavezno',
+  'gespeichert': 'spremljeno', 'Spieler wirklich loeschen?': 'Stvarno obrisati igrača?',
+  // Fehler / Status
+  'Nur Admin': 'Samo admin', 'Kein Zugriff': 'Nema pristupa',
+  'Keine Firebase-Verbindung': 'Nema veze s bazom', 'Verbindungsfehler': 'Greška veze',
+  'Bitte einloggen': 'Prijavi se', 'Post veroeffentlicht': 'Objava poslana',
+  'Keine Verbindung': 'Nema veze', 'Fehler': 'Greška', 'Lade Story': 'Učitavam priču'
+};
+
+function _bsTranslate(raw) {
+  if (APP_LANG !== 'bs' || raw == null) return null;
+  var s = String(raw);
+  if (!s.trim()) return null;
+  var lead = (s.match(/^\s*/) || [''])[0];
+  var trail = (s.match(/\s*$/) || [''])[0];
+  var mid = s.slice(lead.length, s.length - trail.length);
+  // fuehrende Emojis/Symbole abtrennen
+  var em = mid.match(/^[^\p{L}\d]+/u);
+  var pre = '';
+  if (em && mid.length > em[0].length) { pre = em[0]; mid = mid.slice(em[0].length); }
+  // abschliessende Emojis/Symbole abtrennen
+  var emT = mid.match(/[^\p{L}\d]+$/u);
+  var suf = '';
+  if (emT && mid.length > emT[0].length) { suf = emT[0]; mid = mid.slice(0, mid.length - emT[0].length); }
+  var tr = BS_MAP[mid];
+  if (!tr) return null;
+  return lead + pre + tr + suf + trail;
+}
+
+function applyBosnianDOM(root) {
+  if (APP_LANG !== 'bs') return;
+  root = root || document.body;
+  if (!root) return;
+  var skip = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1, INPUT: 1 };
+  var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode: function(node) {
+      if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+      var p = node.parentNode;
+      if (p && (skip[p.nodeName] || p.isContentEditable)) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  var batch = [];
+  while (walker.nextNode()) batch.push(walker.currentNode);
+  batch.forEach(function(node) {
+    var tr = _bsTranslate(node.nodeValue);
+    if (tr != null && tr !== node.nodeValue) node.nodeValue = tr;
+  });
+  // Platzhalter uebersetzen
+  var ph = root.querySelectorAll ? root.querySelectorAll('[placeholder]') : [];
+  Array.prototype.forEach.call(ph, function(el) {
+    var tr = _bsTranslate(el.getAttribute('placeholder'));
+    if (tr != null) el.setAttribute('placeholder', tr);
+  });
+}
+
+var _bsObserver = null, _bsTimer = null;
+function startBsObserver() {
+  if (typeof MutationObserver === 'undefined') { applyBosnianDOM(document.body); return; }
+  if (_bsObserver) { applyBosnianDOM(document.body); return; }
+  _bsObserver = new MutationObserver(function() {
+    if (_bsTimer) clearTimeout(_bsTimer);
+    _bsTimer = setTimeout(function() { applyBosnianDOM(document.body); }, 60);
+  });
+  _bsObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
+  applyBosnianDOM(document.body);
+}
+function stopBsObserver() {
+  if (_bsObserver) { _bsObserver.disconnect(); _bsObserver = null; }
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1145,7 +1266,7 @@ var feedUnsub = null;
 // ════════════════════════════════════════════════════════════
 function showToast(msg) {
   var t = document.getElementById('toast');
-  t.textContent = msg;
+  t.textContent = (APP_LANG === 'bs' && typeof _bsTranslate === 'function') ? (_bsTranslate(msg) || msg) : msg;
   t.classList.add('show');
   setTimeout(function() { t.classList.remove('show'); }, 2600);
 }
@@ -1213,6 +1334,7 @@ function doAuth(btnOrMode) {
         showScreen('s-main');
         renderUserPill();
         renderAll();
+        if (APP_LANG === 'bs') startBsObserver();
         showToast(t('welcome') + name + '!');
       });
     }).catch(function(err) {
@@ -1234,6 +1356,8 @@ function doAuth(btnOrMode) {
         showToast(t('welcomeBack'));
         setTimeout(runAutoCleanup, 3000);
         setTimeout(loadNotifications, 1000);
+        startNotifPolling();
+        if (APP_LANG === 'bs') startBsObserver();
       });
     }).catch(function(err) {
       resetBtn(btn, mode);
@@ -3410,7 +3534,11 @@ function submitPost() {
       likedBy: {}, commentCount: 0
     };
     if (imgUrl) pd.imageUrl = imgUrl;
-    fbDb.collection('posts').add(pd).then(function() {
+    fbDb.collection('posts').add(pd).then(function(ref) {
+      // @-Erwaehnungen benachrichtigen
+      extractMentions(txt).forEach(function(u) {
+        createNotification(u, 'mention_post', { text: txt, postId: ref.id });
+      });
       if (area) area.value = '';
       if (btn) { btn.disabled = false; btn.textContent = 'Posten'; }
       removeImage(); togglePost();
@@ -3492,13 +3620,17 @@ function sendComment() {
       likedBy: {}
     };
     if (imgUrl) cdata.imageUrl = imgUrl;
-    // Extract @mentions
-    var mentions = (txt.match(/@(\w+)/g) || []).map(function(m){ return m.slice(1); });
-    if (mentions.length) cdata.mentions = mentions;
+    // Extract @mentions (kleingeschrieben fuer konsistente Suche)
+    var mentionNames = extractMentions(txt);
+    if (mentionNames.length) cdata.mentions = mentionNames.map(function(m){ return m.toLowerCase(); });
 
     var ref = fbDb.collection('posts').doc(currentCommentId);
-    ref.collection('comments').add(cdata).then(function() {
+    ref.collection('comments').add(cdata).then(function(cRef) {
       ref.update({ commentCount: firebase.firestore.FieldValue.increment(1) });
+      // @-Erwaehnungen im Kommentar benachrichtigen
+      mentionNames.forEach(function(u) {
+        createNotification(u, 'mention_comment', { text: txt, postId: currentCommentId, commentId: cRef.id });
+      });
       window._commentImageFile = null;
       var prevWrap = document.getElementById('comment-img-preview-wrap');
       if (prevWrap) prevWrap.style.display = 'none';
@@ -4070,7 +4202,16 @@ function sendStoryReply() {
   var txt = inp ? inp.value.trim() : '';
   if (!txt) return;
   inp.value = '';
-  showToast('Antwort gesendet!');
+  var s = (currentStories && currentStories[currentStoryIndex]) ? currentStories[currentStoryIndex] : null;
+  if (s && s.uid && ME && s.uid !== ME.uid && fbDb) {
+    // Antwort speichern (optional) + Story-Besitzer benachrichtigen
+    fbDb.collection('stories').doc(s.docId).collection('replies').add({
+      uid: ME.uid, username: ME.username, displayName: ME.name,
+      text: txt, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(function() {});
+    createNotification(s.username || '', 'story_reply', { text: txt, storyUid: s.uid });
+  }
+  showToast(APP_LANG === 'bs' ? 'Odgovor poslan!' : 'Antwort gesendet!');
 }
 
 // Tap left/right to navigate
@@ -4684,6 +4825,9 @@ window.addEventListener('DOMContentLoaded', function() {
         showScreen('s-main');
         renderUserPill();
         renderAll();
+        setTimeout(loadNotifications, 1000);
+        startNotifPolling();
+        if (APP_LANG === 'bs') startBsObserver();
       }).catch(function() {
         showScreen('s-auth');
         renderAuthForm('login');
@@ -4814,42 +4958,68 @@ function initPullToRefresh() {
 }
 
 // ════ NOTIFICATIONS — @mentions ════════════════════════════
+// ── Benachrichtigungen: dedizierte Firestore-Collection 'notifications' ──
+// @-Erwaehnungen aus Text extrahieren (einzigartig)
+function extractMentions(text) {
+  var arr = (String(text || '').match(/@(\w+)/g) || []).map(function(m) { return m.slice(1); });
+  var seen = {}, out = [];
+  arr.forEach(function(u) { var k = u.toLowerCase(); if (k && !seen[k]) { seen[k] = 1; out.push(u); } });
+  return out;
+}
+
+// Eine Benachrichtigung fuer einen Nutzer (per Username) anlegen
+function createNotification(toUsername, type, extra) {
+  if (!fbDb || !toUsername) return;
+  var target = String(toUsername).toLowerCase();
+  var meUser = (ME && ME.username) ? ME.username.toLowerCase() : '';
+  if (target === meUser) return; // sich selbst nicht benachrichtigen
+  extra = extra || {};
+  fbDb.collection('notifications').add({
+    toUser: target,
+    type: type,
+    fromName: ME ? ME.name : 'Fan',
+    fromUsername: ME ? ME.username : 'fan',
+    text: extra.text || '',
+    postId: extra.postId || '',
+    commentId: extra.commentId || '',
+    storyUid: extra.storyUid || '',
+    read: false,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(function() {});
+}
+
 function loadNotifications() {
   if (!fbDb || !ME) return;
   var btn = document.getElementById('notif-btn');
-
-  fbDb.collection('posts').orderBy('createdAt', 'desc').limit(100)
+  var myUser = (ME.username || '').toLowerCase();
+  if (!myUser) return;
+  fbDb.collection('notifications').where('toUser', '==', myUser).limit(60)
     .get().then(function(snap) {
       var notifs = [];
-      snap.forEach(function(doc) {
-        var d = doc.data();
-        if (!d.text) return;
-        var mentions = d.text.match(/@(\w+)/g) || [];
-        var myUsername = (ME.username || '').toLowerCase();
-        mentions.forEach(function(m) {
-          if (m.slice(1).toLowerCase() === myUsername) {
-            notifs.push({ docId: doc.id, from: d.displayName, username: d.username, text: d.text, createdAt: d.createdAt });
-          }
-        });
-        // Check comments too
-        fbDb.collection('posts').doc(doc.id).collection('comments')
-          .where('mentions', 'array-contains', myUsername)
-          .get().then(function(cSnap) {
-            cSnap.forEach(function(cDoc) {
-              var c = cDoc.data();
-              notifs.push({ docId: doc.id, from: c.displayName, username: c.username, text: c.text, isComment: true, createdAt: c.createdAt });
-            });
-          }).catch(function(){});
+      snap.forEach(function(doc) { notifs.push(Object.assign({ id: doc.id }, doc.data())); });
+      notifs.sort(function(a, b) {
+        var ta = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+        var tb = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
+        return tb - ta;
       });
       window._notifications = notifs;
+      var unread = notifs.filter(function(n) { return !n.read; }).length;
       if (btn) {
-        if (notifs.length > 0) {
-          btn.innerHTML = '&#x1F514;<span style="position:absolute;top:-2px;right:-2px;background:var(--red);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:800">' + Math.min(notifs.length, 9) + '</span>';
-        } else {
-          btn.innerHTML = '&#x1F514;';
-        }
+        btn.innerHTML = '&#x1F514;' + (unread > 0 ? '<span style="position:absolute;top:-2px;right:-2px;background:var(--red);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:800">' + Math.min(unread, 9) + '</span>' : '');
       }
-    }).catch(function(){});
+    }).catch(function() {});
+}
+
+var _notifPollTimer = null;
+function startNotifPolling() {
+  if (_notifPollTimer) return;
+  _notifPollTimer = setInterval(function() { loadNotifications(); }, 45000);
+}
+
+function notifLabel(n) {  var who = '@' + (n.fromUsername || 'fan');
+  if (n.type === 'mention_comment') return who + (APP_LANG === 'bs' ? ' te je spomenuo u komentaru' : ' hat dich in einem Kommentar erwaehnt');
+  if (n.type === 'story_reply') return who + (APP_LANG === 'bs' ? ' je odgovorio na tvoju priču' : ' hat auf deine Story geantwortet');
+  return who + (APP_LANG === 'bs' ? ' te je spomenuo' : ' hat dich erwaehnt');
 }
 
 function openNotifications() {
@@ -4857,29 +5027,71 @@ function openNotifications() {
   var modal = document.getElementById('notif-modal');
   var list = document.getElementById('notif-list');
   if (!modal || !list) return;
-
   if (!notifs.length) {
-    list.innerHTML = '<div style="text-align:center;padding:28px;color:var(--gray);font-size:14px">Keine Benachrichtigungen</div>';
+    list.innerHTML = '<div style="text-align:center;padding:28px;color:var(--gray);font-size:14px">' + (APP_LANG === 'bs' ? 'Nema obavještenja' : 'Keine Benachrichtigungen') + '</div>';
   } else {
     list.innerHTML = notifs.map(function(n) {
-      var ts = n.createdAt && n.createdAt.toDate ? n.createdAt.toDate().toLocaleDateString('de-DE',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
-      var txt = (n.text||'').replace(/@(\w+)/g, '<span style="color:var(--gold);font-weight:700">@$1</span>');
-      return '<div style="display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer" onclick="closeNotifModal()">' +
-        '<div style="width:38px;height:38px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#0a0f1e;flex-shrink:0">' + (n.from||'F')[0].toUpperCase() + '</div>' +
-        '<div style="flex:1"><div style="color:var(--white);font-size:13px;font-weight:700">@' + (n.username||'fan') + ' hat dich erwaehnt</div>' +
-        '<div style="color:var(--gray);font-size:12px;margin-top:3px;line-height:1.4">' + txt.slice(0,80) + '</div>' +
-        '<div style="color:var(--gray2);font-size:10px;margin-top:4px">' + ts + (n.isComment ? ' &#xB7; Kommentar' : ' &#xB7; Post') + '</div></div></div>';
+      var ts = n.createdAt && n.createdAt.toDate ? n.createdAt.toDate().toLocaleDateString(APP_LANG === 'bs' ? 'bs-BA' : 'de-DE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+      var txt = _esc(n.text || '').replace(/@(\w+)/g, '<span style="color:var(--gold);font-weight:700">@$1</span>');
+      var dot = n.read ? '' : '<span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:6px"></span>';
+      return '<div style="display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;' + (n.read ? '' : 'background:rgba(245,197,24,.05)') + '" onclick="notifClick(&apos;' + n.id + '&apos;)">' +
+        dot +
+        '<div style="width:38px;height:38px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#0a0f1e;flex-shrink:0">' + (n.fromName || 'F')[0].toUpperCase() + '</div>' +
+        '<div style="flex:1"><div style="color:var(--white);font-size:13px;font-weight:700">' + notifLabel(n) + '</div>' +
+        (txt ? '<div style="color:var(--gray);font-size:12px;margin-top:3px;line-height:1.4">' + txt.slice(0, 90) + '</div>' : '') +
+        '<div style="color:var(--gray2);font-size:10px;margin-top:4px">' + ts + '</div></div></div>';
     }).join('');
   }
   modal.classList.add('open');
-  // Clear badge
-  var btn = document.getElementById('notif-btn');
-  if (btn) btn.innerHTML = '&#x1F514;';
+}
+
+// Klick auf Benachrichtigung → als gelesen markieren + zur Quelle navigieren
+function notifClick(id) {
+  var notifs = window._notifications || [];
+  var n = null;
+  for (var i = 0; i < notifs.length; i++) { if (notifs[i].id === id) { n = notifs[i]; break; } }
+  if (!n) { closeNotifModal(); return; }
+  if (fbDb && !n.read) {
+    fbDb.collection('notifications').doc(id).set({ read: true }, { merge: true }).catch(function() {});
+    n.read = true;
+  }
+  closeNotifModal();
+  if (n.type === 'story_reply') {
+    if (n.storyUid) openStoryByUid(n.storyUid);
+  } else if (n.postId) {
+    // Beitrag/Kommentar oeffnen (Modal liegt ueber jedem Tab)
+    setTimeout(function() { openFireComments(n.postId); }, 60);
+  }
+  // Badge aktualisieren
+  loadNotifications();
 }
 
 function closeNotifModal() {
   var modal = document.getElementById('notif-modal');
   if (modal) modal.classList.remove('open');
+}
+
+// Stories eines Nutzers per UID oeffnen (fuer Story-Antwort-Benachrichtigung)
+function openStoryByUid(uid) {
+  if (!uid || !fbDb) return;
+  var byUser = window._storiesByUser || {};
+  if (byUser[uid] && byUser[uid].length) { viewStory(uid); return; }
+  showToast(APP_LANG === 'bs' ? 'Učitavam priču...' : 'Lade Story...');
+  var now = new Date();
+  fbDb.collection('stories').where('uid', '==', uid).orderBy('createdAt', 'desc').limit(10)
+    .get().then(function(snap) {
+      var stories = [];
+      snap.forEach(function(doc) {
+        var d = doc.data();
+        var created = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate() : new Date(0);
+        var expires = d.expiresAt && d.expiresAt.toDate ? d.expiresAt.toDate() : new Date(created.getTime() + 6 * 3600000);
+        if (expires > now) stories.push(Object.assign({ docId: doc.id }, d));
+      });
+      if (!stories.length) { showToast(APP_LANG === 'bs' ? 'Priča je istekla.' : 'Story ist abgelaufen.'); return; }
+      if (!window._storiesByUser) window._storiesByUser = {};
+      window._storiesByUser[uid] = stories;
+      viewStory(uid);
+    }).catch(function(e) { showToast('Fehler: ' + e.message); });
 }
 
 // ── WERBUNG / Kontaktanfragen ──────────────────────────────────
